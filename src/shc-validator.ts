@@ -10,6 +10,7 @@ import log, { LogLevels } from './logger';
 import { getFileData } from './file';
 import { ErrorCode } from './error';
 import * as keys from './keys';
+import npmpackage from '../package.json';
 
 
 /**
@@ -19,7 +20,7 @@ import * as keys from './keys';
  */
 const loglevelChoices = ['debug', 'info', 'warning', 'error', 'fatal'];
 const program = new Command();
-program.version('0.1.1', '-v, --version', 'display specification and tool version'); // TODO: how to get this from package.json?
+program.version(npmpackage.version, '-v, --version', 'display specification and tool version');
 program.requiredOption('-p, --path <path>', 'path of the file to validate');
 program.addOption(new Option('-t, --type <type>', 'type of file to validate').choices(['fhirbundle', 'jwspayload', 'jws', 'healthcard', 'qrnumeric', 'qr', 'jwkset'])); // TODO: populate this from the validate enum.
 program.addOption(new Option('-l, --loglevel <loglevel>', 'set the minimum log level').choices(loglevelChoices).default('warning'));
@@ -103,7 +104,7 @@ async function processOptions() {
             }
         }
 
-        console.log("Validation completed");
+        console.log("Validation completed ");
 
     } else {
         console.log("Invalid option, missing 'path' or 'type'");
