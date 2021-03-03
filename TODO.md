@@ -3,7 +3,6 @@ Assigned to (C)hristian, (L)arry, (K)aren, (?) Unassigned
 Priority: P1 (needed for release), P2, P3, ...
 
 *Dev*
-- [ ] Switch to github repo (C) (P1)
 - [ ] Validate schema for each artifact type (L) (P1)
 - [ ] Clean-up code (exports, comments, etc.) (C/L) (P1)
 - [ ] Address all TODOs in the code (keep, delete, fix) (?) (P1)
@@ -20,9 +19,6 @@ Priority: P1 (needed for release), P2, P3, ...
    - [ ] In a QR code, the the JWS string value SHALL be represented as two segments: (L) (P2)
       1. A segment encoded with bytes mode consisting of the fixed string shc:/
       2. A segment encoded with numeric mode consisting of the characters 0-9. 
-- Crypto tests (C) (P2)
-    - [ ] Invalid signature
-    - [ ] Invalid algs (hash, sig, curves)
 - FHIR tests (?) (P2)
     - [ ] Connect to MITRE [validator](https://github.com/inferno-community/fhir-validator-wrapper) (P3)
 
