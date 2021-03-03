@@ -16,7 +16,6 @@ import * as keys from './keys';
  *  Defines the program
  *  see https://www.npmjs.com/package/commander for documentation
  *  -h/--help auto-generated
- * TODO: add more option validation?
  */
 const loglevelChoices = ['debug', 'info', 'warning', 'error', 'fatal'];
 const program = new Command();
@@ -40,9 +39,6 @@ interface Options {
  * Processes the program options and launches validation
  */
 async function processOptions() {
-
-    // appExit = exitProcess;
-
     const options = program.opts() as Options;
     let logFilePathIsValid = false;
 
@@ -61,9 +57,7 @@ async function processOptions() {
     }
 
     if (options.path && options.type) {
-
         // read the file to validate
-
         let fileData;
         try {
             fileData = await getFileData(options.path);
@@ -114,6 +108,7 @@ async function processOptions() {
     } else {
         console.log("Invalid option, missing 'path' or 'type'");
         console.log(options);
+        program.help();
     }
 }
 
