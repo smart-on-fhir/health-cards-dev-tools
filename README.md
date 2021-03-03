@@ -71,7 +71,8 @@ The tool currently verifies proper encoding of the:
 
 The following tests are work-in-progress:
  - Parse split QR codes (per v0.2 of spec)
- - FHIR bundle content
+ - Verifiable credential containing multiple health cards
+ - FHIR bundle content, according to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/).
 
 ## Contributing
 
