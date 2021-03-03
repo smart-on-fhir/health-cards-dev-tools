@@ -7,7 +7,7 @@
         "build": "tsc",
         "fetch-examples": "ts-node --files src/fetch-examples.ts",
         "prevalidate-examples": "npm run fetch-examples",
-        "validate-examples": "ts-node --files src/shc-validator.ts --path examples/example-00-e-file.smart-health-card --type healthcard --loglevel info",
+        "validate-examples": "ts-node --files src/shc-validator.ts --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info",
         "pretest": "npm run fetch-examples",
         "test": "jest --silent --rootDir tests",
         "generate-crypto-test-data": "ts-node --files src/generate-crypto-test-data",

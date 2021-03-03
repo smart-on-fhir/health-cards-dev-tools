@@ -4,7 +4,6 @@
 import execa from 'execa';
 import { ErrorCode } from '../src/error';
 
-
 function runCommand(command: string) {
     try {
         return execa.commandSync(command);
@@ -58,9 +57,8 @@ test("Cards: valid 01 jws-payload", () => expect(testCliCommand('node . --path t
 test("Cards: valid 01 fhirBundle", () => expect(testCliCommand('node . --path testdata/example-01-a-fhirBundle.json --type fhirbundle --loglevel warning')).toBe(0));
 test("Cards: valid 01 r-code-numeric", () => expect(testCliCommand('node . --path testdata/example-01-f-qr-code-numeric.txt --type qrnumeric --loglevel info')).toBe(0));
 test("Cards: valid 01 qr-code.svg", () => expect(testCliCommand('node . --path testdata/example-00-g-qr-code-0.svg --type qr --loglevel info')).toBe(0));
-test("Cards: valid qr.png", () => expect(testCliCommand('node . --path examples/qr.png --type qr --loglevel info')).toBe(0));
-test("Cards: valid qr-90.pngd", () => expect(testCliCommand('node . --path examples/qr-90.png --type qr --loglevel info')).toBe(0));
-
+test("Cards: valid qr.png", () => expect(testCliCommand('node . --path testdata/qr.png --type qr --loglevel info')).toBe(0));
+test("Cards: valid qr-90.pngd", () => expect(testCliCommand('node . --path testdata/qr-90.png --type qr --loglevel info')).toBe(0));
 
 // Bad paths to data files
 test("Cards: missing healthcard", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type healthcard --loglevel info')).toBe(ErrorCode.DATA_FILE_NOT_FOUND));
