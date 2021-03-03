@@ -58,6 +58,21 @@ Issuer signing keys can be validated before being uploaded to their well-known U
 
                 node . --path issuer.key --type jwkset
 
+## Validating tests
+
+The tool currently verifies proper encoding of:
+ - QR code image
+ - Numeric QR data (header, content)
+ - Smart Health Card file (schema)
+ - JWS (schema, deflate compression, format, size limits, signature, issuer key retrieval)
+ - JWS payload (schema)
+ - FHIR bundle (schema)
+ - Issuer JSON Key Set (schema, algorithm, EC Curve, ID, type, usage)
+
+The following tests are work-in-progress:
+ - Parse split QR codes (per v0.2 of spec)
+ - FHIR bundle content
+
 ## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
