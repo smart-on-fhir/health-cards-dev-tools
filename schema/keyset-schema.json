@@ -1,0 +1,50 @@
+{
+    "$id": "https://smarthealth.cards/schema/fhir-bundle-schema.json",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "root",
+    "type": "object",
+    "required": [
+        "keys"
+    ],
+    "properties": {
+        "keys": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "kty": {
+                        "type": "string"
+                    },
+                    "kid": {
+                        "type": "string",
+                        "pattern": "^[0-9a-zA-Z_-]+$"
+                    },
+                    "use": {
+                        "type": "string",
+                        "pattern": "^(sig|enc)$"
+                    },
+                    "alg": {
+                        "type": "string"
+                    },
+                    "crv": {
+                        "type": "string"
+                    },
+                    "x": {
+                        "type": "string",
+                        "pattern": "^[0-9a-zA-Z_-]+$"
+                    },
+                    "y": {
+                        "type": "string",
+                        "pattern": "^[0-9a-zA-Z_-]+$"
+                    }
+                },
+                "required": [
+                    "kty",
+                    "kid"
+                ]
+            }
+        }
+    }
+}

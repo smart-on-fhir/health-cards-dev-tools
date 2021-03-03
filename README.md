@@ -1,14 +1,62 @@
-# Project
+# SMART Health Cards Validation SDK
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artefacts they produce. The package's version number, currently `0.1.1`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
 
-As the maintainer of this project, please make a few updates:
+## Setup
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+1. Make sure [node.js](https://nodejs.org/) is installed on your system. The latest LTS version (14.16.0) is recommended.
+
+2. Get the source, for example using git:
+
+                git clone -b main https://github.com/microsoft/health-cards-validation-SDK.git
+                cd health-cards-validation-SDK
+
+3. Build the npm package:
+
+                npm install
+                npm build
+
+3. Optionally, run the tests:
+
+                npm test
+
+## Using the tool
+
+To validate health card artefacts, use the `shc-validator.ts` script, or simply call `node .` from the package root directory, using the desired options:
+
+                Usage: shc-validator [options]
+                
+                Options:
+                  -v, --version             display specification and tool version
+                  -p, --path <path>         path of the file to validate
+                  -t, --type <type>         type of file to validate (choices: "fhirbundle", "jwspayload", "jws", "healthcard", "qrnumeric", "qr", "jwkset")
+                  -l, --loglevel <loglevel> set the minimum log level (choices: "debug", "info", "warning", "error", "fatal", default: "warning")
+                  -o, --logout <path>       output path for log (if not specified log will be printed on console)
+                  -k, --jwkset <key>        path to trusted issuer keys
+                  -h, --help                display help for command
+
+For example, to validate a `data.smart-health-card` file, call:
+
+                node . --path data.smart-health-card --type healthcard
+
+To validate a `QR.png` file, call:
+
+                 node . --path QR.png --type qr
+
+The supported file types, as expressed with the `--type` option, are:
+ - *fhirbundle*: a JSON-encoded FHIR bundle
+ - *jwspayload*: a JSON Web Signature (JWS) payload, encoding a health card
+ - *jws*: a (signed) JSON Web Signature (JWS), encoding a health card
+ - *healthcard*: a health card file
+ - *qrnumeric*: a numeric QR code encoding a health card
+ - *qr*: a QR code image encoding a health card
+ - *jwkset*: a JSON Web Key (JWK) Set, encoding the issuer public signing key
+
+The tool outputs validation information, depending on the verbosity level, in particular, the parsed FHIR bundle is printed at the `info` verbosity log level.  The tool tries to continue parsing the artefact even if a warning or error occured.
+
+Issuer signing keys can be validated before being uploaded to their well-known URL. To validate a `issuer.key` JSON Web Key Set (JWK), call:
+
+                node . --path issuer.key --type jwkset
 
 ## Contributing
 

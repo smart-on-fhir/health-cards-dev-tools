@@ -1,0 +1,151 @@
+{
+	"$id": "https://smarthealth.cards/schema/fhir-bundle-schema.json",
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "root",
+	"type": "object",
+	"required": [
+		"resourceType",
+		"type",
+		"entry"
+	],
+	"additionalProperties": false,
+	"properties": {
+		"resourceType": {
+			"$id": "#root/resourceType",
+			"title": "Resourcetype",
+			"type": "string",
+			"default": "",
+			"examples": [
+				"Bundle"
+			],
+			"pattern": "^.*$"
+		},
+		"type": {
+			"$id": "#root/type",
+			"title": "Type",
+			"type": "string",
+			"default": "",
+			"examples": [
+				"collection"
+			],
+			"pattern": "^.*$"
+		},
+		"entry": {
+			"$id": "#root/entry",
+			"title": "Entry",
+			"type": "array",
+			"default": [],
+			"items": {
+				"$id": "#root/entry/items",
+				"title": "Items",
+				"type": "object",
+				"required": [
+					"fullUrl",
+					"resource"
+				],
+				"properties": {
+					"fullUrl": {
+						"$id": "#root/entry/items/fullUrl",
+						"title": "Fullurl",
+						"type": "string",
+						"default": "",
+						"examples": [
+							"resource:0"
+						],
+						"pattern": "^.*$"
+					},
+					"resource": {
+						"$id": "#root/entry/items/resource",
+						"title": "Resource",
+						"type": "object",
+						"required": [
+							"resourceType"
+						],
+						"properties": {
+							"resourceType": {
+								"$id": "#root/entry/items/resource/resourceType",
+								"title": "Resourcetype",
+								"type": "string",
+								"default": "",
+								"examples": [
+									"Patient"
+								],
+								"pattern": "^.*$"
+							},
+							"name": {
+								"$id": "#root/entry/items/resource/name",
+								"title": "Name",
+								"anyOf": [
+									{
+										"type": "string"
+									},
+									{
+										"type": "array",
+										"default": [],
+										"items": {
+											"$id": "#root/entry/items/resource/name/items",
+											"title": "Items",
+											"type": "object",
+											"required": [
+												"family",
+												"given"
+											],
+											"properties": {
+												"family": {
+													"$id": "#root/entry/items/resource/name/items/family",
+													"title": "Family",
+													"type": "string",
+													"default": "",
+													"examples": [
+														"Anyperson"
+													],
+													"pattern": "^.*$"
+												},
+												"given": {
+													"$id": "#root/entry/items/resource/name/items/given",
+													"title": "Given",
+													"type": "array",
+													"default": [],
+													"items": {
+														"$id": "#root/entry/items/resource/name/items/given/items",
+														"title": "Items",
+														"type": "string",
+														"default": "",
+														"examples": [
+															"John"
+														],
+														"pattern": "^.*$"
+													}
+												}
+											}
+										}
+									}
+								]
+							},
+							"gender": {
+								"$id": "#root/entry/items/resource/gender",
+								"title": "Gender",
+								"type": "string",
+								"default": "",
+								"examples": [
+									"male"
+								],
+								"pattern": "^.*$"
+							},
+							"birthDate": {
+								"$id": "#root/entry/items/resource/birthDate",
+								"title": "Birthdate",
+								"type": "string",
+								"default": "",
+								"examples": [
+									"1951-01-20"
+								],
+								"pattern": "^.*$"
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}

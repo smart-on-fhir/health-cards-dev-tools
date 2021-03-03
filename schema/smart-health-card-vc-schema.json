@@ -1,0 +1,99 @@
+{
+    "$id": "https://smarthealth.cards/schema/health-card-vc-payload",
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Root",
+    "type": "object",
+    "required": [
+        "iss",
+        "iat",
+        "vc"
+    ],
+    "properties": {
+        "iss": {
+            "$id": "#root/iss",
+            "title": "Iss",
+            "type": "string"
+        },
+        "iat": {
+            "$id": "#root/iat",
+            "title": "Iat",
+            "type": "number",
+            "$comment": "TODO: more restriction"
+        },
+        "vc": {
+            "$id": "#root/vc",
+            "title": "Vc",
+            "type": "object",
+            "required": [
+                "@context",
+                "type",
+                "credentialSubject"
+            ],
+            "properties": {
+                "@context": {
+                    "$id": "#root/vc/@context",
+                    "title": "@context",
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "$id": "#root/vc/@context/items",
+                        "title": "Items",
+                        "type": "string",
+                        "default": "",
+                        "examples": [
+                            "https://www.w3.org/2018/credentials/v1"
+                        ],
+                        "pattern": "^.*$"
+                    }
+                },
+                "type": {
+                    "$id": "#root/vc/type",
+                    "title": "Type",
+                    "type": "array",
+                    "default": [],
+                    "items": {
+                        "$id": "#root/vc/type/items",
+                        "title": "Items",
+                        "type": "string",
+                        "default": "",
+                        "examples": [
+                            "VerifiableCredential",
+                            "https://smarthealth.cards#health-card",
+                            "https://smarthealth.cards#immunization",
+                            "https://smarthealth.cards#covid19"
+                        ],
+                        "pattern": "^.*$"
+                    }
+                },
+                "credentialSubject": {
+                    "$id": "#root/vc/credentialSubject",
+                    "title": "Credentialsubject",
+                    "type": "object",
+                    "required": [
+                        "fhirVersion",
+                        "fhirBundle"
+                    ],
+                    "properties": {
+                        "fhirVersion": {
+                            "$id": "#root/vc/credentialSubject/fhirVersion",
+                            "title": "Fhirversion",
+                            "type": "string",
+                            "default": "",
+                            "examples": [
+                                "4.0.1"
+                            ],
+                            "pattern": "^.*$"
+                        },
+                        "fhirBundle": {
+                            "$id": "#root/vc/credentialSubject/fhirBundle",
+                            "title": "Fhirbundle",
+                            "$comment": "\"$ref\": \"fhir-bundle-schema.json#\" to reference sub-schema",
+                            "type": "object",
+                            "default": ""
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
