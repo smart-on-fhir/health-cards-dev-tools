@@ -3,7 +3,7 @@
 
 import { LogLevels } from "./logger";
 
-// eslint-disable-next-line no-var
+// eslint-disable-next-line no-var // TODO: ljoy, can we delete this?
 // export class OutputTree {
 //     public child: OutputTree | undefined;
 //     public infos: InfoItem[] = [];
