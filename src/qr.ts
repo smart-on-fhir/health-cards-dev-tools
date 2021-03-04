@@ -70,18 +70,18 @@ function shcToJws(shc: string): ResultWithErrors {
 
     const result = new ResultWithErrors();
 
-    if (!/^shc:\/?\d+$/g.test(shc)) {
-        return result.error("Invalid 'shc' string", ErrorCode.INVALID_SHC_STRING);
+    if (!/^shc:\/?\d+$/g.test(shc)) { // TODO: ljoy: make sure '/' is present after shc:
+        return result.error("Invalid 'shc:/' header string", ErrorCode.INVALID_SHC_STRING);
     }
 
     const b64Offset = '-'.charCodeAt(0);
     const digitPairs = shc.match(/(\d\d?)/g);
 
     if (digitPairs == null) {
-        return result.error("Invalid 'shc' string", ErrorCode.INVALID_SHC_STRING);
+        return result.error("Invalid 'shc:/' header string", ErrorCode.INVALID_SHC_STRING);
     }
 
-    // breaks string array of digit pairs into array of numbers: 'shc:123456...' = [12,34,56]
+    // breaks string array of digit pairs into array of numbers: 'shc:/123456...' = [12,34,56]
     const jws: string = digitPairs
         // for each number in array, add an offset and convert to a char in the base64 range
         .map((c: string) => String.fromCharCode(Number.parseInt(c) + b64Offset))
