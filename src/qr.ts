@@ -70,7 +70,7 @@ function shcToJws(shc: string): ResultWithErrors {
 
     const result = new ResultWithErrors();
 
-    if (!/^shc:\/?\d+$/g.test(shc)) { // TODO: ljoy: make sure '/' is present after shc:
+    if (!/^shc:\/\d+$/g.test(shc)) {
         return result.error("Invalid 'shc:/' header string", ErrorCode.INVALID_SHC_STRING);
     }
 
