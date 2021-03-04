@@ -224,13 +224,15 @@ export enum ErrorCode {
     JWS_VERIFICATION_ERROR,
     QR_DECODE_ERROR,
     ISSUER_KEY_DOWNLOAD_ERROR,
-    INVALID_SHC_STRING,
-    NOT_IMPLEMENTED,
-    UNKNOWN_FILE_DATA, // 110
+    INVALID_NUMERIC_QR,
+    INVALID_NUMERIC_QR_HEADER,
+    NOT_IMPLEMENTED, // 110
+    UNKNOWN_FILE_DATA,
     JSON_PARSE_ERROR,
     CRITICAL_DATA_MISSING,
     JWS_TOO_LONG,
-    INVALID_FILE_EXTENSION
+    INVALID_FILE_EXTENSION,
+    INVALID_QR_CHUNK_INDEX,
 }
 
 export enum InfoCode {
@@ -246,6 +248,7 @@ export class ErrorWithCode extends Error {
 export class ResultWithErrors {
     public result: string | undefined = undefined;
     public errors: LogItem[] = [];
+    public chunkIndex = 0; // chunk ID for split QR (TODO: should be in subclass)
 
     error(message: string, code: ErrorCode, level = LogLevels.ERROR): ResultWithErrors {
         this.errors.push(new LogItem(message, code, level));

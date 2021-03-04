@@ -28,7 +28,7 @@ To validate health card artefacts, use the `shc-validator.ts` script, or simply 
                 
                 Options:
                   -v, --version             display specification and tool version
-                  -p, --path <path>         path of the file to validate
+                  -p, --path <path>         path of the file to validate. Can be repeated for the qr and qrnumeric types, to provide multiple file chunks
                   -t, --type <type>         type of file to validate (choices: "fhirbundle", "jwspayload", "jws", "healthcard", "qrnumeric", "qr", "jwkset")
                   -l, --loglevel <loglevel> set the minimum log level (choices: "debug", "info", "warning", "error", "fatal", default: "warning")
                   -o, --logout <path>       output path for log (if not specified log will be printed on console)
@@ -42,6 +42,10 @@ For example, to validate a `data.smart-health-card` file, call:
 To validate a `QR.png` file, call:
 
                  node . --path QR.png --type qr
+
+Multiple `path` options can be provided for QR artefacts (`qrnumeric` and `qr` types) split in multiple files , one for each chunk. For example, to validate a numeric QR code split in three chunks `QR1.txt`, `QR2.txt`, `QR3.txt`, call:
+
+                 node . --path QR1.txt --path QR2.txt --path QR3.txt --type qrnumeric
 
 The supported file types, as expressed with the `--type` option, are:
  - *fhirbundle*: a JSON-encoded FHIR bundle

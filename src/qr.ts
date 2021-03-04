@@ -20,11 +20,11 @@ interface FileInfo {
 }
 
 
-export async function validate(qrSvg: FileInfo): Promise<OutputTree> {
+export async function validate(qr: FileInfo[]): Promise<OutputTree> {
 
-    const output = new OutputTree('QR code (' + (qrSvg.fileType as string) + ')');
+    const output = new OutputTree('QR code (' + (qr[0].fileType as string) + ')');
 
-    const results = await decode(qrSvg);
+    const results = await decode(qr);
 
     output.add(results.errors);
 
@@ -66,19 +66,68 @@ function decodeQrBuffer(image: Buffer): ResultWithErrors {
 }
 
 
-function shcToJws(shc: string): ResultWithErrors {
+function shcChunksToJws(shc: string[]): ResultWithErrors {
+    let result = new ResultWithErrors();
+    const chunkCount = shc.length;
+    const jwsChunks = new Array(chunkCount);
+    for (let shcChunk of shc) {
+        const chunkResult = shcToJws(shcChunk, chunkCount);
+        if (chunkResult.errors.length > 0) {
+            // propagate errors, if any
+            for (let err of chunkResult.errors) {
+                result.error(err.message, err.code, err.logLevel); // TODO: overload this method to take a LogInfo
+            }
+            continue; // move on to next chunk
+        }
+        const chunkIndex = chunkResult.chunkIndex;
+        if (jwsChunks[chunkIndex-1]) {
+            // we have a chunk index collision
+            result.error('we have two chunks with index ' + chunkIndex, ErrorCode.INVALID_QR_CHUNK_INDEX);
+        } else {
+            jwsChunks[chunkIndex-1] =  chunkResult.result;
+        }
+    }
+    // make sure we have all chunks we expect
+    for (let i = 0; i < chunkCount; i++) {
+        if (!jwsChunks[i]) {
+            result.error('missing QR chunk ' + i, ErrorCode.INVALID_QR_CHUNK_INDEX);
+        }
+    }
+
+    result.result = jwsChunks.join('');
+    return result;
+}
+
+function shcToJws(shc: string, chunkCount = 1): ResultWithErrors {
 
     const result = new ResultWithErrors();
+    const chunked = chunkCount > 1; // TODO: what about chunk 1 of 1 ('shc:/1/1/...' it's legal but shouldn't happen)
+    const qrHeader = 'shc:/';
+    let chunkIndex = 1;
+    let bodyIndex = chunked ? qrHeader.length + 4 :  qrHeader.length;
 
-    if (!/^shc:\/\d+$/g.test(shc)) {
-        return result.error("Invalid 'shc:/' header string", ErrorCode.INVALID_SHC_STRING);
+    // check numeric QR header
+    if (!new RegExp(chunked ? `^${qrHeader}[0-9]/${chunkCount}/.+$` : `^${qrHeader}.+$`, 'g').test(shc)) {
+        return result.error("Invalid numeric QR header: expected" + chunked ? `${qrHeader}[0-9]+` : `${qrHeader}[0-9]/[0-9]/[0-9]+`, ErrorCode.INVALID_NUMERIC_QR_HEADER);
+    }
+    // check numeric QR encoding
+    if (!new RegExp(chunked ? `^${qrHeader}[0-9]/${chunkCount}/[0-9]+$` : `^${qrHeader}[0-9]+$`, 'g').test(shc)) {
+        return result.error("Invalid numeric QR: expected" + chunked ? `${qrHeader}[0-9]+` : `${qrHeader}[0-9]/[0-9]/[0-9]+`, ErrorCode.INVALID_NUMERIC_QR);
+    }
+
+    // get the chunk index
+    if (chunked) {
+        chunkIndex = parseInt((shc.match(new RegExp('^shc:/[0-9]')) as RegExpMatchArray)[0].substring(5,6));
+        if (chunkIndex < 1 || chunkIndex > chunkCount) {
+            return result.error("Invalid QR chunk index: " + chunkIndex, ErrorCode.INVALID_QR_CHUNK_INDEX);
+        }
     }
 
     const b64Offset = '-'.charCodeAt(0);
-    const digitPairs = shc.match(/(\d\d?)/g);
+    const digitPairs = shc.substring(bodyIndex).match(/(\d\d?)/g);
 
     if (digitPairs == null) {
-        return result.error("Invalid 'shc:/' header string", ErrorCode.INVALID_SHC_STRING);
+        return result.error("Invalid numeric QR code", ErrorCode.INVALID_NUMERIC_QR);
     }
 
     // breaks string array of digit pairs into array of numbers: 'shc:/123456...' = [12,34,56]
@@ -89,28 +138,29 @@ function shcToJws(shc: string): ResultWithErrors {
         .join('');
 
     result.result = jws;
+    result.chunkIndex = chunkIndex;
 
     return result;
 }
 
 
 // takes file path to QR data and returns base64 data
-async function decode(fileInfo: FileInfo): Promise<ResultWithErrors> {
+async function decode(fileInfo: FileInfo[]): Promise<ResultWithErrors> {
 
     let svgBuffer;
     const result = new ResultWithErrors();
 
-    switch (fileInfo.fileType) {
+    switch (fileInfo[0].fileType) { // TODO: how to deal with different inconsistent files
 
     case 'svg':
-        svgBuffer = await svgToImageBuffer(fileInfo.buffer.toString());
+        svgBuffer = await svgToImageBuffer(fileInfo[0].buffer.toString()); // TODO: handle multiple files
         return decodeQrBuffer(svgBuffer);
 
     case 'shc':
-        return Promise.resolve(shcToJws(fileInfo.buffer.toString()));
+        return Promise.resolve(shcChunksToJws(fileInfo.map(fi => fi.buffer.toString())));
 
     case 'png':
-        return decodeQrBuffer(fileInfo.buffer);
+        return decodeQrBuffer(fileInfo[0].buffer); // TODO: handle multiple files
 
     case 'jpg':
         return result.error("jpg : Not implemented", ErrorCode.NOT_IMPLEMENTED);

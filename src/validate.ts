@@ -97,12 +97,13 @@ export async function validateKey(key: Buffer): Promise<void> {
 export type ValidationType = "qr" | "qrnumeric" | "healthcard" | "jws" | "jwspayload" | "fhirbundle" | "jwkset";
 
 /** Validates SMART Health Card */
-export async function validateCard(fileData: FileInfo, type: ValidationType): Promise<OutputTree> {
+export async function validateCard(fileData: FileInfo[], type: ValidationType): Promise<OutputTree> {
 
     let output: OutputTree | undefined = undefined;
 
     switch (type.toLocaleLowerCase()) {
 
+    // TODO (ljoy): qr and qrnumeric shouldn't be interchangeable
     case "qr":
         output = await qr.validate(fileData);
         break;
@@ -112,22 +113,22 @@ export async function validateCard(fileData: FileInfo, type: ValidationType): Pr
         break;
 
     case "healthcard":
-        output = await healthCard.validate(fileData.buffer.toString());
-        if (fileData.ext !== '.smart-health-card') {
+        output = await healthCard.validate(fileData[0].buffer.toString());
+        if (fileData[0].ext !== '.smart-health-card') {
             output.warn("Invalid file extenion. Should be .smart-health-card.", ErrorCode.INVALID_FILE_EXTENSION);
         }
         break;
 
     case "jws":
-        output = await jws.validate(fileData.buffer.toString());
+        output = await jws.validate(fileData[0].buffer.toString());
         break;
 
     case "jwspayload":
-        output = jwsPayload.validate(fileData.buffer.toString());
+        output = jwsPayload.validate(fileData[0].buffer.toString());
         break;
 
     case "fhirbundle":
-        output = fhirBundle.validate(fileData.buffer.toString());
+        output = fhirBundle.validate(fileData[0].buffer.toString());
         break;
 
     default:

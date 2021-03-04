@@ -14,7 +14,7 @@ import path from 'path';
 
 export const schema = jwsCompactSchema;
 
-const MAX_JWS_LENGTH = 1195;
+// const MAX_JWS_LENGTH = 1195; FIXME: delete
 
 export async function validate(jws: string): Promise<OutputTree> {
 
@@ -28,9 +28,11 @@ export async function validate(jws: string): Promise<OutputTree> {
                 ErrorCode.JSON_PARSE_ERROR);
     }
 
+    /* FIXME: delete. Not a max length in spec v0.2
     if (jws.length >= MAX_JWS_LENGTH) {
         output.error('JWS, at ' + jws.length.toString() + ' characters, exceeds max character length of ' + MAX_JWS_LENGTH.toString(), ErrorCode.JWS_TOO_LONG);
     }
+    */
 
     // returns [] if successful
     const schemaResults = validateSchema(jwsCompactSchema, jws);
