@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
+// TODO: add QR chunk test cases: warning 'sch:/1/1/...', missing chunks, unbalanced chunks, too big chunks
+
 import path from 'path';
 import { validateCard, ValidationType } from '../src/validate';
 import { getFileData } from '../src/file';
