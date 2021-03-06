@@ -22,9 +22,3 @@ interface FhirBundle {
     "type": string,
     "entry": unknown[]
 }
-
-interface TestFhirBundle {
-    "resourceType"?: string,
-    "type"?: string,
-    "entry"?: unknown[]
-}

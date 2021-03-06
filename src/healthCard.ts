@@ -6,7 +6,7 @@ import { validateSchema } from './schema';
 import { ErrorCode } from './error';
 import healthCardSchema from '../schema/smart-health-card-schema.json';
 import * as jws from './jws-compact';
-import { Log } from './logger';
+import Log from './logger';
 import { ValidationResult } from './validate';
 
 

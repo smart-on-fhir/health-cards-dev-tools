@@ -6,7 +6,7 @@ import path from 'path';
 import fs from 'fs';
 import { Option, Command } from 'commander';
 import * as validator from './validate';
-import { LogLevels, Log } from './logger';
+import Log, { LogLevels } from './logger';
 import { getFileData } from './file';
 import { ErrorCode } from './error';
 import * as keys from './keys';
@@ -29,7 +29,7 @@ program.option('-k, --jwkset <key>', 'path to trusted issuer key set');
 program.parse(process.argv);
 
 
-interface Options {
+export interface CliOptions {
     path: string;
     type: validator.ValidationType;
     jwkset: string;
@@ -45,14 +45,15 @@ const log = new Log('main');
  * Processes the program options and launches validation
  */
 async function processOptions() {
-    const options = program.opts() as Options;
+    const options = program.opts() as CliOptions;
     let logFilePathIsValid = false;
 
     // verify that the directory of the logfile exists
     if (options.logout) {
         const logDir = path.dirname(path.resolve(options.logout));
         if (!fs.existsSync(logDir)) {
-            log.fatal('Cannot create log file at: ' + logDir);
+            console.log('Cannot create log file at: ' + logDir);
+            process.exitCode = ErrorCode.LOG_PATH_NOT_FOUND;
             return;
         }
         logFilePathIsValid = true;
@@ -68,7 +69,7 @@ async function processOptions() {
         try {
             fileData = await getFileData(options.path);
         } catch (error) {
-            log.error((error as Error).message);
+            console.log('File not found : ' + options.path);
             process.exitCode = ErrorCode.DATA_FILE_NOT_FOUND;
             return;
         }
@@ -88,23 +89,16 @@ async function processOptions() {
         } else {
             // validate a health card
             const output = await validator.validateCard(fileData, options.type);
+
             process.exitCode = output.log.exitCode;
 
             const level = loglevelChoices.indexOf(options.loglevel) as LogLevels;
 
             // append to the specified logfile
             if (logFilePathIsValid) {
-
-                const out = {
-                    "time": new Date().toString(),
-                    "options": options,
-                    "log": output.log.flatten(level)
-                };
-                fs.appendFileSync(options.logout, JSON.stringify(out, null, 4) + '\n');
-                fs.appendFileSync(options.logout, '\n--------------------------------------------------------------------------------');
-
+                output.log.toFile(options.logout, options, true);
             } else {
-                console.log(validator.formatOutput(output.log, '', level).join('\n'));
+                console.log(log.toString(level));
             }
         }
 

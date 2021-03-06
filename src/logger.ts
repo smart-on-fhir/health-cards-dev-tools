@@ -1,7 +1,10 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
+import fs from 'fs';
 import { ErrorCode } from './error';
+import color from 'colors';
+import { CliOptions } from './shc-validator';
 
 
 export class LogItem {
@@ -24,7 +27,7 @@ export enum LogLevels {
 
 
 // eslint-disable-next-line no-var
-export class Log {
+export default class Log {
     public child: Log | undefined;
     public log: LogItem[] = [];
     private _exitCode = 0;
@@ -95,21 +98,114 @@ export class Log {
     // collects errors from all children into a single collection; specify level to filter >= level
     flatten(level: LogLevels = LogLevels.DEBUG): { title: string, message: string, code: ErrorCode, level: LogLevels }[] {
 
-        let items = this.log
+        const items = this.log
             .filter((item) => {
                 return item.logLevel >= level;
             })
             .map(e => {
-                return {
-                    title: this.title,
-                    message: e.message,
-                    code: e.code,
-                    level: e.logLevel
-                };
+                return { title: this.title, message: e.message, code: e.code, level: e.logLevel };
             });
 
-        if (this.child) items = items.concat(this.child.flatten(level));
-        return items;
+        return (this.child) ? items.concat(this.child.flatten(level)) : items;
     }
 
+    toString(level: LogLevels = LogLevels.INFO): string {
+        return formatOutput(this, '', level).join('\n');
+    }
+
+    toFile(path: string, options: CliOptions, append = true): void {
+        return toFile(this, path, options, append);
+    }
+
+}
+
+
+function list(title: string, items: LogItem[], indent: string, color: (c: string) => string) {
+
+    const results: string[] = [];
+
+    if (items.length === 0) return results;
+
+    results.push(indent + "|");
+    results.push([indent, "├─ ", color(title), ' : '].join(''));
+
+    for (let i = 0; i < items.length; i++) {
+        const lines = items[i].message.split('\n');
+        for (let j = 0; j < lines.length; j++) {
+            results.push([indent, '|    ', color(lines[j])].join(''));
+        }
+    }
+
+    return results;
+}
+
+
+function formatOutput(outputTree: Log, indent: string, level: LogLevels): string[] {
+
+    let results: string[] = [];
+
+    results.push(indent + color.bold(outputTree.title));
+    indent = '    ' + indent;
+
+    switch (level) {
+
+        case LogLevels.DEBUG:
+            results = results.concat(list("Debug", outputTree.get(LogLevels.DEBUG), indent + ' ', color.gray));
+        // eslint-disable-next-line no-fallthrough
+        case LogLevels.INFO:
+            results = results.concat(list("Info", outputTree.get(LogLevels.INFO), indent + ' ', color.white.dim));
+        // eslint-disable-next-line no-fallthrough
+        case LogLevels.WARNING:
+            results = results.concat(list("Warning", outputTree.get(LogLevels.WARNING), indent + ' ', color.yellow));
+        // eslint-disable-next-line no-fallthrough
+        case LogLevels.ERROR:
+            results = results.concat(list("Error", outputTree.get(LogLevels.ERROR), indent + ' ', color.red));
+        // eslint-disable-next-line no-fallthrough
+        case LogLevels.FATAL:
+            results = results.concat(list("Fatal", outputTree.get(LogLevels.FATAL), indent + ' ', color.red.inverse));
+    }
+
+    if (outputTree.child) {
+        results.push(indent + ' |');
+        results = results.concat(formatOutput(outputTree.child, indent, level));
+    } else {
+        makeLeaf(results);
+    }
+
+    return results;
+}
+
+// removes the line leading to the next child
+function makeLeaf(items: string[]) {
+    for (let i = items.length - 1; i >= 0; i--) {
+        if (items[i].trim()[0] === '├') {
+            items[i] = items[i].replace('├', '└');
+            break;
+        }
+        items[i] = items[i].replace('|', ' ');
+    }
+}
+
+
+function toFile(log: Log, logPath: string, options: CliOptions, append = true) {
+
+    let fileContents: Array<Record<string, unknown>> = [];
+
+    // if append, read the entire file and parse as JSON
+    // append the current log
+    // overwrite the existing file with everything
+    if (append && fs.existsSync(logPath)) {
+        fileContents = JSON.parse(fs.readFileSync(logPath).toString('utf-8')) as Array<Record<string, unknown>>;
+    }
+
+    // TypeScript really does not want to let you index enums by string
+    const level = (LogLevels as unknown as { [key: string]: number })[options.loglevel.toLocaleUpperCase()];
+
+    fileContents.push({
+        "time": new Date().toString(),
+        "options": options,
+        "log": log.flatten(level)
+    });
+
+    fs.writeFileSync(logPath, JSON.stringify(fileContents, null, 4) + '\n');
 }

@@ -6,7 +6,7 @@ import { validateSchema } from './schema';
 import { ErrorCode } from './error';
 import jwsPayloadSchema from '../schema/smart-health-card-vc-schema.json';
 import * as fhirBundle from './fhirBundle';
-import { Log } from './logger';
+import Log from './logger';
 import { ValidationResult } from './validate';
 
 

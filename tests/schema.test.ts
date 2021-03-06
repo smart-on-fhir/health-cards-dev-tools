@@ -3,7 +3,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { LogLevels, Log } from '../src/logger';
+import Log, { LogLevels } from '../src/logger';
 import { validateFromFile } from '../src/schema';
 
 

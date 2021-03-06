@@ -10,7 +10,7 @@ import pako from 'pako';
 import got from 'got/dist/source';
 import jose, { JWK } from 'node-jose';
 import path from 'path';
-import { Log } from './logger';
+import Log from './logger';
 import { ValidationResult } from './validate';
 
 
@@ -28,14 +28,14 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
 
 
     if (!/[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+/g.test(jws.trim())) {
-        return {
-            result: undefined,
-            log: log.fatal('Failed to parse JWS-compact data as \'base64url.base64url.base64url\' string.', ErrorCode.JSON_PARSE_ERROR)
-        }
+        return new ValidationResult(
+            undefined,
+            log.fatal('Failed to parse JWS-compact data as \'base64url.base64url.base64url\' string.', ErrorCode.JSON_PARSE_ERROR)
+        );
     }
 
 
-    if (jws.length >= MAX_JWS_LENGTH) {
+    if (jws.length > MAX_JWS_LENGTH) {
         log.error('JWS, at ' + jws.length.toString() + ' characters, exceeds max character length of ' + MAX_JWS_LENGTH.toString(), ErrorCode.JWS_TOO_LONG);
     }
 
@@ -67,21 +67,20 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
     const payload = payloadResult.result as JWSPayload;
     log.child = payloadResult.log;
 
-    
+
     // if we did not get a payload back, it failed to be parsed and we cannot extract the key url
     // so we can stop.
     // the jws-payload child will contain the parse errors.
     // The payload validation may have a Fatal error if 
     if (payload == null) {
-        return { result: payload, log : log };
+        return { result: payload, log: log };
     }
 
 
     // Extract the key url
     if (!payload.iss) {
         // continue, since we might have the key we need in the global keystore
-        log.error("Can't find 'iss' entry in JWS payload",
-            ErrorCode.SCHEMA_ERROR);
+        log.error("Can't find 'iss' entry in JWS payload", ErrorCode.SCHEMA_ERROR);
     }
 
 
@@ -89,14 +88,14 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
     await downloadKey(path.join(payload.iss, '/.well-known/jwks.json'), log);
 
 
-    if(await verifyJws(jws, log)) {
+    if (await verifyJws(jws, log)) {
         log.info("JWS signature verified");
     }
 
 
     // TODO: the result should probably be the expanded (non-compact) JWS object.
 
-    return { result: jws, log : log };
+    return { result: jws, log: log };
 }
 
 
@@ -133,7 +132,7 @@ async function verifyJws(jws: string, log: Log): Promise<boolean> {
     } catch (error) {
         log.error('JWS verification failed : (' + (error as Error).message + ')',
             ErrorCode.JWS_VERIFICATION_ERROR);
+        return false;
     }
 
-    return false;
 }

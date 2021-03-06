@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import { Log } from './logger';
+import Log from './logger';
 import jose, { JWK } from 'node-jose';
 import { ErrorCode } from './error';
 

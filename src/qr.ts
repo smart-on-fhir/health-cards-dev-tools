@@ -7,7 +7,7 @@ import jsQR from 'jsqr';         // qr image decoder
 import core from 'file-type/core';
 import { ErrorCode } from './error';
 import * as jws from './jws-compact';
-import { Log } from './logger';
+import Log from './logger';
 
 
 interface FileInfo {

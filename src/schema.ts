@@ -3,7 +3,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { Log } from './logger';
+import Log from './logger';
 import { ErrorCode } from './error';
 
 

@@ -5,7 +5,7 @@ import * as utils from './utils';
 import { validateSchema } from './schema';
 import { ErrorCode } from './error';
 import fhirBundleSchema from '../schema/fhir-bundle-schema.json';
-import { Log } from './logger';
+import Log from './logger';
 import { ValidationResult } from './validate';
 
 
