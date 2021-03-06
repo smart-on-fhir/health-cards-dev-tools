@@ -3,19 +3,20 @@
 
 import fs from 'fs';
 import path from 'path';
-import log, { LogLevels } from './logger';
-import { ErrorCode, LogItem } from './error';
+import { Log } from './logger';
+import { ErrorCode } from './error';
+
 
 // http://json-schema.org/
 // https://github.com/ajv-validator/ajv
-import JsonValidator, { AnySchemaObject, ErrorObject } from "ajv";
+import JsonValidator, { AnySchemaObject } from "ajv";
 
 
-export async function validateFromFile(schemaPath: string, data: FhirBundle | JWS | JWSPayload | HealthCard): Promise<LogItem[]> {
+export async function validateFromFile(schemaPath: string, data: FhirBundle | JWS | JWSPayload | HealthCard, log: Log): Promise<boolean> {
 
     if (!fs.existsSync(schemaPath)) {
-        log('Schema file not found : ' + schemaPath, LogLevels.FATAL);
-        return [new LogItem('Schema: file not found : ' + schemaPath, ErrorCode.SCHEMA_FILE_NOT_FOUND)];
+        log.fatal('Schema file not found : ' + schemaPath, ErrorCode.SCHEMA_ERROR);
+        return false;
     }
 
     const schemaDir = path.basename(path.dirname(schemaPath));
@@ -33,54 +34,48 @@ export async function validateFromFile(schemaPath: string, data: FhirBundle | JW
 
     const schemaObj = JSON.parse(fs.readFileSync(schemaPath, 'utf8')) as AnySchemaObject;
 
-
     return jsonValidator.compileAsync(schemaObj)
         .then(validate => {
-
-            if (validate(data)) {
-                return [];
-            } else {
-                const errors = (validate.errors as ErrorObject[]);
-
-                const outErrors = errors.map(c => {
-                    return new LogItem(
-                        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-                        'Schema: ' + c.schemaPath + '  \'' + c.message + '\'',
-                        ErrorCode.SCHEMA_ERROR);
-                });
-                return outErrors;
-            }
+            if (validate(data)) { return true; }
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            validate.errors!.forEach(ve => {
+                // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+                log.error('Schema: ' + ve.schemaPath + '  \'' + ve.message + '\'', ErrorCode.SCHEMA_ERROR);
+            });
+            return false;
         })
-        .catch(error => {
-            return [new LogItem(
-                "Error: validating against schema : " + (error as Error).message,
-                ErrorCode.SCHEMA_ERROR)];
+        .catch(err => {
+            // TODO: get to this catch in test
+            log.error('Schema: ' + (err as Error).message, ErrorCode.SCHEMA_ERROR);
+            return false;
         });
 
 }
 
 
-export function validateSchema(schema: AnySchemaObject, data: FhirBundle | JWS | JWSPayload | HealthCard): LogItem[] {
+export function validateSchema(schema: AnySchemaObject, data: FhirBundle | JWS | JWSPayload | HealthCard, log: Log): boolean {
 
+    // by default, the validator will stop at the first failure. 'allErrors' allows it to keep going.
     const jsonValidator = new JsonValidator({ allErrors: true });
 
     try {
+
+        // TODO: make this fail in test
         const validate = jsonValidator.compile(schema);
 
-        if (validate(data)) { return []; }
+        if (validate(data)) { return true; }
 
-        const validationErrors = (validate.errors as ErrorObject[]);
-
-        const outErrors = validationErrors.map(ve => {
-            return new LogItem(
-                // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-                'Schema: ' + ve.schemaPath + '  \'' + ve.message + '\'',
-                ErrorCode.SCHEMA_ERROR, LogLevels.ERROR);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        validate.errors!.forEach(ve => {
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+            log.error('Schema: ' + ve.schemaPath + '  \'' + ve.message + '\'', ErrorCode.SCHEMA_ERROR);
         });
 
-        return outErrors;
+        return false;
 
     } catch (err) {
-        return [new LogItem('Schema: ' + (err as Error).message, ErrorCode.SCHEMA_ERROR)];
+        // TODO: get to this catch in test
+        log.error('Schema: ' + (err as Error).message, ErrorCode.SCHEMA_ERROR);
+        return false;
     }
 }

@@ -9,10 +9,10 @@ import { LogLevels } from '../src/logger';
 
 const testdataDir = './testdata/';
 
-async function testCard(fileName: string, fileType: ValidationType = 'healthcard', levels : LogLevels[] = [LogLevels.ERROR, LogLevels.FATAL]): Promise<{ title: string, message: string, code: ErrorCode }[]> {
+async function testCard(fileName: string, fileType: ValidationType = 'healthcard', levels: LogLevels[] = [LogLevels.ERROR, LogLevels.FATAL]): Promise<{ title: string, message: string, code: ErrorCode }[]> {
     const filePath = path.join(testdataDir, fileName);
-    const outputTree = await validateCard(await getFileData(filePath), fileType);
-    return outputTree.flatten().filter(i=>{return levels.includes(i.level);});
+    const log = (await validateCard(await getFileData(filePath), fileType)).log;
+    return log.flatten().filter(i => { return levels.includes(i.level); });
 }
 
 // Test valid examples from spec
@@ -31,8 +31,8 @@ test("Cards: valid 01 JWS", async () => expect(await testCard('example-01-d-jws.
 test("Cards: valid 00 health card", async () => expect(await testCard('example-00-e-file.smart-health-card', "healthcard")).toHaveLength(0));
 test("Cards: valid 01 health card", async () => expect(await testCard('example-01-e-file.smart-health-card', "healthcard")).toHaveLength(0));
 
-test("Cards: valid 00 QR numeric", async () => expect(await testCard('example-00-f-qr-code-numeric.txt', "qrnumeric")).toHaveLength(0));
-test("Cards: valid 01 QR numeric", async () => expect(await testCard('example-01-f-qr-code-numeric.txt', "qrnumeric")).toHaveLength(0));
+test("Cards: valid 00 QR numeric", async () => expect(await testCard('example-00-f-qr-code-numeric-value-0.txt', "qrnumeric")).toHaveLength(0));
+test("Cards: valid 01 QR numeric", async () => expect(await testCard('example-01-f-qr-code-numeric-value-0.txt', "qrnumeric")).toHaveLength(0));
 
 test("Cards: valid 00 QR code", async () => expect(await testCard('example-00-g-qr-code-0.svg', "qr")).toHaveLength(0));
 test("Cards: valid 01 QR code", async () => expect(await testCard('example-01-g-qr-code-0.svg', "qr")).toHaveLength(0));

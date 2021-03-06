@@ -1,13 +1,13 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import path from 'path';
-import fs from 'fs';
+import { ErrorCode } from './error';
 
-export enum ValidationErrors {
-    UNKNOWN,
-    // TODO: all errors
+
+export class LogItem {
+    constructor(public message: string, public code: ErrorCode = 0, public logLevel: LogLevels = LogLevels.INFO) { }
 }
+
 
 export enum LogLevels {
     // Print out everything
@@ -22,132 +22,94 @@ export enum LogLevels {
     FATAL
 }
 
-interface LogEntry {
-    level: LogLevels,
-    validationError: ValidationErrors,
-    message: string,
-    details?: unknown
-}
 
-/**
- * Logs application messages. Each message has a level; the message will be
- * printed if its level is higher than the logger's verbosity.
- */
-class Logger {
+// eslint-disable-next-line no-var
+export class Log {
+    public child: Log | undefined;
+    public log: LogItem[] = [];
+    private _exitCode = 0;
 
-    /**
-     * Constructs a logger.
-     * @param level mininum verbosity level to log
-     * @param outFilePath path to output the logs to if specified, console otherwise
-     */
-    constructor(level: LogLevels, outFilePath?: string) {
-        this._verbosity = level;
+    constructor(public title: string = '') { }
 
-        if (outFilePath) {
-            // create new console that writes to file
-            outFilePath = path.normalize(outFilePath);
-            const ws = fs.createWriteStream(outFilePath);
-            this._console = new console.Console(ws, ws);
-            this._usesStdOut = false;
+    public get exitCode(): number {
+
+        if (this.child) {
+            const childExitCode = this.child.exitCode;
+
+            // the child should not return a different fatal exitCode
+            if (this._exitCode && (childExitCode === this._exitCode)) {
+                throw new Error("Exit code overwritten. Should only have one fatal error.");
+            }
+
+            // set this exit code to the child if it's currently 0
+            this._exitCode = this._exitCode || childExitCode;
         }
+
+        return this._exitCode;
     }
 
-    _console: Console = console;
-    _usesStdOut = true;
-    _verbosity: LogLevels;
-    _logEntries: LogEntry[] = [];
-    _prefix = false;
-
-    get verbosity(): LogLevels {
-        return this._verbosity;
+    debug(message: string): Log {
+        this.log.push(new LogItem(message, 0, LogLevels.DEBUG));
+        return this;
     }
 
-    set verbosity(level: LogLevels) {
-        if (!Number.isInteger(level) || level < LogLevels.DEBUG || level > LogLevels.FATAL) {
-            throw new Error("Invalid verbosity level");
-        }
-        this._verbosity = level;
+    info(message: string): Log {
+        this.log.push(new LogItem(message, 0, LogLevels.INFO));
+        return this;
     }
 
-    set prefix(on: boolean) {
-        this._prefix = on;
+    warn(message: string, code: ErrorCode = ErrorCode.ERROR): Log {
+        if (code == null || code === 0) {
+            throw new Error("Non-zero error code required.");
+        }
+        this.log.push(new LogItem(message, code, LogLevels.WARNING));
+        return this;
     }
 
-    color(s: string, color: string): string {
-        if (this._usesStdOut) {
-            // color the output, only on STDOUT
-            // if (color == 'red') {
-            //     s = '\x1b[31m' + s + '\x1b[0m'; // red - message - reset
-            // } else if (color == 'yellow') {
-            //     s = '\x1b[33m' + s + '\x1b[0m'; // yellow - message - reset
-            // } else {
-            //     // don't know what that is, leave as is
-            // }
+    error(message: string, code: ErrorCode = ErrorCode.ERROR): Log {
+        if (code == null || code === 0) {
+            throw new Error("Non-zero error code required.");
         }
-        return s;
+        this.log.push(new LogItem(message, code, LogLevels.ERROR));
+        return this;
     }
 
+    fatal(message: string, code: ErrorCode = ErrorCode.ERROR): Log {
+        if (code == null || code === 0) {
+            throw new Error("Non-zero error code required.");
+        }
+        if (this._exitCode !== 0) {
+            throw new Error("Exit code overwritten. Should only have one fatal error.");
+        }
+        this._exitCode = code;
+        this.log.push(new LogItem(message, code, LogLevels.FATAL));
+        return this;
+    }
 
-    log(message: string, level: LogLevels = LogLevels.INFO, validationError?: ValidationErrors, details?: unknown): void {
-        
-        if (!validationError) {
-            validationError = ValidationErrors.UNKNOWN;
-        }
-        if (this._prefix) {
-            message = level.toString() + ": " + message;
-        }
-        this._logEntries.push({
-            level: level,
-            validationError: validationError,
-            message: message,
-            details: details
+    get(level: LogLevels): LogItem[] {
+        return this.log.filter(item => {
+            return item.logLevel === level;
         });
-        if (level >= this._verbosity) {
-            // print to console
-            if (level == LogLevels.DEBUG || level == LogLevels.INFO) {
-                this._console.log(message);
-            } else if (level == LogLevels.WARNING) {
-                this._console.log(this.color(message, 'yellow'));
-                // this._console.log('\x1b[33m%s\x1b[0m', message); // yellow - message - reset
-            } else if (level == LogLevels.ERROR || level == LogLevels.FATAL) {
-                this._console.log(this.color(message, 'red'));
-                // this._console.log('\x1b[31m%s\x1b[0m', message); // red - message - reset
-            }
-            if (details != null) {
-                // log details on a separate call to avoid stringification
-                this._console.log(details);
-            }
-        }
     }
 
-    error(message: string, level: LogLevels = LogLevels.ERROR, details?: unknown) {
-        log(message, level, undefined, details);
+    // collects errors from all children into a single collection; specify level to filter >= level
+    flatten(level: LogLevels = LogLevels.DEBUG): { title: string, message: string, code: ErrorCode, level: LogLevels }[] {
+
+        let items = this.log
+            .filter((item) => {
+                return item.logLevel >= level;
+            })
+            .map(e => {
+                return {
+                    title: this.title,
+                    message: e.message,
+                    code: e.code,
+                    level: e.logLevel
+                };
+            });
+
+        if (this.child) items = items.concat(this.child.flatten(level));
+        return items;
     }
+
 }
-
-export const logger = new Logger(LogLevels.WARNING /* 'out.log'*/);
-
-export default function log(message: string, level: LogLevels = LogLevels.INFO, validationError?: ValidationErrors, details?: unknown) : void {
-    return logger.log(message, level, validationError, details);
-}
-
-const logWrapper = function (level: LogLevels) {
-    function f(message: string, validationError?: ValidationErrors, details?: unknown): void {
-        return logger.log(message, level, validationError, details);
-    }
-    return f;
-};
-
-log.debug = logWrapper(LogLevels.DEBUG);
-log.error = logWrapper(LogLevels.ERROR);
-log.fatal = logWrapper(LogLevels.FATAL);
-log.info = logWrapper(LogLevels.INFO);
-log.warn = logWrapper(LogLevels.WARNING);
-
-log.setLevel = function (level: LogLevels) {
-    logger.verbosity = level;
-};
-
-log.setPrefix = function (on: boolean) {
-    logger.prefix = on;
-};

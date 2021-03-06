@@ -3,6 +3,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { LogLevels, Log } from '../src/logger';
 import { validateFromFile } from '../src/schema';
 
 
@@ -74,10 +75,12 @@ function testSchema(exampleFile: string): void {
     const fileData = fs.readFileSync(examplePath, 'utf-8');
     const ext = path.extname(examplePath);
     const dataObj = ext !== '.txt' ? JSON.parse(fileData) as FhirBundle | JWS | JWSPayload | HealthCard : fileData;
+    const log = new Log('testSchema');
 
     test("Schema: " + schemaName + " " + exampleFile, async () => {
-        const result = await validateFromFile(schemaPath, dataObj);
-        expect(result.length).toBe(0);
+        const result = await validateFromFile(schemaPath, dataObj, log);
+        expect(result).toBe(true);
+        expect(log.flatten(LogLevels.WARNING).length).toBe(0);
     });
 
     return;

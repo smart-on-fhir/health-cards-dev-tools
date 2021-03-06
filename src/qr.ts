@@ -5,8 +5,9 @@ import svg2img from 'svg2img';   // svg files to image buffer
 import { PNG } from 'pngjs';     // png image file reader
 import jsQR from 'jsqr';         // qr image decoder
 import core from 'file-type/core';
-import {OutputTree, ResultWithErrors, ErrorCode, LogItem} from './error';
+import { ErrorCode } from './error';
 import * as jws from './jws-compact';
+import { Log } from './logger';
 
 
 interface FileInfo {
@@ -20,65 +21,79 @@ interface FileInfo {
 }
 
 
-export async function validate(qrSvg: FileInfo): Promise<OutputTree> {
+export async function validate(qrSvg: FileInfo): Promise<{result: JWS | undefined, log :Log}> {
 
-    const output = new OutputTree('QR code (' + (qrSvg.fileType as string) + ')');
+    const log = new Log('QR code (' + (qrSvg.fileType as string) + ')');
 
-    const results = await decode(qrSvg);
+    const results : JWS | undefined = await decode(qrSvg, log);
 
-    output.add(results.errors);
+    results && await jws.validate(results);
 
-    if (results.result != null) {
-        output.child = await jws.validate(results.result);
-    } 
-
-    return output;
+    return { result: results, log : log };
 }
 
 
+// the svg data is turned into an image buffer. these values ensure that the resulting image is readable
+// by the QR image decoder. 
+const svgImageWidth = 600;
+const svgImageHeight = 600;
+const svgImageQuality = 100;
+
+
+// TODO: find minimal values that cause the resulting image to fail decoding.
 
 // Converts a SVG file into a QR image buffer (as if read from a image file)
-async function svgToImageBuffer(svgPath: string): Promise<Buffer> {
+async function svgToImageBuffer(svgPath: string, log: Log): Promise<Buffer> {
+
+    // TODO: create a test that causes failure here
     return new Promise<Buffer>((resolve, reject) => {
-        svg2img(svgPath, { width: 600, height: 600, quality: 100 }, function (error: unknown, buffer: Buffer) {
-            if (error) reject(error);
-            resolve(buffer);
-        });
+        svg2img(svgPath, { width: svgImageWidth, height: svgImageHeight, quality: svgImageQuality },
+            (error: unknown, buffer: Buffer) => {
+                if (error) {
+                    log.fatal("Could not convert SVG to image. Error: " + (error as Error).message);
+                    reject(undefined);
+                }
+                resolve(buffer);
+            });
     });
 }
 
 
 // Decode QR image buffer to base64 string
-function decodeQrBuffer(image: Buffer): ResultWithErrors {
+function decodeQrBuffer(image: Buffer, log: Log): JWS | undefined {
 
-    const result = new ResultWithErrors();
+    const result: JWS | undefined = undefined;
 
     const png = PNG.sync.read(image);
 
+    // TODO : create a test that causes failure here
     const code = jsQR(new Uint8ClampedArray(png.data.buffer), png.width, png.height);
 
     if (code == null) {
-        result.errors.push(new LogItem("Could not decode QR image.", ErrorCode.QR_DECODE_ERROR));
+        log.fatal("Could not decode QR image.", ErrorCode.QR_DECODE_ERROR);
         return result;
     }
 
-    return shcToJws(code.data);
+    return shcToJws(code.data, log);
 }
 
 
-function shcToJws(shc: string): ResultWithErrors {
-
-    const result = new ResultWithErrors();
-
-    if (!/^shc:\/\d+$/g.test(shc)) {
-        return result.error("Invalid 'shc:/' header string", ErrorCode.INVALID_SHC_STRING);
-    }
+function shcToJws(shc: string, log: Log): JWS | undefined {
 
     const b64Offset = '-'.charCodeAt(0);
-    const digitPairs = shc.match(/(\d\d?)/g);
+
+    // check the header, we can still process if the header is wrong.
+    if (!/^shc:\//.test(shc)) {
+        log.error("Invalid 'shc:/' header string", ErrorCode.INVALID_SHC_STRING);
+    }
+
+    // check
+    const digitPairs = shc.match(/(\d\d)+$/g);
 
     if (digitPairs == null) {
-        return result.error("Invalid 'shc:/' header string", ErrorCode.INVALID_SHC_STRING);
+        // we cannot continue without any data
+        log.fatal("Invalid shc data. Data should be an even numbered string of digits ([0-9][0-9])+", ErrorCode.INVALID_SHC_STRING);
+        return undefined;
     }
 
     // breaks string array of digit pairs into array of numbers: 'shc:/123456...' = [12,34,56]
@@ -88,38 +103,39 @@ function shcToJws(shc: string): ResultWithErrors {
         // merge the array into a single base64 string
         .join('');
 
-    result.result = jws;
-
-    return result;
+    return jws;
 }
 
 
 // takes file path to QR data and returns base64 data
-async function decode(fileInfo: FileInfo): Promise<ResultWithErrors> {
+async function decode(fileInfo: FileInfo, log: Log): Promise<string | undefined> {
 
     let svgBuffer;
-    const result = new ResultWithErrors();
+    //const result = new ResultWithErrors();
 
     switch (fileInfo.fileType) {
 
-    case 'svg':
-        svgBuffer = await svgToImageBuffer(fileInfo.buffer.toString());
-        return decodeQrBuffer(svgBuffer);
+        case 'svg':
+            svgBuffer = await svgToImageBuffer(fileInfo.buffer.toString(), log);
+            return svgBuffer && decodeQrBuffer(svgBuffer, log);
 
-    case 'shc':
-        return Promise.resolve(shcToJws(fileInfo.buffer.toString()));
+        case 'shc':
+            return Promise.resolve(shcToJws(fileInfo.buffer.toString(), log));
 
-    case 'png':
-        return decodeQrBuffer(fileInfo.buffer);
+        case 'png':
+            return decodeQrBuffer(fileInfo.buffer, log);
 
-    case 'jpg':
-        return result.error("jpg : Not implemented", ErrorCode.NOT_IMPLEMENTED);
+        case 'jpg':
+            log.fatal("jpg : Not implemented", ErrorCode.NOT_IMPLEMENTED);
+            return undefined;
 
-    case 'bmp':
-        return result.error("bmp : Not implemented", ErrorCode.NOT_IMPLEMENTED);
+        case 'bmp':
+            log.fatal("bmp : Not implemented", ErrorCode.NOT_IMPLEMENTED);
+            return undefined;
 
-    default:
-        return result.error("Unknown data in file", ErrorCode.UNKNOWN_FILE_DATA);
+        default:
+            log.fatal("Unknown data in file", ErrorCode.UNKNOWN_FILE_DATA);
+            return undefined;
     }
 
 }

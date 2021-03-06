@@ -6,7 +6,7 @@ import path from 'path';
 import fs from 'fs';
 import { Option, Command } from 'commander';
 import * as validator from './validate';
-import log, { LogLevels } from './logger';
+import { LogLevels, Log } from './logger';
 import { getFileData } from './file';
 import { ErrorCode } from './error';
 import * as keys from './keys';
@@ -28,6 +28,7 @@ program.option('-o, --logout <path>', 'output path for log (if not specified log
 program.option('-k, --jwkset <key>', 'path to trusted issuer key set');
 program.parse(process.argv);
 
+
 interface Options {
     path: string;
     type: validator.ValidationType;
@@ -35,6 +36,10 @@ interface Options {
     loglevel: string;
     logout: string;
 }
+
+
+const log = new Log('main');
+
 
 /**
  * Processes the program options and launches validation
@@ -46,16 +51,16 @@ async function processOptions() {
     // verify that the directory of the logfile exists
     if (options.logout) {
         const logDir = path.dirname(path.resolve(options.logout));
-        if(!fs.existsSync(logDir)){
+        if (!fs.existsSync(logDir)) {
             log.fatal('Cannot create log file at: ' + logDir);
             return;
         }
         logFilePathIsValid = true;
     }
 
-    if (options.loglevel) {
-        log.setLevel(loglevelChoices.indexOf(options.loglevel) as LogLevels);
-    }
+    // if (options.loglevel) {
+    //     log.setLevel(loglevelChoices.indexOf(options.loglevel) as LogLevels);
+    // }
 
     if (options.path && options.type) {
         // read the file to validate
@@ -78,29 +83,28 @@ async function processOptions() {
 
         if (options.type === 'jwkset') {
             // validate a key file
-            await validator.validateKey(fileData.buffer);
+            await validator.validateKey(fileData.buffer, log);
 
         } else {
             // validate a health card
             const output = await validator.validateCard(fileData, options.type);
-            process.exitCode = output.exitCode;
+            process.exitCode = output.log.exitCode;
 
             const level = loglevelChoices.indexOf(options.loglevel) as LogLevels;
-            
+
             // append to the specified logfile
-            if(logFilePathIsValid) {
-                
+            if (logFilePathIsValid) {
+
                 const out = {
-                    "time" : new Date().toString(),
-                    "options" : options,
-                    "log" : output.flatten(level)
+                    "time": new Date().toString(),
+                    "options": options,
+                    "log": output.log.flatten(level)
                 };
                 fs.appendFileSync(options.logout, JSON.stringify(out, null, 4) + '\n');
                 fs.appendFileSync(options.logout, '\n--------------------------------------------------------------------------------');
+
             } else {
-                if (output != null) {
-                    log(validator.formatOutput(output, '').join('\n'), level);
-                }
+                console.log(validator.formatOutput(output.log, '', level).join('\n'));
             }
         }
 
