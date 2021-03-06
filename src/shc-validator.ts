@@ -59,10 +59,6 @@ async function processOptions() {
         logFilePathIsValid = true;
     }
 
-    // if (options.loglevel) {
-    //     log.setLevel(loglevelChoices.indexOf(options.loglevel) as LogLevels);
-    // }
-
     if (options.path && options.type) {
         // read the file to validate
         let fileData;
