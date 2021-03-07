@@ -37,14 +37,14 @@ export type ValidationType = "qr" | "qrnumeric" | "healthcard" | "jws" | "jwspay
 
 export class ValidationResult {
     constructor(
-        public  result : HealthCard | JWS | JWSPayload | FhirBundle | undefined,
-        public log : Log
-    ) {}
+        public result: HealthCard | JWS | JWSPayload | FhirBundle | undefined,
+        public log: Log
+    ) { }
 }
 
 
 /** Validates SMART Health Card */
-export async function validateCard(fileData: FileInfo, type: ValidationType): Promise<ValidationResult> {
+export async function validateCard(fileData: FileInfo[], type: ValidationType): Promise<ValidationResult> {
 
     let result: ValidationResult;
 
@@ -59,22 +59,22 @@ export async function validateCard(fileData: FileInfo, type: ValidationType): Pr
             break;
 
         case "healthcard":
-            result = await healthCard.validate(fileData.buffer.toString());
-            if (fileData.ext !== '.smart-health-card') {
+            result = await healthCard.validate(fileData[0].buffer.toString());
+            if (fileData[0].ext !== '.smart-health-card') {
                 result.log.warn("Invalid file extenion. Should be .smart-health-card.", ErrorCode.INVALID_FILE_EXTENSION);
             }
             break;
 
         case "jws":
-            result = await jws.validate(fileData.buffer.toString());
+            result = await jws.validate(fileData[0].buffer.toString());
             break;
 
         case "jwspayload":
-            result = jwsPayload.validate(fileData.buffer.toString());
+            result = jwsPayload.validate(fileData[0].buffer.toString());
             break;
 
         case "fhirbundle":
-            result = fhirBundle.validate(fileData.buffer.toString());
+            result = fhirBundle.validate(fileData[0].buffer.toString());
             break;
 
         default:

@@ -7,14 +7,14 @@ import jwsCompactSchema from '../schema/jws-schema.json';
 import * as jwsPayload from './jws-payload';
 import * as keys from './keys';
 import pako from 'pako';
-import got from 'got/dist/source';
+import got from 'got';
 import jose, { JWK } from 'node-jose';
 import path from 'path';
 import Log from './logger';
 import { ValidationResult } from './validate';
 
 
-const MAX_JWS_LENGTH = 1195;
+//const MAX_JWS_LENGTH = 1195;
 
 
 export const schema = jwsCompactSchema;
@@ -34,10 +34,11 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
         );
     }
 
-
-    if (jws.length > MAX_JWS_LENGTH) {
-        log.error('JWS, at ' + jws.length.toString() + ' characters, exceeds max character length of ' + MAX_JWS_LENGTH.toString(), ErrorCode.JWS_TOO_LONG);
+    /* FIXME: delete. Not a max length in spec v0.2
+    if (jws.length >= MAX_JWS_LENGTH) {
+        output.error('JWS, at ' + jws.length.toString() + ' characters, exceeds max character length of ' + MAX_JWS_LENGTH.toString(), ErrorCode.JWS_TOO_LONG);
     }
+    */
 
 
     // failures will be recorded in the log. we can continue processing.

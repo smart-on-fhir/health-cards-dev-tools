@@ -4,22 +4,21 @@
 import svg2img from 'svg2img';   // svg files to image buffer
 import { PNG } from 'pngjs';     // png image file reader
 import jsQR from 'jsqr';         // qr image decoder
-import core from 'file-type/core';
 import { ErrorCode } from './error';
 import * as jws from './jws-compact';
 import Log from './logger';
 import { FileInfo } from './file';
 
 
-export async function validate(qrSvg: FileInfo): Promise<{result: JWS | undefined, log :Log}> {
+export async function validate(qr: FileInfo[]): Promise<{ result: JWS | undefined, log: Log }> {
 
-    const log = new Log('QR code (' + (qrSvg.fileType as string) + ')');
+    const log = new Log('QR code (' + (qr[0].fileType as string) + ')');
 
-    const results : JWS | undefined = await decode(qrSvg, log);
+    const results: JWS | undefined = await decode(qr, log);
 
     results && await jws.validate(results);
 
-    return { result: results, log : log };
+    return { result: results, log: log };
 }
 
 
@@ -50,7 +49,7 @@ async function svgToImageBuffer(svgPath: string, log: Log): Promise<Buffer> {
 
 
 // Decode QR image buffer to base64 string
-function decodeQrBuffer(image: Buffer, log: Log): JWS | undefined {
+function decodeQrBuffer(image: Buffer, log: Log): string | undefined {
 
     const result: JWS | undefined = undefined;
 
@@ -64,25 +63,88 @@ function decodeQrBuffer(image: Buffer, log: Log): JWS | undefined {
         return result;
     }
 
-    return shcToJws(code.data, log);
+    return code.data;
 }
 
 
-function shcToJws(shc: string, log: Log): JWS | undefined {
+function shcChunksToJws(shc: string[], log : Log): JWS | undefined {
 
-    const b64Offset = '-'.charCodeAt(0);
+    const chunkCount = shc.length;
+    const jwsChunks = new Array(chunkCount);
 
-    // check the header, we can still process if the header is wrong.
-    if (!/^shc:\//.test(shc)) {
-        log.error("Invalid 'shc:/' header string", ErrorCode.INVALID_SHC_STRING);
+    for (const shcChunk of shc) {
+
+        const chunkResult = shcToJws(shcChunk, log, chunkCount);
+
+
+        if(!chunkResult) continue; // move on to next chunk
+
+        // if (chunkResult.errors.length > 0) {
+        //     // propagate errors, if any
+        //     for (let err of chunkResult.errors) {
+        //         result.error(err.message, err.code, err.logLevel); // TODO: overload this method to take a LogInfo
+        //     }
+        //     continue; // move on to next chunk
+        // }
+
+        const chunkIndex = chunkResult.chunkIndex;
+        
+        if (jwsChunks[chunkIndex - 1]) {
+            // we have a chunk index collision
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+            log.error('we have two chunks with index ' + chunkIndex, ErrorCode.INVALID_QR_CHUNK_INDEX);
+        } else {
+            jwsChunks[chunkIndex - 1] = chunkResult.result;
+        }
+    }
+    // make sure we have all chunks we expect
+    for (let i = 0; i < chunkCount; i++) {
+        if (!jwsChunks[i]) {
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+            log.error('missing QR chunk ' + i, ErrorCode.INVALID_QR_CHUNK_INDEX);
+        }
     }
 
-    // check
-    const digitPairs = shc.match(/(\d\d)+$/g);
+    return jwsChunks.join('');
+}
+
+
+function shcToJws(shc: string, log: Log, chunkCount = 1): {result: JWS, chunkIndex: number} | undefined {
+
+    const chunked = chunkCount > 1; // TODO: what about chunk 1 of 1 ('shc:/1/1/...' it's legal but shouldn't happen)
+    const qrHeader = 'shc:/';
+    let chunkIndex = 1;
+    const bodyIndex = chunked ? qrHeader.length + 4 : qrHeader.length;
+
+    // check numeric QR header
+    if (!new RegExp(chunked ? `^${qrHeader}[0-9]/${chunkCount}/.+$` : `^${qrHeader}.+$`, 'g').test(shc)) {
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+        log.fatal("Invalid numeric QR header: expected" + chunked ? `${qrHeader}[0-9]+` : `${qrHeader}[0-9]/[0-9]/[0-9]+`, ErrorCode.INVALID_NUMERIC_QR_HEADER);
+        return undefined;
+    }
+    // check numeric QR encoding
+    if (!new RegExp(chunked ? `^${qrHeader}[0-9]/${chunkCount}/[0-9]+$` : `^${qrHeader}[0-9]+$`, 'g').test(shc)) {
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+        log.fatal("Invalid numeric QR: expected" + chunked ? `${qrHeader}[0-9]+` : `${qrHeader}[0-9]/[0-9]/[0-9]+`, ErrorCode.INVALID_NUMERIC_QR);
+        return undefined;
+    }
+
+    // get the chunk index
+    if (chunked) {
+        // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+        chunkIndex = parseInt((shc.match(new RegExp('^shc:/[0-9]')) as RegExpMatchArray)[0].substring(5, 6));
+        if (chunkIndex < 1 || chunkIndex > chunkCount) {
+            // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+            log.fatal("Invalid QR chunk index: " + chunkIndex, ErrorCode.INVALID_QR_CHUNK_INDEX);
+            return undefined;
+        }
+    }
+
+    const b64Offset = '-'.charCodeAt(0);
+    const digitPairs = shc.substring(bodyIndex).match(/(\d\d?)/g);
 
     if (digitPairs == null) {
-        // we cannot continue without any data
-        log.fatal("Invalid shc data. Data should be an even numbered string of digits ([0-9][0-9])+", ErrorCode.INVALID_SHC_STRING);
+        log.fatal("Invalid numeric QR code", ErrorCode.INVALID_NUMERIC_QR);
         return undefined;
     }
 
@@ -93,27 +155,27 @@ function shcToJws(shc: string, log: Log): JWS | undefined {
         // merge the array into a single base64 string
         .join('');
 
-    return jws;
+    return  { result: jws, chunkIndex : chunkIndex};
 }
 
 
 // takes file path to QR data and returns base64 data
-async function decode(fileInfo: FileInfo, log: Log): Promise<string | undefined> {
+async function decode(fileInfo: FileInfo[], log: Log): Promise<string | undefined> {
 
     let svgBuffer;
     //const result = new ResultWithErrors();
 
-    switch (fileInfo.fileType) {
+    switch (fileInfo[0].fileType) { // TODO: how to deal with different inconsistent files
 
         case 'svg':
-            svgBuffer = await svgToImageBuffer(fileInfo.buffer.toString(), log);
-            return svgBuffer && decodeQrBuffer(svgBuffer, log);
+            svgBuffer = await svgToImageBuffer(fileInfo[0].buffer.toString(), log); // TODO: handle multiple files
+            return decodeQrBuffer(svgBuffer, log);
 
         case 'shc':
-            return Promise.resolve(shcToJws(fileInfo.buffer.toString(), log));
+            return Promise.resolve(shcChunksToJws(fileInfo.map(fi => fi.buffer.toString()), log));
 
         case 'png':
-            return decodeQrBuffer(fileInfo.buffer, log);
+            return decodeQrBuffer(fileInfo[0].buffer, log); // TODO: handle multiple files
 
         case 'jpg':
             log.fatal("jpg : Not implemented", ErrorCode.NOT_IMPLEMENTED);
