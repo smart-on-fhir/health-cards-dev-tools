@@ -8,17 +8,7 @@ import core from 'file-type/core';
 import { ErrorCode } from './error';
 import * as jws from './jws-compact';
 import Log from './logger';
-
-
-interface FileInfo {
-    name: string,
-    path: string,
-    ext: string,
-    encoding: string | null,
-    type: "text" | "binary",
-    buffer: Buffer,
-    fileType: core.FileTypeResult | string | undefined
-}
+import { FileInfo } from './file';
 
 
 export async function validate(qrSvg: FileInfo): Promise<{result: JWS | undefined, log :Log}> {

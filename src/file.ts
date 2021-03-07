@@ -4,9 +4,11 @@
 import fs from 'fs';
 import path from 'path';
 import { isText, getEncoding } from 'istextorbinary';
-import fileType from 'file-type'; 
+import fileType from 'file-type';
 import core from 'file-type/core';
-
+import { PNG } from 'pngjs';
+import jpeg from 'jpeg-js';
+import {decode} from 'bmp-js';
 
 type QRData = "png" | "jpg" | "bmp" | "svg" | "shc" | "unknown";
 type FileData = { data: Buffer | string | undefined, type: QRData };
@@ -19,7 +21,8 @@ export interface FileInfo {
     encoding: string | null,
     type: "text" | "binary",
     buffer: Buffer,
-    fileType: core.FileTypeResult | string | undefined
+    fileType: core.FileTypeResult | string | undefined,
+    image?: { data: Buffer, height: number, width: number } | undefined
 }
 
 
@@ -57,8 +60,24 @@ export async function getFileData(filepath: string): Promise<FileInfo> {
         if ((result.data as string).startsWith("shc:")) {
             fileInfo.fileType = 'shc';
         }
+
     } else {
         fileInfo.fileType = (fileInfo.fileType as core.FileTypeResult).ext;
+
+        switch (fileInfo.fileType) {
+            case 'png':
+                fileInfo.image = PNG.sync.read(fileInfo.buffer);
+                break;
+            case 'jpg':
+                fileInfo.image = jpeg.decode(buffer, { useTArray: true }) as { data: Buffer, height: number, width: number };
+                break;
+            case 'bmp':
+                fileInfo.image = decode(buffer) as { data: Buffer, height: number, width: number };
+                break;
+            default:
+                break;
+        }
+
     }
 
     return fileInfo;
