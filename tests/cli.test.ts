@@ -106,10 +106,13 @@ test("Cards: valid 02 jws", () => expect(testCliCommand('node . --path testdata/
 test("Cards: valid 02 jws-payload", () => expect(testCliCommand('node . --path testdata/example-02-c-jws-payload-minified.json --type jwspayload --loglevel warning')).toBe(0));
 test("Cards: valid 02 fhirBundle", () => expect(testCliCommand('node . --path testdata/example-02-a-fhirBundle.json --type fhirbundle --loglevel warning')).toBe(0));
 test("Cards: valid 02 qr-code-numeric", () => expect(testCliCommand('node . --path testdata/example-02-f-qr-code-numeric-value-0.txt --path testdata/example-02-f-qr-code-numeric-value-1.txt --path testdata/example-02-f-qr-code-numeric-value-2.txt --type qrnumeric --loglevel info')).toBe(0));
-test("Cards: valid 02 qr-code.svg", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.svg --path testdata/example-02-g-qr-code-0.svg --path testdata/example-02-g-qr-code-0.svg --type qr --loglevel info')).toBe(0));
+test("Cards: valid 02 qr-code.svg", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.svg --path testdata/example-02-g-qr-code-1.svg --path testdata/example-02-g-qr-code-2.svg --type qr --loglevel info')).toBe(0));
+test("Cards: valid 02 qr-code.png", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.png --path testdata/example-02-g-qr-code-1.png --path testdata/example-02-g-qr-code-2.png --type qr --loglevel info')).toBe(0));
+test("Cards: valid 02 qr-code.jpg", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.jpg --path testdata/example-02-g-qr-code-1.jpg --path testdata/example-02-g-qr-code-2.jpg --type qr --loglevel info')).toBe(0));
+test("Cards: valid 02 qr-code.bmp", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.bmp --path testdata/example-02-g-qr-code-1.bmp --path testdata/example-02-g-qr-code-2.bmp --type qr --loglevel info')).toBe(0));
 
-test("Cards: valid qr.png", () => expect(testCliCommand('node . --path testdata/qr.png --type qr --loglevel info')).toBe(0));
-test("Cards: valid qr-90.pngd", () => expect(testCliCommand('node . --path testdata/qr-90.png --type qr --loglevel info')).toBe(0));
+
+
 
 // Bad paths to data files
 test("Cards: missing healthcard", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type healthcard --loglevel info')).toBe(ErrorCode.DATA_FILE_NOT_FOUND));

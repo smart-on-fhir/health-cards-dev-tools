@@ -67,7 +67,7 @@ Issuer signing keys can be validated before being uploaded to their well-known U
 The tool currently verifies proper encoding of the:
  - QR code image
  - Numeric QR data (header, content)
- - Smart Health Card file (schema)
+ - SMART Health Card file (schema)
  - JWS (schema, deflate compression, format, size limits, signature, issuer key retrieval)
  - JWS payload (schema)
  - FHIR bundle (schema)

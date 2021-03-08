@@ -4,6 +4,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 type JWS = string;
 
+type SHC = string;
+
 interface HealthCard {
     "verifiableCredential": JWS[]
 }

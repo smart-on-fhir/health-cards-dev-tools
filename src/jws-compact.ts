@@ -50,6 +50,9 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
     const rawPayload = parts[1];
 
 
+    log.debug('JWS.header = ' + Buffer.from(parts[0], 'base64').toString());
+    log.debug('JWS.key (hex) = ' + Buffer.from(parts[2], 'binary').toString('hex'));
+
     let inflatedPayload;
     try {
         inflatedPayload = pako.inflateRaw(Buffer.from(rawPayload, 'base64'), { to: 'string' });
@@ -107,7 +110,7 @@ async function downloadKey(keyPath: string, log: Log): Promise<JWK.Key[] | undef
     return await got(keyPath).json<{ keys: unknown[] }>()
         // TODO: split up download/parsing to provide finer-grainded error message
         .then(async keysObj => {
-            log.debug("Downloaded issuer key : " + JSON.stringify(keysObj));
+            log.debug("Downloaded issuer key : " + JSON.stringify(keysObj, null, 2));
             return [
                 await keys.store.add(JSON.stringify(keysObj.keys[0]), 'json'),
                 await keys.store.add(JSON.stringify(keysObj.keys[1]), 'json')

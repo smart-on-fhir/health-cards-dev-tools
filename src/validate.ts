@@ -10,7 +10,7 @@ import * as jws from './jws-compact';
 import * as jwsPayload from './jws-payload';
 import * as fhirBundle from './fhirBundle';
 import * as qr from './qr';
-
+import * as image from './image';
 
 
 
@@ -51,11 +51,11 @@ export async function validateCard(fileData: FileInfo[], type: ValidationType): 
     switch (type.toLocaleLowerCase()) {
 
         case "qr":
-            result = await qr.validate(fileData);
+            result = await image.validate(fileData);
             break;
 
         case "qrnumeric":
-            result = await qr.validate(fileData);
+            result = await qr.validate(fileData.map((fi)=>fi.buffer.toString('utf-8')));
             break;
 
         case "healthcard":

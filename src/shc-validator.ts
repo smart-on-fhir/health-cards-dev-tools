@@ -73,7 +73,7 @@ async function processOptions() {
             try {
                 fileData.push(await getFileData(path));
             } catch (error) {
-                log.error((error as Error).message);
+                console.log((error as Error).message);
                 process.exitCode = ErrorCode.DATA_FILE_NOT_FOUND;
                 return;
             }
@@ -103,7 +103,7 @@ async function processOptions() {
             if (logFilePathIsValid) {
                 output.log.toFile(options.logout, options, true);
             } else {
-                console.log(log.toString(level));
+                console.log(output.log.toString(level));
             }
         }
 

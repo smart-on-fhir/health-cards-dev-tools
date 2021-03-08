@@ -11,14 +11,9 @@ import { LogLevels } from '../src/logger';
 
 const testdataDir = './testdata/';
 
-// async function testCard(fileName: string[], fileType: ValidationType = 'healthcard', levels: LogLevels[] = [LogLevels.ERROR, LogLevels.FATAL]): Promise<{ title: string, message: string, code: ErrorCode }[]> {
-//     const filePath = path.join(testdataDir, fileName);
-//     const log = (await validateCard([await getFileData(filePath)], fileType)).log;
-//     return log.flatten().filter(i => { return levels.includes(i.level); });
-// }
 
-
-async function testCard(fileName: string[], fileType: ValidationType = 'healthcard', levels : LogLevels[] = [LogLevels.ERROR, LogLevels.FATAL]): Promise<{ title: string, message: string, code: ErrorCode }[]> {
+async function testCard(fileName: string | string[], fileType: ValidationType = 'healthcard', levels: LogLevels[] = [LogLevels.ERROR, LogLevels.FATAL]): Promise<{ title: string, message: string, code: ErrorCode }[]> {
+    if (typeof fileName === 'string') fileName = [fileName];
     const files = [];
     for (const fn of fileName) { // TODO: I tried a map here, but TS didn't like the async callback 
         files.push(await getFileData(path.join(testdataDir, fn)));
@@ -52,17 +47,23 @@ test("Cards: valid 00 QR numeric", async () => expect(await testCard(['example-0
 test("Cards: valid 01 QR numeric", async () => expect(await testCard(['example-01-f-qr-code-numeric-value-0.txt'], "qrnumeric")).toHaveLength(0));
 test("Cards: valid 02 QR numeric", async () => expect(
     await testCard(['example-02-f-qr-code-numeric-value-0.txt',
-                    'example-02-f-qr-code-numeric-value-1.txt',
-                    'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric")).toHaveLength(0));
+        'example-02-f-qr-code-numeric-value-1.txt',
+        'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric")).toHaveLength(0));
 
 test("Cards: valid 00 QR code", async () => expect(await testCard(['example-00-g-qr-code-0.svg'], "qr")).toHaveLength(0));
 test("Cards: valid 01 QR code", async () => expect(await testCard(['example-01-g-qr-code-0.svg'], "qr")).toHaveLength(0));
-/* TODO: enable once QR chunk image parsing works
+
 test("Cards: valid 02 QR code", async () => expect(
-    await testCard(['example-02-g-qr-code-0.svg',
-                    'example-02-g-qr-code-1.svg',
-                    'example-02-g-qr-code-2.svg'], "qr")).toHaveLength(0));
-*/
+    await testCard(['example-02-g-qr-code-0.svg', 'example-02-g-qr-code-1.svg', 'example-02-g-qr-code-2.svg'], "qr")).toHaveLength(0));
+
+test("Cards: valid 02 QR code PNG", async () => expect(
+    await testCard(['example-02-g-qr-code-0.png', 'example-02-g-qr-code-1.png', 'example-02-g-qr-code-2.png'], "qr")).toHaveLength(0));
+
+test("Cards: valid 02 QR code JPG", async () => expect(
+    await testCard(['example-02-g-qr-code-0.jpg', 'example-02-g-qr-code-1.jpg', 'example-02-g-qr-code-2.jpg'], "qr")).toHaveLength(0));
+
+test("Cards: valid 02 QR code BMP", async () => expect(
+    await testCard(['example-02-g-qr-code-0.bmp', 'example-02-g-qr-code-1.bmp', 'example-02-g-qr-code-2.bmp'], "qr")).toHaveLength(0));
 
 test("Cards: invalid deflate", async () => {
     const results = await testCard(['test-example-00-e-file-invalid_deflate.smart-health-card']);
@@ -74,7 +75,7 @@ test("Cards: invalid deflate", async () => {
 test("Cards: no deflate", async () => {
     const results = await testCard(['test-example-00-e-file-no_deflate.smart-health-card']);
     expect(results).toHaveLength(2);
-//    expect(results[0].code).toBe(ErrorCode.JWS_TOO_LONG); // FIXME: fix for chunk
+    //    expect(results[0].code).toBe(ErrorCode.JWS_TOO_LONG); // FIXME: fix for chunk
     expect(results[0].code).toBe(ErrorCode.INFLATION_ERROR);
     expect(results[1].code).toBe(ErrorCode.JSON_PARSE_ERROR);
 });
@@ -94,10 +95,9 @@ test("Cards: invalid QR mode", async () => {
 */
 
 test("Cards: invalid QR header", async () => {
-    const results = await testCard(['test-example-00-f-qr-code-numeric-wrong_qr_header.txt'], 'qr');
-    expect(results).toHaveLength(2);
+    const results = await testCard(['test-example-00-f-qr-code-numeric-wrong_qr_header.txt'], 'qrnumeric');
+    expect(results).toHaveLength(1);
     expect(results[0].code).toBe(ErrorCode.INVALID_NUMERIC_QR_HEADER);
-    expect(results[1].code).toBe(ErrorCode.JSON_PARSE_ERROR); // FIXME: this shouldn't be returned, we should stop after QR failure
 });
 
 /* TODO: FIX this test
