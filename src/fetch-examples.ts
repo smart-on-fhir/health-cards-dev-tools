@@ -13,7 +13,8 @@ import got from 'got';
 
 const outPath = 'testdata';
 const baseExampleUrl = 'https://smarthealth.cards/examples/';
-const exampleCount = 2;
+const exampleCount = 3;
+const exampleQrChunkCount = [1,1,3]; // number of QR chunks per example
 const examplePrefix = 'example-';
 const exampleSuffixes = [
     '-a-fhirBundle.json',
@@ -21,8 +22,8 @@ const exampleSuffixes = [
     '-c-jws-payload-minified.json',
     '-d-jws.txt',
     '-e-file.smart-health-card',
-    '-f-qr-code-numeric-value-0.txt',
-    '-g-qr-code-0.svg'
+    '-f-qr-code-numeric-value-X.txt',
+    '-g-qr-code-X.svg'
 ];
 
 const pipeline = promisify(stream.pipeline);
@@ -31,26 +32,39 @@ async function fetchExamples(outdir: string) : Promise<void> {
     
     const getExamples = exampleSuffixes.map(async (exampleSuffix) => {
 
-        for(let i = 0; i < exampleCount; i++) {
+        for (let i = 0; i < exampleCount; i++) {
 
             const exampleNumber = i.toLocaleString('en-US', {
                 minimumIntegerDigits: 2,
                 useGrouping: false,
             });    
             
-            const exampleFile = examplePrefix + exampleNumber + exampleSuffix;
-            const filePath = path.join(outdir, exampleFile);
+            // files to download, either one file or multiple chunks
+            const exampleFiles = [];
+            const exampleFileBase = examplePrefix + exampleNumber + exampleSuffix;
+            if (/^-f.+|^-g.+/g.test(exampleSuffix)) {
+                // we might have multiple QR files
+                for (let j = 0; j < exampleQrChunkCount[i]; j++) {
+                    exampleFiles.push(exampleFileBase.replace('X', j.toString()));
+                }
+            } else {
+                exampleFiles.push(exampleFileBase);
+            }
 
-            if (!fs.existsSync(filePath)) {
-                const exampleUrl = baseExampleUrl + exampleFile;
-                console.log('Retrieving ' + exampleUrl);
-                try {
-                    await pipeline(
-                        got.stream(exampleUrl),
-                        fs.createWriteStream(filePath)
-                    );
-                } catch (err) {
-                    console.log('Error retrieving: ' + exampleUrl, (err as Error).message);
+            for (const exampleFile of exampleFiles) {
+                const filePath = path.join(outdir, exampleFile);
+
+                if (!fs.existsSync(filePath)) {
+                    const exampleUrl = baseExampleUrl + exampleFile;
+                    console.log('Retrieving ' + exampleUrl);
+                    try {
+                        await pipeline(
+                            got.stream(exampleUrl),
+                            fs.createWriteStream(filePath)
+                        );
+                    } catch (err) {
+                        console.log('Error retrieving: ' + exampleUrl, (err as Error).message);
+                    }
                 }
             }
         }

@@ -19,15 +19,5 @@
         "@typescript-eslint"
     ],
     "rules": {
-        "indent": ["error", 4],
-        "require-jsdoc":"off",
-        "semi": [
-            "error",
-            "always"
-        ],
-        "spaced-comment": [
-            "error",
-            "always"
-        ]
     }
 }

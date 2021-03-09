@@ -4,6 +4,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 type JWS = string;
 
+type SHC = string;
+
 interface HealthCard {
     "verifiableCredential": JWS[]
 }
@@ -21,10 +23,4 @@ interface FhirBundle {
     "resourceType": string,
     "type": string,
     "entry": unknown[]
-}
-
-interface TestFhirBundle {
-    "resourceType"?: string,
-    "type"?: string,
-    "entry"?: unknown[]
 }
