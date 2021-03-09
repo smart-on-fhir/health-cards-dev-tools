@@ -1,5 +1,5 @@
 {
-    "$id": "https://smarthealth.cards/schema/fhir-bundle-schema.json",
+    "$id": "https://smarthealth.cards/schema/keyset-schema.json",
     "$schema": "http://json-schema.org/draft-07/schema#",
     "title": "root",
     "type": "object",
@@ -9,8 +9,7 @@
     "properties": {
         "keys": {
             "type": "array",
-            "minItems": 2,
-            "maxItems": 2,
+            "minItems": 1,
             "items": {
                 "type": "object",
                 "properties": {
