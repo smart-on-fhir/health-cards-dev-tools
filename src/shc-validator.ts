@@ -6,11 +6,12 @@ import path from 'path';
 import fs from 'fs';
 import { Option, Command } from 'commander';
 import * as validator from './validate';
-import Log, { LogLevels } from './logger';
+import { LogLevels } from './logger';
 import { getFileData } from './file';
 import { ErrorCode } from './error';
 import * as keys from './keys';
 import npmpackage from '../package.json';
+
 
 // function collect(value: string, previous: string[]) {
 //     return previous.concat([value]);
@@ -41,7 +42,7 @@ export interface CliOptions {
 }
 
 
-const log = new Log('main');
+//const log = new Log('main');
 
 
 /**
@@ -84,12 +85,12 @@ async function processOptions() {
             // creates a new keyStore from a JSON key set file
             // const keyStore: JWK.KeyStore = await createKeyStoreFromFile(options.key);
             await keys.initKeyStoreFromFile(options.jwkset);
-            log.debug('keyStore');
+            //log.debug('keyStore');
         }
 
         if (options.type === 'jwkset') {
             // validate a key file
-            await validator.validateKey(fileData[0].buffer, log);
+            await validator.validateKey(fileData[0].buffer);
         } else {
 
             // validate a health card

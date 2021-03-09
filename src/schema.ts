@@ -6,20 +6,30 @@ import { ErrorCode } from './error';
 import metaSchema from 'ajv/lib/refs/json-schema-draft-06.json';
 import fhirSchema from '../schema/fhir-definitions-schema.json';
 import Ajv, { AnySchemaObject } from "ajv";
+import { AnyValidateFunction } from 'ajv/dist/core';
 // http://json-schema.org/
 // https://github.com/ajv-validator/ajv
+
+
+
+const schemaCache: Record<string, AnyValidateFunction> = {};
 
 
 export function validateSchema(schema: AnySchemaObject | AnySchemaObject[], data: FhirBundle | JWS | JWSPayload | HealthCard, log: Log): boolean {
 
     // by default, the validator will stop at the first failure. 'allErrors' allows it to keep going.
-    const ajv = new Ajv({ allErrors: true, strict: false });
-    ajv.addMetaSchema(metaSchema);  // required for avj 7 to support json-schema draft-06 (draft-07 is current)
+    const schemaId = (schema as { [key: string]: string })["$id"];
 
     try {
 
-        // TODO: make this fail in test
-        const validate = ajv.addSchema(fhirSchema).compile(schema);
+        if (!schemaCache[schemaId]) {
+            const ajv = new Ajv({ allErrors: true, strict: false });
+            ajv.addMetaSchema(metaSchema);  // required for avj 7 to support json-schema draft-06 (draft-07 is current)
+            const validate = ajv.addSchema(fhirSchema).compile(schema);
+            schemaCache[schemaId] = validate;
+        }
+
+        const validate = schemaCache[schemaId];
 
         if (validate(data)) { return true; }
 

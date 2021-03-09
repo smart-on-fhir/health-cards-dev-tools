@@ -16,7 +16,9 @@ import * as image from './image';
 
 
 /** Validate the issuer key */
-export async function validateKey(key: Buffer, log: Log): Promise<void> {
+export async function validateKey(key: Buffer): Promise<void> {
+
+    const log = new Log('Validate Key');
 
     log.debug('Validating key : ' + key.toString('utf-8'));
 
