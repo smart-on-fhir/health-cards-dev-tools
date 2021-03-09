@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import fhir_schema from '../schema/fhir-definitions-schema.json';
 import fhir_bundle_schema from '../schema/fhir-bundle-schema.json';
 import fs from 'fs';
