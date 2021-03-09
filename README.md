@@ -20,6 +20,16 @@ This project provides a tool to help implementers of the [SMART Health Card Fram
 
                 npm test
 
+### Running in Docker
+
+```json
+docker build -t health-cards-validation .
+
+docker run --rm -it \
+  -v /path/to/inputs:/inputs \
+  health-cards-validation /bin/bash
+```
+
 ## Using the tool
 
 To validate health card artefacts, use the `shc-validator.ts` script, or simply call `node .` from the package root directory, using the desired options:
