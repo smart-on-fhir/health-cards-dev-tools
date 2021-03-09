@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import fs from 'fs';
-import path from 'path';
 import Log from './logger';
 import { ErrorCode } from './error';
 import metaSchema from 'ajv/lib/refs/json-schema-draft-06.json';

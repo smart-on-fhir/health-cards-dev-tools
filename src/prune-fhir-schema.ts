@@ -1,4 +1,4 @@
-import fhir_schema from '../schema/fhir.schema.json';
+import fhir_schema from '../schema/fhir-definitions-schema.json';
 import fhir_bundle_schema from '../schema/fhir-bundle-schema.json';
 import fs from 'fs';
 
@@ -18,7 +18,7 @@ const allRefs = bundle_refs.concat(fhir_refs);
 
 const newSchema = pruneFhirSchema(fhir_schema, allRefs);
 
-fs.writeFileSync('trimmed.fhir.schema.json',JSON.stringify(newSchema, null, 4));
+fs.writeFileSync('trimmed.fhir.schema.json', JSON.stringify(newSchema, null, 4));
 
 
 function pruneFhirSchema(fhirSchema: Record<string, unknown>, bundle_refs: string[]) {
@@ -27,8 +27,8 @@ function pruneFhirSchema(fhirSchema: Record<string, unknown>, bundle_refs: strin
 
     for (const key in defs) {
         if (Object.prototype.hasOwnProperty.call(defs, key)) {
-            if(bundle_refs.indexOf(key) < 0) {
-                delete (fhir_schema.definitions as {[key: string] : unknown})[key];
+            if (bundle_refs.indexOf(key) < 0) {
+                delete (fhir_schema.definitions as { [key: string]: unknown })[key];
             }
         }
     }
@@ -80,16 +80,12 @@ function getFhirReferences(fhirSchema: Record<string, unknown>, bundle_refs: str
 // returns unique external references to fhir-schema definitions
 function getUniqueBundleReferences(bundleSchema: unknown): string[] {
 
-    const fhirBundleSchemaText = JSON.stringify(bundleSchema);
-    let references = fhirBundleSchemaText.match(/"\$ref":"fhir\.schema\.json#\/definitions\/(.+?)"/g);
-
-    if (!references) throw new Error('No refereneces found');
+    const refs = JSON.stringify(bundleSchema)
+        .match(/"\$ref":"fhir\.schema\.json#\/definitions\/(.+?)"/g) || [];
 
     // remove the duplicates and trim to just the definition name
-    references = references
-        .filter((ref, index) => references!.indexOf(ref) === index)
+    return refs
+        .filter((ref, index) => refs.indexOf(ref) === index)
         .map(ref => ref.slice(ref.lastIndexOf('/') + 1, ref.length - 1));
-
-    return Array.from(references) as unknown as string[];
 }
 
