@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-// TODO: add QR chunk test cases: warning 'sch:/1/1/...', missing chunks, unbalanced chunks, too big chunks
-
 import path from 'path';
 import { validateCard, ValidationType } from '../src/validate';
 import { getFileData } from '../src/file';
@@ -12,7 +10,7 @@ import { LogLevels } from '../src/logger';
 const testdataDir = './testdata/';
 
 
-async function testCard(fileName: string | string[], fileType: ValidationType = 'healthcard', levels: LogLevels[] = [LogLevels.ERROR, LogLevels.FATAL]): Promise<{ title: string, message: string, code: ErrorCode }[]> {
+async function testCard(fileName: string | string[], fileType: ValidationType = 'healthcard', levels: LogLevels[] = [LogLevels.WARNING, LogLevels.ERROR, LogLevels.FATAL]): Promise<{ title: string, message: string, code: ErrorCode, level: LogLevels }[]> {
     if (typeof fileName === 'string') fileName = [fileName];
     const files = [];
     for (const fn of fileName) { // TODO: I tried a map here, but TS didn't like the async callback 
@@ -49,6 +47,10 @@ test("Cards: valid 02 QR numeric", async () => expect(
     await testCard(['example-02-f-qr-code-numeric-value-0.txt',
         'example-02-f-qr-code-numeric-value-1.txt',
         'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric")).toHaveLength(0));
+test("Cards: valid 02 QR numeric (out of order)", async () => expect(
+    await testCard(['example-02-f-qr-code-numeric-value-1.txt',
+        'example-02-f-qr-code-numeric-value-0.txt',
+        'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric")).toHaveLength(0));
 
 test("Cards: valid 00 QR code", async () => expect(await testCard(['example-00-g-qr-code-0.svg'], "qr")).toHaveLength(0));
 test("Cards: valid 01 QR code", async () => expect(await testCard(['example-01-g-qr-code-0.svg'], "qr")).toHaveLength(0));
@@ -75,7 +77,6 @@ test("Cards: invalid deflate", async () => {
 test("Cards: no deflate", async () => {
     const results = await testCard(['test-example-00-e-file-no_deflate.smart-health-card']);
     expect(results).toHaveLength(2);
-    //    expect(results[0].code).toBe(ErrorCode.JWS_TOO_LONG); // FIXME: fix for chunk
     expect(results[0].code).toBe(ErrorCode.INFLATION_ERROR);
     expect(results[1].code).toBe(ErrorCode.JSON_PARSE_ERROR);
 });
@@ -86,13 +87,12 @@ test("Cards: invalid issuer url", async () => {
     expect(results[0].code).toBe(ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
 });
 
-/* TODO: Test not working: fix it
-test("Cards: invalid QR mode", async () => {
-    const results = await testCard('test-example-00-f-qr-code-numeric-wrong_qr_mode.txt', 'qr');
-    expect(results).toHaveLength(1);
-    expect(results[0].code).toBe(ErrorCode.ERROR);  // TODO: Create error code for this case
-});
-*/
+// TODO: Test not working: fix it
+// test("Cards: invalid QR mode", async () => {
+//     const results = await testCard('test-example-00-f-qr-code-numeric-wrong_qr_mode.txt', 'qr');
+//     expect(results).toHaveLength(1);
+//     expect(results[0].code).toBe(ErrorCode.ERROR);  // TODO: Create error code for this case
+// });
 
 test("Cards: invalid QR header", async () => {
     const results = await testCard(['test-example-00-f-qr-code-numeric-wrong_qr_header.txt'], 'qrnumeric');
@@ -100,18 +100,18 @@ test("Cards: invalid QR header", async () => {
     expect(results[0].code).toBe(ErrorCode.INVALID_NUMERIC_QR_HEADER);
 });
 
-/* TODO: FIX this test
-test("Cards:JWS too long", async () => {
-    const results = await testCard(['test-example-00-d-jws-jws_too_long.txt'], 'jws');
-    expect(results).toHaveLength(1);
-    expect(results[0].code).toBe(ErrorCode.JWS_TOO_LONG);
-});
-*/
+// TODO: FIX this test
+// test("Cards:JWS too long", async () => {
+//     const results = await testCard(['test-example-00-d-jws-jws_too_long.txt'], 'jws');
+//     expect(results).toHaveLength(1);
+//     expect(results[0].code).toBe(ErrorCode.JWS_TOO_LONG);
+// });
 
 test("Cards: wrong file extension", async () => {
-    const results = await testCard(['test-example-00-e-file.wrong-extension'], 'healthcard', [LogLevels.WARNING, LogLevels.ERROR, LogLevels.FATAL]);
+    const results = await testCard(['test-example-00-e-file.wrong-extension'], 'healthcard');
     expect(results).toHaveLength(1);
     expect(results[0].code).toBe(ErrorCode.INVALID_FILE_EXTENSION);
+    expect(results[0].level).toBe(LogLevels.WARNING);
 });
 
 test("Cards: invalid signature", async () => {
@@ -119,3 +119,29 @@ test("Cards: invalid signature", async () => {
     expect(results).toHaveLength(1);
     expect(results[0].code).toBe(ErrorCode.JWS_VERIFICATION_ERROR);
 });
+
+test("Cards: invalid single chunk QR header", async () => {
+    const results = await testCard(['test-example-00-f-qr-code-numeric-value-0-wrong-multi-chunk.txt'], 'qrnumeric');
+    expect(results).toHaveLength(1);
+    expect(results[0].code).toBe(ErrorCode.INVALID_NUMERIC_QR_HEADER);
+    expect(results[0].level).toBe(LogLevels.WARNING);
+});
+
+test("Cards: missing QR chunk", async () => {
+    const results = await testCard(['example-02-f-qr-code-numeric-value-0.txt', 'example-02-f-qr-code-numeric-value-2.txt'], 'qrnumeric');
+    expect(results).toHaveLength(1);
+    expect(results[0].code).toBe(ErrorCode.MISSING_QR_CHUNK);
+});
+
+test("Cards: duplicated QR chunk index", async () => {
+    const results = await testCard(['example-02-f-qr-code-numeric-value-0.txt', 'example-02-f-qr-code-numeric-value-2.txt', 'example-02-f-qr-code-numeric-value-0.txt'], 'qrnumeric');
+    expect(results).toHaveLength(1);
+    expect(results[0].code).toBe(ErrorCode.INVALID_NUMERIC_QR_HEADER);
+});
+
+test("Cards: QR chunk index out of range", async () => {
+    const results = await testCard(['test-example-00-f-qr-code-numeric-value-0-index-out-of-range.txt'], 'qrnumeric');
+    expect(results).toHaveLength(1);
+    expect(results[0].code).toBe(ErrorCode.INVALID_NUMERIC_QR_HEADER);
+});
+
