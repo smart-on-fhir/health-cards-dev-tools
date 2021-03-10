@@ -10,15 +10,18 @@ import { LogLevels } from '../src/logger';
 
 const testdataDir = './testdata/';
 
+type flatLogItems = { title: string, message: string, code: ErrorCode, level: LogLevels };
 
-async function testCard(fileName: string | string[], fileType: ValidationType = 'healthcard', levels: LogLevels[] = [LogLevels.WARNING, LogLevels.ERROR, LogLevels.FATAL]): Promise<{ title: string, message: string, code: ErrorCode, level: LogLevels }[]> {
+async function testCard(fileName: string | string[], fileType: ValidationType = 'healthcard', levels: LogLevels[] = [LogLevels.WARNING, LogLevels.ERROR, LogLevels.FATAL]): Promise<flatLogItems[]> {
     if (typeof fileName === 'string') fileName = [fileName];
     const files = [];
     for (const fn of fileName) { // TODO: I tried a map here, but TS didn't like the async callback 
         files.push(await getFileData(path.join(testdataDir, fn)));
     }
     const log = (await validateCard(files, fileType)).log;
-    return log.flatten().filter(i => { return levels.includes(i.level); });
+    return log.flatten().filter(i => { return levels.includes(i.level); })
+        // filtering out key related warnings
+        .filter(i => !(i.code >= ErrorCode.INVALID_MISSING_KTY && i.level === LogLevels.WARNING) ); 
 }
 
 // Test valid examples from spec
@@ -109,7 +112,7 @@ test("Cards: invalid QR header", async () => {
 // });
 
 test("Cards: wrong file extension", async () => {
-    const results = await testCard(['test-example-00-e-file.wrong-extension'], 'healthcard');
+    const results = await testCard(['test-example-00-e-file.wrong-extension'], 'healthcard', [LogLevels.WARNING, LogLevels.ERROR, LogLevels.FATAL]);
     expect(results).toHaveLength(1);
     expect(results[0].code).toBe(ErrorCode.INVALID_FILE_EXTENSION);
     expect(results[0].level).toBe(LogLevels.WARNING);
@@ -121,17 +124,8 @@ test("Cards: invalid signature", async () => {
     expect(results[0].code).toBe(ErrorCode.JWS_VERIFICATION_ERROR);
 });
 
-
-// test("Cards: rubbish QR code", async () => {
-//     const shc = fs.readFileSync(path.join(testdataDir, 'example-00-f-qr-code-numeric-value-0.txt'));
-//     const qrFile = 'foo.png';
-//     await dataToQRImage(path.join(testdataDir, qrFile), [{ 'data': shc, 'mode': 'numeric'}]);
-//     const result = await testCard(qrFile, "qr");
-//     expect(result).toHaveLength(1);
-// });
-
 test("Cards: invalid single chunk QR header", async () => {
-    const results = await testCard(['test-example-00-f-qr-code-numeric-value-0-wrong-multi-chunk.txt'], 'qrnumeric');
+    const results = await testCard(['test-example-00-f-qr-code-numeric-value-0-wrong-multi-chunk.txt'], 'qrnumeric', [LogLevels.WARNING, LogLevels.ERROR, LogLevels.FATAL]);
     expect(results).toHaveLength(1);
     expect(results[0].code).toBe(ErrorCode.INVALID_NUMERIC_QR_HEADER);
     expect(results[0].level).toBe(LogLevels.WARNING);
@@ -157,6 +151,8 @@ test("Cards: QR chunk index out of range", async () => {
 
 test("Cards: QR chunk too big", async () => {
     const results = await testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric');
-    expect(results.map(r => r.code).indexOf(ErrorCode.INVALID_NUMERIC_QR) > 0);
-    expect(results.map(r => r.code).indexOf(ErrorCode.UNBALANCED_QR_CHUNKS) > 0);
+    expect(results.map(r => r.code).indexOf(ErrorCode.INVALID_NUMERIC_QR) >= 0);
+    expect(results.map(r => r.code).indexOf(ErrorCode.UNBALANCED_QR_CHUNKS) >= 0);
 });
+
+

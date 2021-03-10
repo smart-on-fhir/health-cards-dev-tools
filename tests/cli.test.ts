@@ -127,7 +127,7 @@ test("Logs: valid 00-e health card single log file", () => {
 
     const logFile = 'log-00-e-single.txt';
     const expectedEntries = 1;
-    const expectedLogItems = 5;
+    const expectedLogItems = 9;
 
     runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
 
@@ -142,7 +142,7 @@ test("Logs: valid 00-e health card append log file", () => {
 
     const logFile = 'log-00-e-append.txt';
     const expectedEntries = 2;
-    const expectedLogItems = [5, 5];
+    const expectedLogItems = [9, 9];
 
     runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
     runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
@@ -156,11 +156,7 @@ test("Logs: valid 00-e health card append log file", () => {
 });
 
 test("Logs: valid 00-e health card bad log path", () => {
-
     const logFile = '../foo/log.txt';
-
     const commandResult = runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
-
     expect(commandResult.exitCode).toBe(ErrorCode.LOG_PATH_NOT_FOUND);
-
 });
