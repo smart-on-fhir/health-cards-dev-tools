@@ -59,9 +59,17 @@ function shcChunksToJws(shc: string[], log : Log): JWS | undefined {
 
     if(shc.length > 1) log.info('All shc parts decoded');
 
-    log.debug('JWS = ' + jwsChunks.join(''));
+    const jws = jwsChunks.join('');
 
-    return jwsChunks.join('');
+    // check if chunk sizes are balanced
+    const expectedChunkSize = Math.floor(jws.length / chunkCount);
+    if (jwsChunks.map(jwsChunk => jwsChunk.length)
+    .reduce((unbalanced, length) => unbalanced || length < expectedChunkSize || length > expectedChunkSize + 1, false)) {
+        log.warn("QR chunk sizes are unbalanced: " + jwsChunks.map(jwsChunk => jwsChunk.length), ErrorCode.INVALID_NUMERIC_QR);
+    }
+
+    log.debug('JWS = ' + jws);
+    return jws;
 }
 
 
