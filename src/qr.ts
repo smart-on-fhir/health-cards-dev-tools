@@ -63,8 +63,10 @@ function shcChunksToJws(shc: string[], log : Log): JWS | undefined {
 
     // check if chunk sizes are balanced
     const expectedChunkSize = Math.floor(jws.length / chunkCount);
+    const balancedSizeBuffer = Math.ceil(expectedChunkSize * (0.5 / 100)); // give some leeway to what we call "balanced", 0.5% away from expected size
+    console.log('balancedSizeBuffer: ' + balancedSizeBuffer);
     if (jwsChunks.map(jwsChunk => jwsChunk.length)
-    .reduce((unbalanced, length) => unbalanced || length < expectedChunkSize || length > expectedChunkSize + 1, false)) {
+    .reduce((unbalanced, length) => unbalanced || length < expectedChunkSize - balancedSizeBuffer || length > expectedChunkSize + balancedSizeBuffer, false)) {
         log.warn("QR chunk sizes are unbalanced: " + jwsChunks.map(jwsChunk => jwsChunk.length), ErrorCode.INVALID_NUMERIC_QR);
     }
 
