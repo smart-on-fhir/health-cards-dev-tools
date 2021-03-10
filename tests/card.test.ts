@@ -145,3 +145,8 @@ test("Cards: QR chunk index out of range", async () => {
     expect(results[0].code).toBe(ErrorCode.INVALID_NUMERIC_QR_HEADER);
 });
 
+test("Cards: QR chunk too big", async () => {
+    const results = await testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric');
+    expect(results).toHaveLength(1);
+    expect(results[0].code).toBe(ErrorCode.INVALID_NUMERIC_QR);
+});

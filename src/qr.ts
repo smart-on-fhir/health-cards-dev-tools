@@ -35,7 +35,7 @@ function shcChunksToJws(shc: string[], log : Log): JWS | undefined {
 
         const chunkIndex = chunkResult.chunkIndex;
         if (chunkResult.result.length > MAX_QR_CHUNK_LENGTH) {
-            log.error(`QR chunk ${chunkIndex} is larger than ${MAX_QR_CHUNK_LENGTH} bytes`, ErrorCode.INVALID_NUMERIC_QR); // TODO: add unit test
+            log.error(`QR chunk ${chunkIndex} is larger than ${MAX_QR_CHUNK_LENGTH} bytes`, ErrorCode.INVALID_NUMERIC_QR);
         }
         
         if (jwsChunks[chunkIndex - 1]) {
