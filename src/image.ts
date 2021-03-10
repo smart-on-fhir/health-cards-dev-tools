@@ -9,6 +9,8 @@ import { FileInfo } from './file';
 import * as qr from './qr';
 import { PNG } from 'pngjs';
 import fs from 'fs';
+import Jimp from 'jimp';
+import { toFile, QRCodeSegment } from 'qrcode';
 
 
 export async function validate(images: FileInfo[]): Promise<{ result: JWS | undefined, log: Log }> {
@@ -19,11 +21,11 @@ export async function validate(images: FileInfo[]): Promise<{ result: JWS | unde
             'QR image');
 
 
-    const shcStrings : SHC[] = [];
+    const shcStrings: SHC[] = [];
 
     for (let i = 0; i < images.length; i++) {
         const shc = await decode(images[i], log);
-        if(shc === undefined) return {result: undefined, log: log};
+        if (shc === undefined) return { result: undefined, log: log };
         shcStrings.push(shc);
         log.info(images[i].name + " decoded");
         log.debug(images[i].name + ' = ' + shc);
@@ -42,7 +44,7 @@ async function decode(fileInfo: FileInfo, log: Log): Promise<string | undefined>
 
     let svgBuffer;
 
-    switch (fileInfo.fileType) { 
+    switch (fileInfo.fileType) {
 
         case 'svg':
             svgBuffer = await svgToImageBuffer(fileInfo.buffer.toString(), log);
@@ -93,7 +95,7 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
     //const png = PNG.sync.read(image);
     const data = fileInfo.image;
 
-    if(!data) {
+    if (!data) {
         log.fatal('Could not read image data from : ' + fileInfo.name);
         return undefined;
     }
@@ -108,3 +110,47 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
 
     return code.data;
 }
+
+
+export function svgToQRImage(filePath: string): Promise<unknown> {
+
+    const baseFileName = filePath.slice(0, filePath.lastIndexOf('.'));
+
+    return new
+        Promise<Buffer>((resolve, reject) => {
+            svg2img(filePath, { width: 600, height: 600 },
+                (error: unknown, buffer: Buffer) => {
+                    error ? reject("Could not create image from svg") : resolve(buffer);
+                });
+        })
+        .then((buffer) => {
+            fs.writeFileSync(baseFileName + '.png', buffer);
+            return Jimp.read(baseFileName + '.png');
+        })
+        .then(png => {
+            return Promise.all([
+                png.write(baseFileName + '.bmp'),
+                png.grayscale().quality(100).write(baseFileName + '.jpg')
+            ]);
+        })
+        .catch(err => { console.error(err); });
+}
+
+
+export async function dataToQRImage(path: string, data: QRCodeSegment[]) : Promise<void> {
+
+    await toFile(path, data, { type: 'png', errorCorrectionLevel: 'low' })
+        .catch((error) => {
+            throw error;
+        });
+
+}
+
+
+// const exampleQrCodes: string[] = await Promise.all(
+//     qrSet.map((qrSegments): Promise<string> => new Promise((resolve, reject) =>
+//       QrCode.toString(qrSegments, { type: 'svg', errorCorrectionLevel: 'low' }, function (err: any, result: string) {
+//         if (err) return reject(err);
+//         resolve(result as string);
+//       })
+//     )));

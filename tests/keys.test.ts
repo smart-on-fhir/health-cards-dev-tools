@@ -1,17 +1,18 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import fs from 'fs';
+
 import path from 'path';
 import { ErrorCode } from '../src/error';
-import { shcKeyValidator } from '../src/shcKeyValidator';
+import { LogLevels } from '../src/logger';
+import { verifyHealthCardIssuerKey } from '../src/shcKeyValidator';
+import * as utils from '../src/utils';
 const testdataDir = './testdata/';
 
 async function testKey(fileName: string): Promise<ErrorCode[]> {
     const filePath = path.join(testdataDir, fileName);
-    const keyValidator = new shcKeyValidator();
-    const log = (await keyValidator.verifyHealthCardIssuerKey(fs.readFileSync(filePath))).log;
-    return log.map(item => item.code);
+    const result = (await verifyHealthCardIssuerKey({keys : [utils.loadJSONFromFile(filePath)]}));
+    return result.log.flatten(LogLevels.WARNING).map(item => item.code);
 }
 
 test("Keys: valid", async () => {

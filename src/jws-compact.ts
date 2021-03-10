@@ -8,10 +8,11 @@ import * as jwsPayload from './jws-payload';
 import * as keys from './keys';
 import pako from 'pako';
 import got from 'got';
-import jose, { JWK } from 'node-jose';
+import jose from 'node-jose';
 import path from 'path';
 import Log from './logger';
 import { ValidationResult } from './validate';
+import { verifyHealthCardIssuerKey } from './shcKeyValidator';
 
 
 //const MAX_JWS_LENGTH = 1195;
@@ -103,18 +104,15 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
 }
 
 
-async function downloadKey(keyPath: string, log: Log): Promise<JWK.Key[] | undefined> {
+async function downloadKey(keyPath: string, log: Log): Promise<keys.KeySet | undefined> {
 
     log.info("Retrieving issuer key from " + keyPath);
 
-    return await got(keyPath).json<{ keys: unknown[] }>()
+    return await got(keyPath).json<keys.KeySet>()
         // TODO: split up download/parsing to provide finer-grainded error message
-        .then(async keysObj => {
-            log.debug("Downloaded issuer key : " + JSON.stringify(keysObj, null, 2));
-            return [
-                await keys.store.add(JSON.stringify(keysObj.keys[0]), 'json'),
-                await keys.store.add(JSON.stringify(keysObj.keys[1]), 'json')
-            ];
+        .then(async keySet => {
+            log.debug("Downloaded issuer key(s) : ");
+            return (await verifyHealthCardIssuerKey(keySet, log)).result as (keys.KeySet | undefined);
         })
         .catch(() => {
             log.error("Can't parse downloaded issuer keys as a key set",

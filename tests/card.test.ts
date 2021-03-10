@@ -9,6 +9,7 @@ import { getFileData } from '../src/file';
 import { ErrorCode } from '../src/error';
 import { LogLevels } from '../src/logger';
 
+
 const testdataDir = './testdata/';
 
 
@@ -119,3 +120,13 @@ test("Cards: invalid signature", async () => {
     expect(results).toHaveLength(1);
     expect(results[0].code).toBe(ErrorCode.JWS_VERIFICATION_ERROR);
 });
+
+
+
+// test("Cards: rubbish QR code", async () => {
+//     const shc = fs.readFileSync(path.join(testdataDir, 'example-00-f-qr-code-numeric-value-0.txt'));
+//     const qrFile = 'foo.png';
+//     await dataToQRImage(path.join(testdataDir, qrFile), [{ 'data': shc, 'mode': 'numeric'}]);
+//     const result = await testCard(qrFile, "qr");
+//     expect(result).toHaveLength(1);
+// });

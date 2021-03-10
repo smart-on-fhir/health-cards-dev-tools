@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 import Log from './logger';
-import { shcKeyValidator } from './shcKeyValidator';
+import { verifyHealthCardIssuerKey } from './shcKeyValidator';
 import { FileInfo } from './file';
 import { ErrorCode } from './error';
 import * as healthCard from './healthCard';
@@ -11,37 +11,26 @@ import * as jwsPayload from './jws-payload';
 import * as fhirBundle from './fhirBundle';
 import * as qr from './qr';
 import * as image from './image';
-
-
-
-
-/** Validate the issuer key */
-export async function validateKey(key: Buffer): Promise<void> {
-
-    const log = new Log('Validate Key');
-
-    log.debug('Validating key : ' + key.toString('utf-8'));
-
-    const keyValidator = new shcKeyValidator();
-
-    return keyValidator
-        .verifyHealthCardIssuerKey(key)
-        .then(() => { return Promise.resolve(); })
-        .catch(err => {
-            log.error("Error validating issuer key : " + (err as Error).message);
-            return Promise.reject();
-        });
-}
+//import { JWK } from 'node-jose';
+import { KeySet } from './keys';
 
 
 export type ValidationType = "qr" | "qrnumeric" | "healthcard" | "jws" | "jwspayload" | "fhirbundle" | "jwkset";
 
 
+
+
 export class ValidationResult {
     constructor(
-        public result: HealthCard | JWS | JWSPayload | FhirBundle | undefined,
+        public result: HealthCard | JWS | JWSPayload | FhirBundle | KeySet | undefined,
         public log: Log
     ) { }
+}
+
+
+/** Validate the issuer key */
+export async function validateKey(keySet: KeySet): Promise<ValidationResult> {
+    return await verifyHealthCardIssuerKey(keySet);
 }
 
 
@@ -57,7 +46,7 @@ export async function validateCard(fileData: FileInfo[], type: ValidationType): 
             break;
 
         case "qrnumeric":
-            result = await qr.validate(fileData.map((fi)=>fi.buffer.toString('utf-8')));
+            result = await qr.validate(fileData.map((fi) => fi.buffer.toString('utf-8')));
             break;
 
         case "healthcard":

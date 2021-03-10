@@ -7,6 +7,8 @@ import metaSchema from 'ajv/lib/refs/json-schema-draft-06.json';
 import fhirSchema from '../schema/fhir-definitions-schema.json';
 import Ajv, { AnySchemaObject } from "ajv";
 import { AnyValidateFunction } from 'ajv/dist/core';
+import { JWK } from 'node-jose';
+import { KeySet } from './keys';
 // http://json-schema.org/
 // https://github.com/ajv-validator/ajv
 
@@ -15,7 +17,7 @@ import { AnyValidateFunction } from 'ajv/dist/core';
 const schemaCache: Record<string, AnyValidateFunction> = {};
 
 
-export function validateSchema(schema: AnySchemaObject | AnySchemaObject[], data: FhirBundle | JWS | JWSPayload | HealthCard, log: Log): boolean {
+export function validateSchema(schema: AnySchemaObject | AnySchemaObject[], data: FhirBundle | JWS | JWSPayload | HealthCard | KeySet, log: Log): boolean {
 
     // by default, the validator will stop at the first failure. 'allErrors' allows it to keep going.
     const schemaId = (schema as { [key: string]: string })["$id"];

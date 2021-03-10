@@ -87,7 +87,7 @@ function testCliCommand(command: string): number {
 }
 
 // Valid calls to examples
-test("Cards: valid 00 health card", () => expect(testCliCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info')).toBe(0));
+test("Cards: valid 00 health card", () => expect(testCliCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info --jwkset testdata/issuer.jwks.public.json')).toBe(0));
 test("Cards: valid 00 jws", () => expect(testCliCommand('node . --path testdata/example-00-d-jws.txt --type jws --loglevel info')).toBe(0));
 test("Cards: valid 00 jws-payload", () => expect(testCliCommand('node . --path testdata/example-00-c-jws-payload-minified.json --type jwspayload --loglevel info')).toBe(0));
 test("Cards: valid 00 fhirBundle", () => expect(testCliCommand('node . --path testdata/example-00-a-fhirBundle.json --type fhirbundle --loglevel info')).toBe(0));

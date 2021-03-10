@@ -9,6 +9,7 @@ import stream from 'stream';
 import {promisify} from 'util';
 import {JWK} from 'node-jose';
 import got from 'got';
+import { svgToQRImage } from './image';
 
 
 const outPath = 'testdata';
@@ -76,6 +77,7 @@ async function fetchExamples(outdir: string) : Promise<void> {
 const issuerPrivateKeyUrl = 'https://raw.githubusercontent.com/smart-on-fhir/health-cards/main/generate-examples/src/config/issuer.jwks.private.json';
 const issuerPublicKeyFileName = 'issuer.jwks.public.json';
 
+
 async function fetchKeys(outdir: string) : Promise<void> {
 
     const filePath = path.join(outdir, issuerPublicKeyFileName);
@@ -92,10 +94,23 @@ async function fetchKeys(outdir: string) : Promise<void> {
     }
 }
 
+
+// for each .svg file, generate a png, jpg, and bmp QR image
+async function generateImagesFromSvg(dir: string) {
+    const files = fs.readdirSync(dir);
+    for (let i = 0; i < files.length; i++) {
+        const file = path.join(dir, files[i]);
+        if (path.extname(file) === '.svg') {
+            await svgToQRImage(file);
+        }
+    }
+}
+
+
 // We have to wrap these calls in an async function for ES5 support
 // Typescript error: Top-level 'await' expressions are only allowed when the 'module' option is set to 'esnext'
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
-(async () => {
+void (async () => {
     await fetchExamples(outPath);
     await fetchKeys(outPath);
+    await generateImagesFromSvg(outPath);
 })();

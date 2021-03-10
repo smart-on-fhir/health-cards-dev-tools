@@ -7,7 +7,7 @@ import { ErrorCode } from './error';
 import fhirBundleSchema from '../schema/fhir-bundle-schema.json';
 import Log from './logger';
 import { ValidationResult } from './validate';
-
+import beautify  from 'json-beautify'
 
 export const schema = fhirBundleSchema;
 
@@ -44,8 +44,18 @@ export function validate(fhirBundleText: string): ValidationResult {
 
 
     output.info("Fhir Bundle Contents:");
-    output.info(JSON.stringify(fhirBundle, null, 2));
+    output.info(beautify(fhirBundle, null as unknown as Array<string>, 3, 100));
     
 
     return { result: fhirBundle, log: output };
 }
+
+
+// payload .vc.credentialSubject.fhirBundle is created:
+// without Resource.id elements
+// without Resource.meta elements
+// without Resource.text elements
+// without CodeableConcept.text elements
+// without Coding.display elements
+// with Bundle.entry.fullUrl populated with short resource-scheme URIs (e.g., {"fullUrl": "resource:0})
+// with Reference.reference populated with short resource-scheme URIs (e.g., {"patient": {"reference": "resource:0"}})
