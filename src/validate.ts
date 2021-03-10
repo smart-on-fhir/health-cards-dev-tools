@@ -52,7 +52,7 @@ export async function validateCard(fileData: FileInfo[], type: ValidationType): 
         case "healthcard":
             result = await healthCard.validate(fileData[0].buffer.toString());
             if (fileData[0].ext !== '.smart-health-card') {
-                result.log.warn("Invalid file extenion. Should be .smart-health-card.", ErrorCode.INVALID_FILE_EXTENSION);
+                result.log.warn("Invalid file extension. Should be .smart-health-card.", ErrorCode.INVALID_FILE_EXTENSION);
             }
             break;
 

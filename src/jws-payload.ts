@@ -40,7 +40,7 @@ export function validate(jwsPayloadText: string): ValidationResult {
         // The schema check above will list the expected properties/type
         return {
             result: jwsPayload,
-            log: log.fatal("JWS.payload.vc.credentialSubject.fhirBundle{} required to contine.", ErrorCode.CRITICAL_DATA_MISSING)
+            log: log.fatal("JWS.payload.vc.credentialSubject.fhirBundle{} required to continue.", ErrorCode.CRITICAL_DATA_MISSING)
         }
     }
 

@@ -7,7 +7,6 @@ import metaSchema from 'ajv/lib/refs/json-schema-draft-06.json';
 import fhirSchema from '../schema/fhir-definitions-schema.json';
 import Ajv, { AnySchemaObject } from "ajv";
 import { AnyValidateFunction } from 'ajv/dist/core';
-import { JWK } from 'node-jose';
 import { KeySet } from './keys';
 // http://json-schema.org/
 // https://github.com/ajv-validator/ajv

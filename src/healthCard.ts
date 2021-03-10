@@ -40,7 +40,7 @@ export async function validate(healthCardText: string): Promise<ValidationResult
         // The schema check above will list the expected properties/type
         return {
             result: healthCard,
-            log: log.fatal("HealthCard.verifiableCredential[jws-compact] required to contine.", ErrorCode.CRITICAL_DATA_MISSING)
+            log: log.fatal("HealthCard.verifiableCredential[jws-compact] required to continue.", ErrorCode.CRITICAL_DATA_MISSING)
         }
     }
 

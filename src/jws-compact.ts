@@ -57,7 +57,7 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
     }
 
 
-    // try to validate the payload (even if infation failed)
+    // try to validate the payload (even if inflation failed)
     const payloadResult = jwsPayload.validate(inflatedPayload || rawPayload);
     const payload = payloadResult.result as JWSPayload;
     log.child = payloadResult.log;
@@ -99,7 +99,7 @@ async function downloadKey(keyPath: string, log: Log): Promise<keys.KeySet | und
     log.info("Retrieving issuer key from " + keyPath);
 
     return await got(keyPath).json<keys.KeySet>()
-        // TODO: split up download/parsing to provide finer-grainded error message
+        // TODO: split up download/parsing to provide finer-grained error message
         .then(async keySet => {
             log.debug("Downloaded issuer key(s) : ");
             return (await verifyHealthCardIssuerKey(keySet, log)).result as (keys.KeySet | undefined);

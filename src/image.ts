@@ -66,7 +66,7 @@ async function decode(fileInfo: FileInfo, log: Log): Promise<string | undefined>
 
 
 // the svg data is turned into an image buffer. these values ensure that the resulting image is readable
-// by the QR image decoder. 300x300 fails while 400x400 suceedeeds 
+// by the QR image decoder. 300x300 fails while 400x400 succeeds 
 const svgImageWidth = 600;
 
 

@@ -1,4 +1,27 @@
 {
     "eslint.alwaysShowStatus": true,
-    "eslint.format.enable": true
+    "eslint.format.enable": true,
+    "cSpell.words": [
+        "Codeable",
+        "execa",
+        "fhir",
+        "fhirbundle",
+        "grayscale",
+        "healthcard",
+        "istextorbinary",
+        "jsqr",
+        "jwks",
+        "jwkset",
+        "jwspayload",
+        "logfile",
+        "loglevel",
+        "npmpackage",
+        "outdir",
+        "pako",
+        "pngjs",
+        "qrcode",
+        "qrnumeric",
+        "repos",
+        "testdata"
+    ]
 }

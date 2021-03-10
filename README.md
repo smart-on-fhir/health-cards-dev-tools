@@ -1,6 +1,6 @@
 # SMART Health Cards Validation SDK
 
-This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artefacts they produce. The package's version number, currently `0.2.0`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
+This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `0.2.0`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
 
 ## Setup
 
@@ -32,7 +32,7 @@ docker run --rm -it \
 
 ## Using the tool
 
-To validate health card artefacts, use the `shc-validator.ts` script, or simply call `node .` from the package root directory, using the desired options:
+To validate health card artifacts, use the `shc-validator.ts` script, or simply call `node .` from the package root directory, using the desired options:
 
                 Usage: shc-validator [options]
                 
@@ -53,7 +53,7 @@ To validate a `QR.png` file, call:
 
                  node . --path QR.png --type qr
 
-Multiple `path` options can be provided for QR artefacts (`qrnumeric` and `qr` types) split in multiple files , one for each chunk. For example, to validate a numeric QR code split in three chunks `QR1.txt`, `QR2.txt`, `QR3.txt`, call:
+Multiple `path` options can be provided for QR artifacts (`qrnumeric` and `qr` types) split in multiple files , one for each chunk. For example, to validate a numeric QR code split in three chunks `QR1.txt`, `QR2.txt`, `QR3.txt`, call:
 
                  node . --path QR1.txt --path QR2.txt --path QR3.txt --type qrnumeric
 
@@ -66,7 +66,7 @@ The supported file types, as expressed with the `--type` option, are:
  - *qr*: a QR code image encoding a health card
  - *jwkset*: a JSON Web Key (JWK) Set, encoding the issuer public signing key
 
-The tool outputs validation information, depending on the verbosity level, in particular, the parsed FHIR bundle is printed at the `info` verbosity log level.  The tool tries to continue parsing the artefact even if a warning or error occured.
+The tool outputs validation information, depending on the verbosity level, in particular, the parsed FHIR bundle is printed at the `info` verbosity log level.  The tool tries to continue parsing the artefact even if a warning or error occurred.
 
 Issuer signing keys can be validated before being uploaded to their well-known URL. To validate a `issuer.key` JSON Web Key Set (JWK), call:
 

@@ -3,7 +3,7 @@
 
 import { ErrorCode } from './error';
 import * as jws from './jws-compact';
-import Log, { LogLevels } from './logger';
+import Log from './logger';
 
 const MAX_QR_CHUNK_LENGTH = 1191;
 
@@ -22,22 +22,22 @@ export async function validate(qr: string[]): Promise<{ result: JWS | undefined,
 }
 
 
-function shcChunksToJws(shc: string[], log : Log): JWS | undefined {
+function shcChunksToJws(shc: string[], log: Log): JWS | undefined {
 
     const chunkCount = shc.length;
-    const jwsChunks = new Array(chunkCount);
+    const jwsChunks = new Array<string>(chunkCount);
 
     for (const shcChunk of shc) {
 
         const chunkResult = shcToJws(shcChunk, log, chunkCount);
 
-        if(!chunkResult) return undefined; // move on to next chunk
+        if (!chunkResult) return undefined; // move on to next chunk
 
         const chunkIndex = chunkResult.chunkIndex;
         if (chunkResult.result.length > MAX_QR_CHUNK_LENGTH) {
             log.error(`QR chunk ${chunkIndex} is larger than ${MAX_QR_CHUNK_LENGTH} bytes`, ErrorCode.INVALID_NUMERIC_QR);
         }
-        
+
         if (jwsChunks[chunkIndex - 1]) {
             // we have a chunk index collision
             // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
@@ -57,17 +57,17 @@ function shcChunksToJws(shc: string[], log : Log): JWS | undefined {
         }
     }
 
-    if(shc.length > 1) log.info('All shc parts decoded');
+    if (shc.length > 1) log.info('All shc parts decoded');
 
     const jws = jwsChunks.join('');
 
     // check if chunk sizes are balanced
     const expectedChunkSize = Math.floor(jws.length / chunkCount);
     const balancedSizeBuffer = Math.ceil(expectedChunkSize * (0.5 / 100)); // give some leeway to what we call "balanced", 0.5% away from expected size
-    console.log('balancedSizeBuffer: ' + balancedSizeBuffer);
+    console.log('balancedSizeBuffer: ' + balancedSizeBuffer.toString());
     if (jwsChunks.map(jwsChunk => jwsChunk.length)
-    .reduce((unbalanced, length) => unbalanced || length < expectedChunkSize - balancedSizeBuffer || length > expectedChunkSize + balancedSizeBuffer, false)) {
-        log.warn("QR chunk sizes are unbalanced: " + jwsChunks.map(jwsChunk => jwsChunk.length), ErrorCode.INVALID_NUMERIC_QR);
+        .reduce((unbalanced, length) => unbalanced || length < expectedChunkSize - balancedSizeBuffer || length > expectedChunkSize + balancedSizeBuffer, false)) {
+        log.warn("QR chunk sizes are unbalanced: " + jwsChunks.map(jwsChunk => jwsChunk.length.toString()).join(), ErrorCode.INVALID_NUMERIC_QR);
     }
 
     log.debug('JWS = ' + jws);
@@ -75,7 +75,7 @@ function shcChunksToJws(shc: string[], log : Log): JWS | undefined {
 }
 
 
-function shcToJws(shc: string, log: Log, chunkCount = 1): {result: JWS, chunkIndex: number} | undefined {
+function shcToJws(shc: string, log: Log, chunkCount = 1): { result: JWS, chunkIndex: number } | undefined {
 
     let chunked = chunkCount > 1;
     const qrHeader = 'shc:/';
@@ -95,7 +95,7 @@ function shcToJws(shc: string, log: Log, chunkCount = 1): {result: JWS, chunkInd
         }
     } else {
         if (isChunkedHeader) {
-            log.warn(`Single-chunk numeric QR code should have a header ${qrHeader}, not ${qrHeader}1/1/`,ErrorCode.INVALID_NUMERIC_QR_HEADER);
+            log.warn(`Single-chunk numeric QR code should have a header ${qrHeader}, not ${qrHeader}1/1/`, ErrorCode.INVALID_NUMERIC_QR_HEADER);
             chunked = true; // interpret the code as chunked even though it shouldn't
         }
     }
@@ -141,8 +141,8 @@ function shcToJws(shc: string, log: Log, chunkCount = 1): {result: JWS, chunkInd
         // merge the array into a single base64 string
         .join('');
 
-    log.info( shc.slice(0, shc.lastIndexOf('/')) + '/... decoded');
-    log.debug( shc.slice(0, shc.lastIndexOf('/')) + '/... = ' + jws);
+    log.info(shc.slice(0, shc.lastIndexOf('/')) + '/... decoded');
+    log.debug(shc.slice(0, shc.lastIndexOf('/')) + '/... = ' + jws);
 
-    return  { result: jws, chunkIndex : chunkIndex};
+    return { result: jws, chunkIndex: chunkIndex };
 }

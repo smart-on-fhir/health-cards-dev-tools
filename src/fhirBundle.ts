@@ -38,7 +38,7 @@ export function validate(fhirBundleText: string): ValidationResult {
         // The schema check above will list the expected properties/type
         return {
             result: fhirBundle,
-            log: output.fatal("FhirBundle.entry[] required to contine.", ErrorCode.CRITICAL_DATA_MISSING)
+            log: output.fatal("FhirBundle.entry[] required to continue.", ErrorCode.CRITICAL_DATA_MISSING)
         }
     }
 
