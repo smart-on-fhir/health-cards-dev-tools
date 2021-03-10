@@ -6,7 +6,7 @@ This project uses GitHub Issues to track bugs and feature requests. Please searc
 issues before filing new issues to avoid duplicates.  For new issues, file your bug or 
 feature request as a new Issue.
 
-For help and questions about using this project, please contact msrhcv@microsoft.com.
+For help and questions about using this project, visit the [Discussions](https://github.com/microsoft/health-cards-validation-SDK/discussions) section, or contact msrhcv@microsoft.com.
 
 ## Microsoft Support Policy  
 
