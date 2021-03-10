@@ -3,8 +3,9 @@
 
 import { ErrorCode } from './error';
 import * as jws from './jws-compact';
-import Log from './logger';
+import Log, { LogLevels } from './logger';
 
+const MAX_QR_CHUNK_LENGTH = 1191;
 
 export async function validate(qr: string[]): Promise<{ result: JWS | undefined, log: Log }> {
 
@@ -13,7 +14,7 @@ export async function validate(qr: string[]): Promise<{ result: JWS | undefined,
             'QR numeric (' + qr.length.toString() + ')' :
             'QR numeric');
 
-    const jwsString: JWS | undefined = shcChunksToJws(qr, log); //await decode(qr, log);
+    const jwsString: JWS | undefined = shcChunksToJws(qr, log);
 
     jwsString && (log.child = (await jws.validate(jwsString)).log);
 
@@ -30,52 +31,84 @@ function shcChunksToJws(shc: string[], log : Log): JWS | undefined {
 
         const chunkResult = shcToJws(shcChunk, log, chunkCount);
 
-        // bad header is fatal (according to tests)
         if(!chunkResult) return undefined; // move on to next chunk
 
         const chunkIndex = chunkResult.chunkIndex;
+        if (chunkResult.result.length > MAX_QR_CHUNK_LENGTH) {
+            log.error(`QR chunk ${chunkIndex} is larger than ${MAX_QR_CHUNK_LENGTH} bytes`, ErrorCode.INVALID_NUMERIC_QR);
+        }
         
         if (jwsChunks[chunkIndex - 1]) {
             // we have a chunk index collision
             // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-            log.error('we have two chunks with index ' + chunkIndex, ErrorCode.INVALID_QR_CHUNK_INDEX);
+            log.fatal(`we have two chunks with index ${chunkIndex}`, ErrorCode.INVALID_NUMERIC_QR_HEADER);
+            return undefined;
         } else {
             jwsChunks[chunkIndex - 1] = chunkResult.result;
         }
     }
     // make sure we have all chunks we expect
     for (let i = 0; i < chunkCount; i++) {
+        // TODO: make sure chunks are balanced (+ unit test)
         if (!jwsChunks[i]) {
             // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-            log.error('missing QR chunk ' + i, ErrorCode.INVALID_QR_CHUNK_INDEX);
+            log.fatal('missing QR chunk ' + i, ErrorCode.MISSING_QR_CHUNK);
+            return undefined;
         }
     }
 
     if(shc.length > 1) log.info('All shc parts decoded');
 
-    log.debug('JWS = ' + jwsChunks.join(''));
+    const jws = jwsChunks.join('');
 
-    return jwsChunks.join('');
+    // check if chunk sizes are balanced
+    const expectedChunkSize = Math.floor(jws.length / chunkCount);
+    if (jwsChunks.map(jwsChunk => jwsChunk.length)
+    .reduce((unbalanced, length) => unbalanced || length < expectedChunkSize || length > expectedChunkSize + 1, false)) {
+        log.warn("QR chunk sizes are unbalanced: " + jwsChunks.map(jwsChunk => jwsChunk.length), ErrorCode.INVALID_NUMERIC_QR);
+    }
+
+    log.debug('JWS = ' + jws);
+    return jws;
 }
 
 
 function shcToJws(shc: string, log: Log, chunkCount = 1): {result: JWS, chunkIndex: number} | undefined {
 
-    const chunked = chunkCount > 1; // TODO: what about chunk 1 of 1 ('shc:/1/1/...' it's legal but shouldn't happen)
+    let chunked = chunkCount > 1;
     const qrHeader = 'shc:/';
     let chunkIndex = 1;
-    const bodyIndex = chunked ? qrHeader.length + 4 : qrHeader.length;
 
     // check numeric QR header
+    const isChunkedHeader = new RegExp(`^${qrHeader}[0-9]/${chunkCount}/.+$`).test(shc);
+    if (chunked) {
+        if (!isChunkedHeader) {
+            // should have been a valid chunked header, check if we are missing one
+            const hasBadChunkCount = new RegExp(`^${qrHeader}[0-9]/[0-9]/.+$`).test(shc);
+            if (hasBadChunkCount) {
+                const expectedChunkCount = parseInt(shc.substring(7, 8));
+                log.fatal(`Missing QR code chunk: received ${chunkCount}, expected ${expectedChunkCount}`, ErrorCode.MISSING_QR_CHUNK);
+                return undefined;
+            }
+        }
+    } else {
+        if (isChunkedHeader) {
+            log.warn(`Single-chunk numeric QR code should have a header ${qrHeader}, not ${qrHeader}1/1/`,ErrorCode.INVALID_NUMERIC_QR_HEADER);
+            chunked = true; // interpret the code as chunked even though it shouldn't
+        }
+    }
+
     if (!new RegExp(chunked ? `^${qrHeader}[0-9]/${chunkCount}/.+$` : `^${qrHeader}.+$`, 'g').test(shc)) {
         // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-        log.fatal("Invalid numeric QR header: expected" + chunked ? `${qrHeader}[0-9]+` : `${qrHeader}[0-9]/[0-9]/[0-9]+`, ErrorCode.INVALID_NUMERIC_QR_HEADER);
+        const expectedHeader = chunked ? `${qrHeader}[0-9]+` : `${qrHeader}[0-9]/[0-9]/[0-9]+`;
+        log.error(`Invalid numeric QR header: expected ${expectedHeader}`, ErrorCode.INVALID_NUMERIC_QR_HEADER);
         return undefined;
     }
     // check numeric QR encoding
     if (!new RegExp(chunked ? `^${qrHeader}[0-9]/${chunkCount}/[0-9]+$` : `^${qrHeader}[0-9]+$`, 'g').test(shc)) {
         // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-        log.fatal("Invalid numeric QR: expected" + chunked ? `${qrHeader}[0-9]+` : `${qrHeader}[0-9]/[0-9]/[0-9]+`, ErrorCode.INVALID_NUMERIC_QR);
+        const expectedBody = chunked ? `${qrHeader}[0-9]+` : `${qrHeader}[0-9]/[0-9]/[0-9]+`;
+        log.fatal(`Invalid numeric QR: expected ${expectedBody}`, ErrorCode.INVALID_NUMERIC_QR);
         return undefined;
     }
 
@@ -85,11 +118,12 @@ function shcToJws(shc: string, log: Log, chunkCount = 1): {result: JWS, chunkInd
         chunkIndex = parseInt((shc.match(new RegExp('^shc:/[0-9]')) as RegExpMatchArray)[0].substring(5, 6));
         if (chunkIndex < 1 || chunkIndex > chunkCount) {
             // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
-            log.fatal("Invalid QR chunk index: " + chunkIndex, ErrorCode.INVALID_QR_CHUNK_INDEX);
+            log.fatal("Invalid QR chunk index: " + chunkIndex, ErrorCode.INVALID_NUMERIC_QR_HEADER);
             return undefined;
         }
     }
 
+    const bodyIndex = chunked ? qrHeader.length + 4 : qrHeader.length;
     const b64Offset = '-'.charCodeAt(0);
     const digitPairs = shc.substring(bodyIndex).match(/(\d\d?)/g);
 

@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-// TODO: handle new example-02-* test set
-
 import fs from 'fs';
 import path from 'path';
 import stream from 'stream';

@@ -15,9 +15,6 @@ import { ValidationResult } from './validate';
 import { verifyHealthCardIssuerKey } from './shcKeyValidator';
 
 
-//const MAX_JWS_LENGTH = 1195;
-
-
 export const schema = jwsCompactSchema;
 
 
@@ -34,13 +31,6 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
             log.fatal('Failed to parse JWS-compact data as \'base64url.base64url.base64url\' string.', ErrorCode.JSON_PARSE_ERROR)
         );
     }
-
-    /* FIXME: delete. Not a max length in spec v0.2
-    if (jws.length >= MAX_JWS_LENGTH) {
-        output.error('JWS, at ' + jws.length.toString() + ' characters, exceeds max character length of ' + MAX_JWS_LENGTH.toString(), ErrorCode.JWS_TOO_LONG);
-    }
-    */
-
 
     // failures will be recorded in the log. we can continue processing.
     validateSchema(jwsCompactSchema, jws, log);
