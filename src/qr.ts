@@ -49,7 +49,6 @@ function shcChunksToJws(shc: string[], log: Log): JWS | undefined {
     }
     // make sure we have all chunks we expect
     for (let i = 0; i < chunkCount; i++) {
-        // TODO: make sure chunks are balanced (+ unit test)
         if (!jwsChunks[i]) {
             // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
             log.fatal('missing QR chunk ' + i, ErrorCode.MISSING_QR_CHUNK);
@@ -134,7 +133,7 @@ function shcToJws(shc: string, log: Log, chunkCount = 1): { result: JWS, chunkIn
         return undefined;
     }
 
-    // breaks string array of digit pairs into array of numbers: 'shc:/123456...' = [12,34,56]
+    // breaks string array of digit pairs into array of numbers: 'shc:/123456...' = [12,34,56,...]
     const jws: string = digitPairs
         // for each number in array, add an offset and convert to a char in the base64 range
         .map((c: string) => String.fromCharCode(Number.parseInt(c) + b64Offset))
