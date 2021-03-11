@@ -14,7 +14,7 @@ async function testKey(fileName: string): Promise<ErrorCode[]> {
     const result = (await verifyHealthCardIssuerKey(utils.loadJSONFromFile(filePath)));
     return result.log.flatten(LogLevels.WARNING).map(item => item.code);
 }
-/*
+
 test("Keys: valid", async () => {
     expect(await testKey('valid_key.json')).toHaveLength(0);
 });
@@ -41,8 +41,4 @@ test("Keys: wrong algorithm (alg)", async () => {
 
 test("Keys: wrong key type (kty)", async () => {
     expect(await testKey('wrong_kty_key.json')).toContain(ErrorCode.INVALID_WRONG_KTY);
-});
-*/
-test("Keys: private key", async () => {
-    expect(await testKey('private_key.json')).toContain(ErrorCode.INVALID_WRONG_KID);
 });
