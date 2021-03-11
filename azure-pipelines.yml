@@ -50,11 +50,20 @@ steps:
 - task: CredScan@2
   inputs:
     toolMajorVersion: 'V2'
+
 - task: ESLint@1
   inputs:
     Configuration: 'recommended'
     TargetType: 'eslint'
     ErrorLevel: 'warn'
+
+- task: PoliCheck@1
+  displayName: 'Run PoliCheck'
+  inputs:
+    targetType: F
+    SOMEnabled: true
+    optionsFC: 1
+    optionsUEPATH: '$(Build.SourcesDirectory)\UserExclusion.xml'
 
 - task: Semmle@0
   env: 
