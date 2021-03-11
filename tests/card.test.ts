@@ -154,5 +154,3 @@ test("Cards: QR chunk too big", async () => {
     expect(results.map(r => r.code).indexOf(ErrorCode.INVALID_NUMERIC_QR) >= 0);
     expect(results.map(r => r.code).indexOf(ErrorCode.UNBALANCED_QR_CHUNKS) >= 0);
 });
-
-

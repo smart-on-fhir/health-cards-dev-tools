@@ -22,7 +22,6 @@ export async function verifyHealthCardIssuerKey(keySet: KeySet, log = new Log('V
     // failures will be recorded in the log. we can continue processing.
     validateSchema(keySetSchema, keySet, log);
 
-
     for (let i = 0; i < keySet.keys.length; i++) {
 
         let key: JWK.Key = keySet.keys[i];
@@ -33,13 +32,19 @@ export async function verifyHealthCardIssuerKey(keySet: KeySet, log = new Log('V
         log.debug("Key " + i.toString() + ":");
         log.debug(JSON.stringify(key, null, 3));
 
+        // check for private key material (as to happen before the following store.add, because the returned
+        // value will be the corresponding public key)
+        // TODO: this is RSA/ECDSA specific, find a different API to detect private keys more broadly
+        if ((key as (JWK.Key & { d: string })).d) {
+            log.error(keyName + ': ' + "key contains private key material.", ErrorCode.INVALID_PRIVATE);
+        }
+
         try {
             key = await store.add(key);
         } catch (error) {
             log.error('Error adding key to keyStore : ' + (error as Error).message, ErrorCode.INVALID_UNKNOWN);
             return new ValidationResult(undefined, log);
         }
-
 
         // check that kid is properly generated
         if (!key.kid) {
@@ -58,7 +63,6 @@ export async function verifyHealthCardIssuerKey(keySet: KeySet, log = new Log('V
                     log.error(keyName + ': ' + "Failed to calculate issuer key thumbprint : " + (err as Error).message, ErrorCode.INVALID_UNKNOWN);
                 });
         }
-
 
         // check that key type is 'EC'
         if (!key.kty) {
@@ -80,12 +84,6 @@ export async function verifyHealthCardIssuerKey(keySet: KeySet, log = new Log('V
         } else if (key.use !== 'sig') {
             log.warn(keyName + ': ' + "wrong usage in issuer key. expected: 'sig', actual: " + key.use, ErrorCode.INVALID_WRONG_USE);
         }
-
-        // check for private key material
-        if ((key as (JWK.Key & { d: string })).d) {
-            log.error(keyName + ': ' + "key contains private key material.", ErrorCode.INVALID_PRIVATE);
-        }
-
     }
 
     return new ValidationResult(keySet, log);
