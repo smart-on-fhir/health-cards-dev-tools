@@ -37,13 +37,13 @@ To validate health card artifacts, use the `shc-validator.ts` script, or simply 
                 Usage: shc-validator [options]
                 
                 Options:
-                  -v, --version             display specification and tool version
-                  -p, --path <path>         path of the file to validate. Can be repeated for the qr and qrnumeric types, to provide multiple file chunks
-                  -t, --type <type>         type of file to validate (choices: "fhirbundle", "jwspayload", "jws", "healthcard", "qrnumeric", "qr", "jwkset")
-                  -l, --loglevel <loglevel> set the minimum log level (choices: "debug", "info", "warning", "error", "fatal", default: "warning")
-                  -o, --logout <path>       output path for log (if not specified log will be printed on console)
-                  -k, --jwkset <key>        path to trusted issuer keys
-                  -h, --help                display help for command
+                  -v, --version              display specification and tool version
+                  -p, --path <path>          path of the file(s) to validate. Can be repeated for the qr and qrnumeric types, to provide multiple file chunks (default: [])
+                  -t, --type <type>          type of file to validate (choices: "fhirbundle", "jwspayload", "jws", "healthcard", "qrnumeric", "qr", "jwkset")
+                  -l, --loglevel <loglevel>  set the minimum log level (choices: "debug", "info", "warning", "error", "fatal", default: "warning")
+                  -o, --logout <path>        output path for log (if not specified log will be printed on console)
+                  -k, --jwkset <key>         path to trusted issuer key set
+                  -h, --help                 display help for command
 
 For example, to validate a `data.smart-health-card` file, call:
 
@@ -68,25 +68,20 @@ The supported file types, as expressed with the `--type` option, are:
 
 The tool outputs validation information, depending on the verbosity level, in particular, the parsed FHIR bundle is printed at the `info` verbosity log level.  The tool tries to continue parsing the artefact even if a warning or error occurred.
 
-Issuer signing keys can be validated before being uploaded to their well-known URL. To validate a `issuer.key` JSON Web Key Set (JWK), call:
+Issuer signing public keys (encoded in a JSON Web Key Set) can be validated before being uploaded to their well-known URL. To validate a `issuerPublicKeys.json` JSON Web Key Set (JWK), call:
 
-                node . --path issuer.key --type jwkset
+                node . --path issuerPublicKeys.json --type jwkset
 
 ## Validating tests
 
 The tool currently verifies proper encoding of the:
- - QR code image
- - Numeric QR data (header, content)
+ - QR code image and chunks
+ - Numeric QR data (header, content, chunks)
  - SMART Health Card file (schema)
  - JWS (schema, deflate compression, format, size limits, signature, issuer key retrieval)
  - JWS payload (schema)
- - FHIR bundle (schema)
+ - FHIR bundle (schema, conformance to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/)).
  - Issuer JSON Key Set (schema, algorithm, EC Curve, ID, type, usage)
-
-The following tests are work-in-progress:
- - Parse split QR codes (per v0.2 of spec)
- - Verifiable credential containing multiple health cards
- - FHIR bundle content, according to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/).
 
 ## Contributing
 
