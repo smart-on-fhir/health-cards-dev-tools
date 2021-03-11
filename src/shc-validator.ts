@@ -24,7 +24,7 @@ const program = new Command();
 program.version(npmpackage.version, '-v, --version', 'display specification and tool version');
 program.requiredOption('-p, --path <path>', 'path of the file(s) to validate. Can be repeated for the qr and qrnumeric types, to provide multiple file chunks',
     (p: string, paths: string[]) => paths.concat([p]), []);
-program.addOption(new Option('-t, --type <type>', 'type of file to validate').choices(artifactTypes)); // TODO: populate this from the validate enum.
+program.addOption(new Option('-t, --type <type>', 'type of file to validate').choices(artifactTypes));
 program.addOption(new Option('-l, --loglevel <loglevel>', 'set the minimum log level').choices(loglevelChoices).default('warning'));
 program.option('-o, --logout <path>', 'output path for log (if not specified log will be printed on console)');
 program.option('-k, --jwkset <key>', 'path to trusted issuer key set');
