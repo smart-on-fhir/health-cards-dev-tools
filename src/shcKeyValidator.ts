@@ -15,7 +15,7 @@ export async function verifyHealthCardIssuerKey(keySet: KeySet, log = new Log('V
 
     // check that keySet is valid
     if (!(keySet instanceof Object) || !keySet.keys || !(keySet.keys instanceof Array)) {
-        log.fatal("keySet not valid. Expect {keys : JWK.Key[]}", ErrorCode.INVALID_SCHEMA);
+        log.fatal("keySet not valid. Expect {keys : JWK.Key[]}", ErrorCode.INVALID_KEY_SCHEMA);
         return new ValidationResult(undefined, log);
     }
 
@@ -36,19 +36,19 @@ export async function verifyHealthCardIssuerKey(keySet: KeySet, log = new Log('V
         // value will be the corresponding public key)
         // TODO: this is RSA/ECDSA specific, find a different API to detect private keys more broadly
         if ((key as (JWK.Key & { d: string })).d) {
-            log.error(keyName + ': ' + "key contains private key material.", ErrorCode.INVALID_PRIVATE);
+            log.error(keyName + ': ' + "key contains private key material.", ErrorCode.INVALID_KEY_PRIVATE);
         }
 
         try {
             key = await store.add(key);
         } catch (error) {
-            log.error('Error adding key to keyStore : ' + (error as Error).message, ErrorCode.INVALID_UNKNOWN);
+            log.error('Error adding key to keyStore : ' + (error as Error).message, ErrorCode.INVALID_KEY_UNKNOWN);
             return new ValidationResult(undefined, log);
         }
 
         // check that kid is properly generated
         if (!key.kid) {
-            log.error(keyName + ': ' + "'kid' missing in issuer key", ErrorCode.INVALID_MISSING_KID);
+            log.error(keyName + ': ' + "'kid' missing in issuer key", ErrorCode.INVALID_KEY_MISSING_KID);
         } else {
 
             await key.thumbprint('SHA-256')
@@ -56,33 +56,33 @@ export async function verifyHealthCardIssuerKey(keySet: KeySet, log = new Log('V
                     const thumbprint = jose.util.base64url.encode(tpDigest);
                     if (key.kid !== thumbprint) {
                         log.error(keyName + ': ' + "'kid' does not match thumbprint in issuer key. expected: "
-                            + thumbprint + ", actual: " + key.kid, ErrorCode.INVALID_WRONG_KID);
+                            + thumbprint + ", actual: " + key.kid, ErrorCode.INVALID_KEY_WRONG_KID);
                     }
                 })
                 .catch(err => {
-                    log.error(keyName + ': ' + "Failed to calculate issuer key thumbprint : " + (err as Error).message, ErrorCode.INVALID_UNKNOWN);
+                    log.error(keyName + ': ' + "Failed to calculate issuer key thumbprint : " + (err as Error).message, ErrorCode.INVALID_KEY_UNKNOWN);
                 });
         }
 
         // check that key type is 'EC'
         if (!key.kty) {
-            log.error(keyName + ': ' + "'kty' missing in issuer key", ErrorCode.INVALID_MISSING_KTY);
+            log.error(keyName + ': ' + "'kty' missing in issuer key", ErrorCode.INVALID_KEY_MISSING_KTY);
         } else if (key.kty !== 'EC') {
-            log.error(keyName + ': ' + "wrong key type in issuer key. expected: 'EC', actual: " + key.kty, ErrorCode.INVALID_WRONG_KTY);
+            log.error(keyName + ': ' + "wrong key type in issuer key. expected: 'EC', actual: " + key.kty, ErrorCode.INVALID_KEY_WRONG_KTY);
         }
 
         // check that EC curve is 'ES256'
         if (!key.alg) {
-            log.error(keyName + ': ' + "'alg' missing in issuer key", ErrorCode.INVALID_MISSING_ALG);
+            log.error(keyName + ': ' + "'alg' missing in issuer key", ErrorCode.INVALID_KEY_MISSING_ALG);
         } else if (key.alg !== 'ES256') {
-            log.warn(keyName + ': ' + "wrong algorithm in issuer key. expected: 'ES256', actual: " + key.alg, ErrorCode.INVALID_WRONG_ALG);
+            log.warn(keyName + ': ' + "wrong algorithm in issuer key. expected: 'ES256', actual: " + key.alg, ErrorCode.INVALID_KEY_WRONG_ALG);
         }
 
         // check that usage is 'sig'
         if (!key.use) {
-            log.error(keyName + ': ' + "'use' missing in issuer key", ErrorCode.INVALID_MISSING_USE);
+            log.error(keyName + ': ' + "'use' missing in issuer key", ErrorCode.INVALID_KEY_MISSING_USE);
         } else if (key.use !== 'sig') {
-            log.warn(keyName + ': ' + "wrong usage in issuer key. expected: 'sig', actual: " + key.use, ErrorCode.INVALID_WRONG_USE);
+            log.warn(keyName + ': ' + "wrong usage in issuer key. expected: 'sig', actual: " + key.use, ErrorCode.INVALID_KEY_WRONG_USE);
         }
     }
 

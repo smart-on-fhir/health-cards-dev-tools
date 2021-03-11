@@ -24,25 +24,25 @@ test("Keys: valid keys", async () => {
 });
 
 test("Keys: wrong key identifier (kid)", async () => {
-    expect(await testKey('wrong_kid_key.json')).toContain(ErrorCode.INVALID_WRONG_KID);
+    expect(await testKey('wrong_kid_key.json')).toContain(ErrorCode.INVALID_KEY_WRONG_KID);
 });
 
 test("Keys: wrong elliptic curve", async () => {
-    expect(await testKey('wrong_curve_key.json')).toContain(ErrorCode.INVALID_WRONG_ALG);
+    expect(await testKey('wrong_curve_key.json')).toContain(ErrorCode.INVALID_KEY_WRONG_ALG);
 });
 
 test("Keys: wrong key use (use)", async () => {
-    expect(await testKey('wrong_use_key.json')).toContain(ErrorCode.INVALID_WRONG_USE);
+    expect(await testKey('wrong_use_key.json')).toContain(ErrorCode.INVALID_KEY_WRONG_USE);
 });
 
 test("Keys: wrong algorithm (alg)", async () => {
-    expect(await testKey('wrong_alg_key.json')).toContain(ErrorCode.INVALID_WRONG_ALG);
+    expect(await testKey('wrong_alg_key.json')).toContain(ErrorCode.INVALID_KEY_WRONG_ALG);
 });
 
 test("Keys: wrong key type (kty)", async () => {
-    expect(await testKey('wrong_kty_key.json')).toContain(ErrorCode.INVALID_WRONG_KTY);
+    expect(await testKey('wrong_kty_key.json')).toContain(ErrorCode.INVALID_KEY_WRONG_KTY);
 });
 
 test("Keys: private key", async () => {
-    expect(await testKey('private_key.json')).toContain(ErrorCode.INVALID_PRIVATE);
+    expect(await testKey('private_key.json')).toContain(ErrorCode.INVALID_KEY_PRIVATE);
 });

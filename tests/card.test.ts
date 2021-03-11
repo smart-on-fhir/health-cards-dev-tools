@@ -21,7 +21,7 @@ async function testCard(fileName: string | string[], fileType: ValidationType = 
     const log = (await validateCard(files, fileType)).log;
     return log.flatten().filter(i => { return levels.includes(i.level); })
         // filtering out key related warnings
-        .filter(i => !(i.code >= ErrorCode.INVALID_MISSING_KTY && i.level === LogLevels.WARNING) ); 
+        .filter(i => !(i.code >= ErrorCode.INVALID_KEY_MISSING_KTY && i.level === LogLevels.WARNING) );
 }
 
 // Test valid examples from spec
