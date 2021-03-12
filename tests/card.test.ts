@@ -35,7 +35,7 @@ test("Cards: valid 02 JWS payload expanded", async () => expect(await testCard([
 
 test("Cards: valid 00 JWS payload minified", async () => expect(await testCard(['example-00-c-jws-payload-minified.json'], "jwspayload")).toHaveLength(0));
 test("Cards: valid 01 JWS payload minified", async () => expect(await testCard(['example-01-c-jws-payload-minified.json'], "jwspayload")).toHaveLength(0));
-test("Cards: valid 02 JWS payload expanded", async () => expect(await testCard(['example-02-b-jws-payload-expanded.json'], "jwspayload")).toHaveLength(0));
+test("Cards: valid 02 JWS payload minified", async () => expect(await testCard(['example-02-c-jws-payload-minified.json'], "jwspayload")).toHaveLength(0));
 
 test("Cards: valid 00 JWS", async () => expect(await testCard(['example-00-d-jws.txt'], "jws")).toHaveLength(0));
 test("Cards: valid 01 JWS", async () => expect(await testCard(['example-01-d-jws.txt'], "jws")).toHaveLength(0));

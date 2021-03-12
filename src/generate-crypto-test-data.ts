@@ -3,7 +3,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import jose, { JWK } from 'node-jose';
+import jose from 'node-jose';
 
 
 interface KeyGenerationArgs {
@@ -28,12 +28,13 @@ async function generateAndStoreKey(outFileName: string, keyGenArgs: KeyGeneratio
         fs.writeFileSync(outFilePath, JSON.stringify(jwkSet));
     }
 }
-generateAndStoreKey('valid_key.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256', crv: 'P-256', use: 'sig' } });
-generateAndStoreKey('private_key.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256', crv: 'P-256', use: 'sig' }}, 1, true);
-generateAndStoreKey('valid_keys.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256', crv: 'P-256', use: 'sig' } }, 3);
-generateAndStoreKey('wrong_kid_key.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256', crv: 'P-256', use: 'sig', kid: 'ThisIsNotTheThumbprintOfTheKey' } });
-generateAndStoreKey('wrong_curve_key.json', { kty: 'EC', size: 'P-384', props: { alg: 'ES384', crv: 'P-384', use: 'sig' } });
-generateAndStoreKey('wrong_use_key.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256', crv: 'P-256', use: 'enc' } });
-generateAndStoreKey('wrong_alg_key.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256K', crv: 'P-256', use: 'sig' } });
-generateAndStoreKey('wrong_kty_key.json', { kty: 'RSA', size: 2048 });
+
+void generateAndStoreKey('valid_key.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256', crv: 'P-256', use: 'sig' } });
+void generateAndStoreKey('private_key.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256', crv: 'P-256', use: 'sig' }}, 1, true);
+void generateAndStoreKey('valid_keys.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256', crv: 'P-256', use: 'sig' } }, 3);
+void generateAndStoreKey('wrong_kid_key.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256', crv: 'P-256', use: 'sig', kid: 'ThisIsNotTheThumbprintOfTheKey' } });
+void generateAndStoreKey('wrong_curve_key.json', { kty: 'EC', size: 'P-384', props: { alg: 'ES384', crv: 'P-384', use: 'sig' } });
+void generateAndStoreKey('wrong_use_key.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256', crv: 'P-256', use: 'enc' } });
+void generateAndStoreKey('wrong_alg_key.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256K', crv: 'P-256', use: 'sig' } });
+void generateAndStoreKey('wrong_kty_key.json', { kty: 'RSA', size: 2048 });
 
