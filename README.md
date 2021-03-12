@@ -4,7 +4,7 @@ This project provides a tool to help implementers of the [SMART Health Card Fram
 
 ## Setup
 
-1. Make sure [node.js](https://nodejs.org/) is installed on your system. The latest LTS version (14.16.0) is recommended.
+1. Make sure [node.js](https://nodejs.org/) and [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) are installed on your system; the latest Long-Term Support (LTS) version is recommended for both.
 
 2. Get the source, for example using git:
 
@@ -14,7 +14,7 @@ This project provides a tool to help implementers of the [SMART Health Card Fram
 3. Build the npm package:
 
                 npm install
-                npm build
+                npm run build
 
 3. Optionally, run the tests:
 
