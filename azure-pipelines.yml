@@ -103,3 +103,4 @@ steps:
     ArtifactType: 'Container'
     AllTools: true
     ToolLogsNotFoundAction: 'Standard'
+
