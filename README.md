@@ -1,6 +1,6 @@
 # SMART Health Cards Validation SDK
 
-This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `0.2.0`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
+This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `0.3.1`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
 
 ## Setup
 
