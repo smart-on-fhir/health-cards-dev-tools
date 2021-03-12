@@ -4,9 +4,6 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 
-trigger:
-- none
-
 pool:
   vmImage: 'windows-latest'
 
