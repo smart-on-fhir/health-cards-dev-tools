@@ -84,6 +84,19 @@ steps:
     verbosity: 'Verbose'
     alertWarningLevel: 'High'
 
+- task: PostAnalysis@1
+  inputs:
+    AllTools: true
+    BinSkimBreakOn: 'Error'
+    CodesignValidationBreakOn: 'Error'
+    FxCopBreakOn: 'ErrorAbove'
+    ModernCopBreakOn: 'Error'
+    PoliCheckBreakOn: 'Severity1'
+    RoslynAnalyzersBreakOn: 'Error'
+    SemmleBreakOn: 'Error'
+    TSLintBreakOn: 'Error'
+    ToolLogsNotFoundAction: 'Standard'
+
 - task: PublishSecurityAnalysisLogs@2
   inputs:
     ArtifactName: 'CodeAnalysisLogs'
