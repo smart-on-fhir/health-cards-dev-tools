@@ -15,7 +15,7 @@ type flatLogItems = { title: string, message: string, code: ErrorCode, level: Lo
 async function testCard(fileName: string | string[], fileType: ValidationType = 'healthcard', levels: LogLevels[] = [LogLevels.WARNING, LogLevels.ERROR, LogLevels.FATAL]): Promise<flatLogItems[]> {
     if (typeof fileName === 'string') fileName = [fileName];
     const files = [];
-    for (const fn of fileName) { // TODO: I tried a map here, but TS didn't like the async callback 
+    for (const fn of fileName) {
         files.push(await getFileData(path.join(testdataDir, fn)));
     }
     const log = (await validateCard(files, fileType)).log;
@@ -91,25 +91,11 @@ test("Cards: invalid issuer url", async () => {
     expect(results[0].code).toBe(ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
 });
 
-// TODO: Test not working: fix it
-// test("Cards: invalid QR mode", async () => {
-//     const results = await testCard('test-example-00-f-qr-code-numeric-wrong_qr_mode.txt', 'qr');
-//     expect(results).toHaveLength(1);
-//     expect(results[0].code).toBe(ErrorCode.ERROR);  // TODO: Create error code for this case
-// });
-
 test("Cards: invalid QR header", async () => {
     const results = await testCard(['test-example-00-f-qr-code-numeric-wrong_qr_header.txt'], 'qrnumeric');
     expect(results).toHaveLength(1);
     expect(results[0].code).toBe(ErrorCode.INVALID_NUMERIC_QR_HEADER);
 });
-
-// TODO: FIX this test
-// test("Cards:JWS too long", async () => {
-//     const results = await testCard(['test-example-00-d-jws-jws_too_long.txt'], 'jws');
-//     expect(results).toHaveLength(1);
-//     expect(results[0].code).toBe(ErrorCode.JWS_TOO_LONG);
-// });
 
 test("Cards: wrong file extension", async () => {
     const results = await testCard(['test-example-00-e-file.wrong-extension'], 'healthcard', [LogLevels.WARNING, LogLevels.ERROR, LogLevels.FATAL]);
