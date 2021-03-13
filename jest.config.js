@@ -5,6 +5,6 @@
 
 module.exports = {
   coverageProvider: "v8",
-  testEnvironment: "node",
+  testEnvironment: "jsdom",
   preset: "ts-jest"
 };
