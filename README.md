@@ -75,13 +75,15 @@ Issuer signing public keys (encoded in a JSON Web Key Set) can be validated befo
 ## Validating tests
 
 The tool currently verifies proper encoding of the:
- - QR code image and chunks
- - Numeric QR data (header, content, chunks)
+ - QR code image (single file or split in chunks)
+ - Numeric QR data (header, content)
  - SMART Health Card file (schema)
  - JWS (schema, deflate compression, format, size limits, signature, issuer key retrieval)
  - JWS payload (schema)
- - FHIR bundle (schema, conformance to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/)).
+ - FHIR bundle (basic schema validation).
  - Issuer JSON Key Set (schema, algorithm, EC Curve, ID, type, usage)
+
+Validation of the FHIR bundle is currently limited. Extensive tests and conformance to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/) can be performed by the [FHIR validator](https://wiki.hl7.org/Using_the_FHIR_Validator) tool.
 
 ## Contributing
 
