@@ -12,6 +12,7 @@ import { ErrorCode } from './error';
 import * as utils from './utils'
 import npmpackage from '../package.json';
 import { KeySet } from './keys';
+import { FhirLogOutput } from './fhirBundle';
 
 /**
  *  Defines the program
@@ -27,6 +28,7 @@ program.requiredOption('-p, --path <path>', 'path of the file(s) to validate. Ca
 program.addOption(new Option('-t, --type <type>', 'type of file to validate').choices(artifactTypes));
 program.addOption(new Option('-l, --loglevel <loglevel>', 'set the minimum log level').choices(loglevelChoices).default('warning'));
 program.option('-o, --logout <path>', 'output path for log (if not specified log will be printed on console)');
+program.option('-f, --fhirout <path>', 'output path for the extracted FHIR bundle');
 program.option('-k, --jwkset <key>', 'path to trusted issuer key set');
 program.parse(process.argv);
 
@@ -37,6 +39,7 @@ export interface CliOptions {
     jwkset: string;
     loglevel: string;
     logout: string;
+    fhirout: string;
 }
 
 
@@ -62,6 +65,16 @@ async function processOptions(options: CliOptions) {
         if (!fs.existsSync(logDir)) {
             return exit('Log file directory does not exist : ' + logDir, ErrorCode.LOG_PATH_NOT_FOUND);
         }
+    }
+
+
+    // verify that the directory of the fhir output file exists, if provided
+    if (options.fhirout) {
+        const logDir = path.dirname(path.resolve(options.fhirout));
+        if (!fs.existsSync(logDir)) {
+            return exit('FHIR output file directory does not exist : ' + logDir, ErrorCode.LOG_PATH_NOT_FOUND);
+        }
+        FhirLogOutput.Path = options.fhirout;
     }
 
 
