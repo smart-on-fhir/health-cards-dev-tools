@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 import * as utils from './utils';
+import fs from 'fs';
 import { validateSchema } from './schema';
 import { ErrorCode } from './error';
 import fhirBundleSchema from '../schema/fhir-bundle-schema.json';
@@ -11,6 +12,9 @@ import beautify  from 'json-beautify'
 
 export const schema = fhirBundleSchema;
 
+export class FhirLogOutput {
+    static Path = '';
+}
 
 export function validate(fhirBundleText: string): ValidationResult {
 
@@ -46,6 +50,9 @@ export function validate(fhirBundleText: string): ValidationResult {
     output.info("Fhir Bundle Contents:");
     output.info(beautify(fhirBundle, null as unknown as Array<string>, 3, 100));
     
+    if (FhirLogOutput.Path) {
+        fs.writeFileSync(FhirLogOutput.Path, fhirBundleText); // should we instead print out the output of beautify above?
+    }
 
     return { result: fhirBundle, log: output };
 }
