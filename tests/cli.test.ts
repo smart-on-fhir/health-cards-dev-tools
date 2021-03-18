@@ -124,7 +124,7 @@ test("Logs: valid 00-e health card single log file", () => {
 
     const logFile = 'log-00-e-single.txt';
     const expectedEntries = 1;
-    const expectedLogItems = 9;
+    const expectedLogItems = 6;
 
     runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
 
@@ -139,7 +139,7 @@ test("Logs: valid 00-e health card append log file", () => {
 
     const logFile = 'log-00-e-append.txt';
     const expectedEntries = 2;
-    const expectedLogItems = [9, 9];
+    const expectedLogItems = [6, 6];
 
     runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
     runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
@@ -159,7 +159,7 @@ test("Logs: valid 00-e health card bad log path", () => {
 });
 
 test("Logs: valid 00-e health card fhir bundle log file", () => {
-    const logFile = 'fhirout.json';
+    const logFile = 'fhirout.json.log'; // .log to be gitignored
     const commandResult = runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --fhirout ' + logFile);
     // try parsing FHIR output log as a fhir bundle
     expect(testCliCommand(`node . --path ${logFile} --type fhirbundle`)).toBe(0);

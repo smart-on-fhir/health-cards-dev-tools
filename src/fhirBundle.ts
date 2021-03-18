@@ -20,6 +20,10 @@ export function validate(fhirBundleText: string): ValidationResult {
 
     const output = new Log('FhirBundle');
 
+    if (fhirBundleText.trim() !== fhirBundleText) {
+        output.warn(`FHIR bundle has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
+        fhirBundleText = fhirBundleText.trim();
+    }
 
     const fhirBundle = utils.parseJson<FhirBundle>(fhirBundleText);
     if (fhirBundle === undefined) {

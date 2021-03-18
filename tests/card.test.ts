@@ -71,6 +71,23 @@ test("Cards: valid 02 QR code JPG", async () => expect(
 test("Cards: valid 02 QR code BMP", async () => expect(
     await testCard(['example-02-g-qr-code-0.bmp', 'example-02-g-qr-code-1.bmp', 'example-02-g-qr-code-2.bmp'], "qr")).toHaveLength(0));
 
+// Warning cases
+
+const testTrailing = async (file: string, type: ValidationType) => {
+    const results = await testCard([file], type);
+    expect(results).toHaveLength(1);
+    expect(results[0].code).toBe(ErrorCode.TRAILING_CHARACTERS);
+    expect(results[0].level).toBe(LogLevels.WARNING);
+}
+
+test("Cards: fhir bundle w/ trailing chars", async () => testTrailing('test-example-00-a-fhirBundle-trailing_chars.json', 'fhirbundle'));
+test("Cards: jws payload w/ trailing chars", async () => testTrailing('test-example-00-b-jws-payload-expanded-trailing_chars.json', 'jwspayload'));
+test("Cards: jws w/ trailing chars", async () => testTrailing('test-example-00-d-jws-trailing_chars.txt', 'jws'));
+test("Cards: health card w/ trailing chars", async () => testTrailing('test-example-00-e-file-trailing_chars.smart-health-card', 'healthcard'));
+test("Cards: numeric QR w/ trailing chars", async () => testTrailing('test-example-00-f-qr-code-numeric-value-0-trailing_chars.txt', 'qrnumeric'));
+
+// Error cases
+
 test("Cards: invalid deflate", async () => {
     const results = await testCard(['test-example-00-e-file-invalid_deflate.smart-health-card']);
     expect(results).toHaveLength(2);
@@ -98,7 +115,7 @@ test("Cards: invalid QR header", async () => {
 });
 
 test("Cards: wrong file extension", async () => {
-    const results = await testCard(['test-example-00-e-file.wrong-extension'], 'healthcard', [LogLevels.WARNING, LogLevels.ERROR, LogLevels.FATAL]);
+    const results = await testCard(['test-example-00-e-file.wrong-extension'], 'healthcard');
     expect(results).toHaveLength(1);
     expect(results[0].code).toBe(ErrorCode.INVALID_FILE_EXTENSION);
     expect(results[0].level).toBe(LogLevels.WARNING);
@@ -111,7 +128,7 @@ test("Cards: invalid signature", async () => {
 });
 
 test("Cards: invalid single chunk QR header", async () => {
-    const results = await testCard(['test-example-00-f-qr-code-numeric-value-0-wrong-multi-chunk.txt'], 'qrnumeric', [LogLevels.WARNING, LogLevels.ERROR, LogLevels.FATAL]);
+    const results = await testCard(['test-example-00-f-qr-code-numeric-value-0-wrong-multi-chunk.txt'], 'qrnumeric');
     expect(results).toHaveLength(1);
     expect(results[0].code).toBe(ErrorCode.INVALID_NUMERIC_QR_HEADER);
     expect(results[0].level).toBe(LogLevels.WARNING);
@@ -131,8 +148,7 @@ test("Cards: duplicated QR chunk index", async () => {
 
 test("Cards: QR chunk index out of range", async () => {
     const results = await testCard(['test-example-00-f-qr-code-numeric-value-0-index-out-of-range.txt'], 'qrnumeric');
-    expect(results).toHaveLength(1);
-    expect(results[0].code).toBe(ErrorCode.INVALID_NUMERIC_QR_HEADER);
+    expect(results.map(r => r.code).indexOf(ErrorCode.INVALID_NUMERIC_QR_HEADER) >= 0);
 });
 
 test("Cards: QR chunk too big", async () => {
