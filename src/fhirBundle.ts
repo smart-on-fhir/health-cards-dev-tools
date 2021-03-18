@@ -3,12 +3,16 @@
 
 import * as utils from './utils';
 import { validateSchema, objPathToSchema } from './schema';
+import fs from 'fs';
 import { ErrorCode } from './error';
 import fhirSchema from '../schema/fhir-schema.json';
 import Log from './logger';
 import { ValidationResult } from './validate';
 import beautify from 'json-beautify'
 
+export class FhirLogOutput {
+    static Path = '';
+}
 
 export function validate(fhirBundleText: string): ValidationResult {
 
@@ -20,6 +24,10 @@ export function validate(fhirBundleText: string): ValidationResult {
             result: fhirBundle,
             log: log.fatal("Failed to parse FhirBundle data as JSON.", ErrorCode.JSON_PARSE_ERROR)
         }
+    }
+
+    if (FhirLogOutput.Path) {
+        fs.writeFileSync(FhirLogOutput.Path, fhirBundleText); // should we instead print out the output of beautify above?
     }
 
     // failures will be recorded in the log.

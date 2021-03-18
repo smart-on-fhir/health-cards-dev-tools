@@ -1,10 +1,10 @@
 # SMART Health Cards Validation SDK
 
-This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `0.2.0`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
+This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `0.3.1`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
 
 ## Setup
 
-1. Make sure [node.js](https://nodejs.org/) is installed on your system. The latest LTS version (14.16.0) is recommended.
+1. Make sure [node.js](https://nodejs.org/) and [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) are installed on your system; the latest Long-Term Support (LTS) version is recommended for both.
 
 2. Get the source, for example using git:
 
@@ -14,7 +14,7 @@ This project provides a tool to help implementers of the [SMART Health Card Fram
 3. Build the npm package:
 
                 npm install
-                npm build
+                npm run build
 
 3. Optionally, run the tests:
 
@@ -42,6 +42,7 @@ To validate health card artifacts, use the `shc-validator.ts` script, or simply 
                   -t, --type <type>          type of file to validate (choices: "fhirbundle", "jwspayload", "jws", "healthcard", "qrnumeric", "qr", "jwkset")
                   -l, --loglevel <loglevel>  set the minimum log level (choices: "debug", "info", "warning", "error", "fatal", default: "warning")
                   -o, --logout <path>        output path for log (if not specified log will be printed on console)
+                  -f, --fhirout <path>       output path for the extracted FHIR bundle
                   -k, --jwkset <key>         path to trusted issuer key set
                   -h, --help                 display help for command
 
@@ -56,6 +57,8 @@ To validate a `QR.png` file, call:
 Multiple `path` options can be provided for QR artifacts (`qrnumeric` and `qr` types) split in multiple files , one for each chunk. For example, to validate a numeric QR code split in three chunks `QR1.txt`, `QR2.txt`, `QR3.txt`, call:
 
                  node . --path QR1.txt --path QR2.txt --path QR3.txt --type qrnumeric
+
+The log output can be stored into a file using the `--logout` option. The extracted FHIR bundle can be stored into a file using the `--fhirout` option.
 
 The supported file types, as expressed with the `--type` option, are:
  - *fhirbundle*: a JSON-encoded FHIR bundle
@@ -75,13 +78,15 @@ Issuer signing public keys (encoded in a JSON Web Key Set) can be validated befo
 ## Validating tests
 
 The tool currently verifies proper encoding of the:
- - QR code image and chunks
- - Numeric QR data (header, content, chunks)
+ - QR code image (single file or split in chunks)
+ - Numeric QR data (header, content)
  - SMART Health Card file (schema)
  - JWS (schema, deflate compression, format, size limits, signature, issuer key retrieval)
  - JWS payload (schema)
- - FHIR bundle (schema, conformance to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/)).
+ - FHIR bundle (basic schema validation).
  - Issuer JSON Key Set (schema, algorithm, EC Curve, ID, type, usage)
+
+Validation of the FHIR bundle is currently limited. Extensive tests and conformance to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/) can be performed by the [FHIR validator](https://wiki.hl7.org/Using_the_FHIR_Validator) tool.
 
 ## Contributing
 

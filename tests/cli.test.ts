@@ -111,9 +111,6 @@ test("Cards: valid 02 qr-code.png", () => expect(testCliCommand('node . --path t
 test("Cards: valid 02 qr-code.jpg", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.jpg --path testdata/example-02-g-qr-code-1.jpg --path testdata/example-02-g-qr-code-2.jpg --type qr --loglevel info')).toBe(0));
 test("Cards: valid 02 qr-code.bmp", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.bmp --path testdata/example-02-g-qr-code-1.bmp --path testdata/example-02-g-qr-code-2.bmp --type qr --loglevel info')).toBe(0));
 
-
-
-
 // Bad paths to data files
 test("Cards: missing healthcard", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type healthcard --loglevel info')).toBe(ErrorCode.DATA_FILE_NOT_FOUND));
 test("Cards: missing jws", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type jws --loglevel info')).toBe(ErrorCode.DATA_FILE_NOT_FOUND));
@@ -158,5 +155,18 @@ test("Logs: valid 00-e health card append log file", () => {
 test("Logs: valid 00-e health card bad log path", () => {
     const logFile = '../foo/log.txt';
     const commandResult = runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
+    expect(commandResult.exitCode).toBe(ErrorCode.LOG_PATH_NOT_FOUND);
+});
+
+test("Logs: valid 00-e health card fhir bundle log file", () => {
+    const logFile = 'fhirout.json';
+    const commandResult = runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --fhirout ' + logFile);
+    // try parsing FHIR output log as a fhir bundle
+    expect(testCliCommand(`node . --path ${logFile} --type fhirbundle`)).toBe(0);
+});
+
+test("Logs: valid 00-e health card bad log path", () => {
+    const logFile = '../foo/log.txt';
+    const commandResult = runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --fhirout ' + logFile);
     expect(commandResult.exitCode).toBe(ErrorCode.LOG_PATH_NOT_FOUND);
 });
