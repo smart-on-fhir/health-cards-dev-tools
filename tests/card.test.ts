@@ -154,3 +154,9 @@ test("Cards: QR chunk too big", async () => {
     expect(results.map(r => r.code).indexOf(ErrorCode.INVALID_NUMERIC_QR) >= 0);
     expect(results.map(r => r.code).indexOf(ErrorCode.UNBALANCED_QR_CHUNKS) >= 0);
 });
+
+
+
+test("Cards: valid 00 FHIR bundle with non-dm properties", async () => expect(await testCard(['test-example-00-a-non-dm-properties.json'], "fhirbundle")).toHaveLength(5));
+
+test("Cards: valid 00 FHIR bundle with non-short refs", async () => expect(await testCard(['test-example-00-a-short-refs.json'], "fhirbundle")).toHaveLength(5));
