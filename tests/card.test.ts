@@ -183,7 +183,7 @@ test("Cards: duplicated QR chunk index",
 );
 
 test("Cards: QR chunk index out of range",
-    testCard(['test-example-00-f-qr-code-numeric-value-0-index-out-of-range.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR_HEADER]])
+    testCard(['test-example-00-f-qr-code-numeric-value-0-index-out-of-range.txt','example-02-f-qr-code-numeric-value-1.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR_HEADER]])
 );
 
 test("Cards: QR chunk too big",
