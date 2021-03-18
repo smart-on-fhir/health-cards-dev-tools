@@ -1,6 +1,6 @@
 {
-    "$id": "https://smarthealth.cards/schema/health-card-vc-payload",
     "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "https://smarthealth.cards/schema/smart-health-card-vc.json",
     "title": "Root",
     "type": "object",
     "required": [
@@ -87,7 +87,7 @@
                         "fhirBundle": {
                             "$id": "#root/vc/credentialSubject/fhirBundle",
                             "title": "Fhirbundle",
-                            "$comment": "\"$ref\": \"fhir-bundle-schema.json#\" to reference sub-schema",
+                            "$comment": "\"$ref\": \"fhir-schema.json#\" to reference sub-schema",
                             "type": "object",
                             "default": ""
                         }
