@@ -18,7 +18,7 @@ const schemaMappings: { [key: string]: string[] } = {
     "keyset-schema": [
         'issuer.jwks.public.json'
     ],
-    "fhir-bundle-schema": [
+    "fhir-schema": [
         'example-00-a-fhirBundle.json',
         'example-01-a-fhirBundle.json'
     ],
