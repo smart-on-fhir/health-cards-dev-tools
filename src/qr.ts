@@ -27,7 +27,12 @@ function shcChunksToJws(shc: string[], log: Log): JWS | undefined {
     const chunkCount = shc.length;
     const jwsChunks = new Array<string>(chunkCount);
 
-    for (const shcChunk of shc) {
+    for (let shcChunk of shc) {
+
+        if (shcChunk.trim() !== shcChunk) {
+            log.warn(`Numeric QR has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
+            shcChunk = shcChunk.trim();
+        }
 
         const chunkResult = shcToJws(shcChunk, log, chunkCount);
 

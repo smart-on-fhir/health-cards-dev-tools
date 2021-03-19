@@ -90,7 +90,6 @@ async function _testCard(fileName: string | string[], fileType: ValidationType ,
 // for now, we get many not-short-url warnings for every use of example-02'
 const SHORT_URL_WARNINGS = 55;
 
-
 test("Cards: valid 00 FHIR bundle", testCard(['example-00-a-fhirBundle.json'], "fhirbundle"));
 test("Cards: valid 01 FHIR bundle", testCard(['example-01-a-fhirBundle.json'], "fhirbundle"));
 test("Cards: valid 02 FHIR bundle", testCard(['example-02-a-fhirBundle.json'], "fhirbundle", [0, SHORT_URL_WARNINGS]));
@@ -137,6 +136,16 @@ test("Cards: valid 02 QR code JPG",
 test("Cards: valid 02 QR code BMP",
     testCard(['example-02-g-qr-code-0.bmp', 'example-02-g-qr-code-1.bmp', 'example-02-g-qr-code-2.bmp'], "qr", [0, SHORT_URL_WARNINGS]));
 
+// Warning cases
+
+test("Cards: fhir bundle w/ trailing chars", testCard(['test-example-00-a-fhirBundle-trailing_chars.json'], 'fhirbundle', [0, [ErrorCode.TRAILING_CHARACTERS]]));
+test("Cards: jws payload w/ trailing chars", testCard('test-example-00-b-jws-payload-expanded-trailing_chars.json', 'jwspayload', [0, [ErrorCode.TRAILING_CHARACTERS]]));
+test("Cards: jws w/ trailing chars", testCard('test-example-00-d-jws-trailing_chars.txt', 'jws', [0, [ErrorCode.TRAILING_CHARACTERS]]));
+test("Cards: health card w/ trailing chars", testCard('test-example-00-e-file-trailing_chars.smart-health-card', 'healthcard', [0, [ErrorCode.TRAILING_CHARACTERS]]));
+test("Cards: numeric QR w/ trailing chars", testCard('test-example-00-f-qr-code-numeric-value-0-trailing_chars.txt', 'qrnumeric', [0, [ErrorCode.TRAILING_CHARACTERS]]));
+
+// Error cases
+
 test("Cards: invalid deflate", 
     testCard(['test-example-00-e-file-invalid_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR, ErrorCode.JSON_PARSE_ERROR]])
 );
@@ -174,7 +183,7 @@ test("Cards: duplicated QR chunk index",
 );
 
 test("Cards: QR chunk index out of range",
-    testCard(['test-example-00-f-qr-code-numeric-value-0-index-out-of-range.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR_HEADER]])
+    testCard(['test-example-00-f-qr-code-numeric-value-0-index-out-of-range.txt','example-02-f-qr-code-numeric-value-1.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR_HEADER]])
 );
 
 test("Cards: QR chunk too big",
@@ -184,3 +193,4 @@ test("Cards: QR chunk too big",
 test("Cards: valid 00 FHIR bundle with non-dm properties", testCard(['test-example-00-a-non-dm-properties.json'], "fhirbundle", [0, 5 /*5x ErrorCode.SCHEMA_ERROR*/]));
 
 test("Cards: valid 00 FHIR bundle with non-short refs", testCard(['test-example-00-a-short-refs.json'], "fhirbundle", [0, 4 /*4x ErrorCode.SCHEMA_ERROR*/]));
+

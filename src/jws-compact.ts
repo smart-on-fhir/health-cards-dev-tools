@@ -24,8 +24,12 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
 
     const log = new Log('JWS-compact');
 
+    if (jws.trim() !== jws) {
+        log.warn(`JWS has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
+        jws = jws.trim();
+    }
 
-    if (!/[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+/g.test(jws.trim())) {
+    if (!/[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+/g.test(jws)) {
         return new ValidationResult(
             undefined,
             log.fatal('Failed to parse JWS-compact data as \'base64url.base64url.base64url\' string.', ErrorCode.JSON_PARSE_ERROR)
