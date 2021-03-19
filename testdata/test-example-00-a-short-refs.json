@@ -5,7 +5,6 @@
     {
       "fullUrl": "http://resource:0",
       "resource": {
-        "managingOrganization": {"identifier" : {"type" : {"text" : "CodeableConcept.txt"}}},
         "resourceType": "Patient",
         "name": [
           {
