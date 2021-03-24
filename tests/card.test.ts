@@ -89,6 +89,7 @@ async function _testCard(fileName: string | string[], fileType: ValidationType ,
 
 // for now, we get many not-short-url warnings for every use of example-02'
 const SHORT_URL_WARNINGS = 55;
+const JWS_TOO_LONG_WARNING = 1;
 
 test("Cards: valid 00 FHIR bundle", testCard(['example-00-a-fhirBundle.json'], "fhirbundle"));
 test("Cards: valid 01 FHIR bundle", testCard(['example-01-a-fhirBundle.json'], "fhirbundle"));
@@ -104,37 +105,37 @@ test("Cards: valid 02 JWS payload minified", testCard(['example-02-c-jws-payload
 
 test("Cards: valid 00 JWS", testCard(['example-00-d-jws.txt'], "jws"));
 test("Cards: valid 01 JWS", testCard(['example-01-d-jws.txt'], "jws"));
-test("Cards: valid 02 JWS", testCard(['example-02-d-jws.txt'], "jws", [0, SHORT_URL_WARNINGS]));
+test("Cards: valid 02 JWS", testCard(['example-02-d-jws.txt'], "jws", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
 test("Cards: valid 00 health card", testCard(['example-00-e-file.smart-health-card'], "healthcard"));
 test("Cards: valid 01 health card", testCard(['example-01-e-file.smart-health-card'], "healthcard"));
-test("Cards: valid 02 health card", testCard(['example-02-e-file.smart-health-card'], "healthcard", [0, SHORT_URL_WARNINGS]));
+test("Cards: valid 02 health card", testCard(['example-02-e-file.smart-health-card'], "healthcard", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
 test("Cards: valid 00 QR numeric", testCard(['example-00-f-qr-code-numeric-value-0.txt'], "qrnumeric"));
 test("Cards: valid 01 QR numeric", testCard(['example-01-f-qr-code-numeric-value-0.txt'], "qrnumeric"));
 test("Cards: valid 02 QR numeric",  
     testCard(['example-02-f-qr-code-numeric-value-0.txt',
         'example-02-f-qr-code-numeric-value-1.txt',
-        'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [0, SHORT_URL_WARNINGS]));
+        'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 test("Cards: valid 02 QR numeric (out of order)", 
     testCard(['example-02-f-qr-code-numeric-value-1.txt',
         'example-02-f-qr-code-numeric-value-0.txt',
-        'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [0, SHORT_URL_WARNINGS]));
+        'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
 test("Cards: valid 00 QR code", testCard(['example-00-g-qr-code-0.svg'], "qr"));
 test("Cards: valid 01 QR code", testCard(['example-01-g-qr-code-0.svg'], "qr"));
 
 test("Cards: valid 02 QR code", 
-    testCard(['example-02-g-qr-code-0.svg', 'example-02-g-qr-code-1.svg', 'example-02-g-qr-code-2.svg'], "qr", [0, SHORT_URL_WARNINGS]));
+    testCard(['example-02-g-qr-code-0.svg', 'example-02-g-qr-code-1.svg', 'example-02-g-qr-code-2.svg'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
 test("Cards: valid 02 QR code PNG", 
-    testCard(['example-02-g-qr-code-0.png', 'example-02-g-qr-code-1.png', 'example-02-g-qr-code-2.png'], "qr", [0, SHORT_URL_WARNINGS]));
+    testCard(['example-02-g-qr-code-0.png', 'example-02-g-qr-code-1.png', 'example-02-g-qr-code-2.png'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
 test("Cards: valid 02 QR code JPG", 
-    testCard(['example-02-g-qr-code-0.jpg', 'example-02-g-qr-code-1.jpg', 'example-02-g-qr-code-2.jpg'], "qr", [0, SHORT_URL_WARNINGS]));
+    testCard(['example-02-g-qr-code-0.jpg', 'example-02-g-qr-code-1.jpg', 'example-02-g-qr-code-2.jpg'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
 test("Cards: valid 02 QR code BMP",
-    testCard(['example-02-g-qr-code-0.bmp', 'example-02-g-qr-code-1.bmp', 'example-02-g-qr-code-2.bmp'], "qr", [0, SHORT_URL_WARNINGS]));
+    testCard(['example-02-g-qr-code-0.bmp', 'example-02-g-qr-code-1.bmp', 'example-02-g-qr-code-2.bmp'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
 // Warning cases
 
@@ -144,6 +145,9 @@ test("Cards: jws w/ trailing chars", testCard('test-example-00-d-jws-trailing_ch
 test("Cards: health card w/ trailing chars", testCard('test-example-00-e-file-trailing_chars.smart-health-card', 'healthcard', [0, [ErrorCode.TRAILING_CHARACTERS]]));
 test("Cards: numeric QR w/ trailing chars", testCard('test-example-00-f-qr-code-numeric-value-0-trailing_chars.txt', 'qrnumeric', [0, [ErrorCode.TRAILING_CHARACTERS]]));
 
+test("Cards: jws too long", testCard('test-example-00-d-jws-jws_too_long.txt', 'jws', [0, [ErrorCode.JWS_TOO_LONG]]));
+
+
 // Error cases
 
 test("Cards: invalid deflate", 
@@ -151,7 +155,7 @@ test("Cards: invalid deflate",
 );
 
 test("Cards: no deflate", 
-    testCard(['test-example-00-e-file-no_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR, ErrorCode.JSON_PARSE_ERROR]])
+    testCard(['test-example-00-e-file-no_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR, ErrorCode.JSON_PARSE_ERROR],[ErrorCode.JWS_TOO_LONG]])
 );
 
 test("Cards: invalid issuer url", 
@@ -187,7 +191,7 @@ test("Cards: QR chunk index out of range",
 );
 
 test("Cards: QR chunk too big",
-    testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR], /*1 UNBALANCED_QR_CHUNKS +107 short ref warnings*/ 108])
+    testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR], /*1 JWS_TOO_LONG + 1 UNBALANCED_QR_CHUNKS + 107 short ref warnings*/ 109])
 );
 
 test("Cards: valid 00 FHIR bundle with non-dm properties", testCard(['test-example-00-a-non-dm-properties.json'], "fhirbundle", [0, 5 /*5x ErrorCode.SCHEMA_ERROR*/]));
