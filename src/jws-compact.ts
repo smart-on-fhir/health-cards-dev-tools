@@ -17,6 +17,7 @@ import { verifyHealthCardIssuerKey } from './shcKeyValidator';
 
 export const schema = jwsCompactSchema;
 
+const MAX_JWS_SINGLE_CHUNK_LENGTH = 1195;
 
 export async function validate(jws: JWS): Promise<ValidationResult> {
 
@@ -27,6 +28,10 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
     if (jws.trim() !== jws) {
         log.warn(`JWS has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
         jws = jws.trim();
+    }
+
+    if (jws.length > MAX_JWS_SINGLE_CHUNK_LENGTH) {
+        log.warn(`JWS is longer than ${MAX_JWS_SINGLE_CHUNK_LENGTH} characters, and will result in split QR codes`, ErrorCode.JWS_TOO_LONG);
     }
 
     if (!/[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+/g.test(jws)) {
