@@ -162,6 +162,14 @@ test("Cards: invalid issuer url",
     testCard(['test-example-00-e-file-invalid_issuer_url.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR]])
 );
 
+test("Cards: invalid issuer url (http)", 
+    testCard(['test-example-00-e-file-invalid_issuer_url_http.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL]])
+);
+
+test("Cards: invalid issuer url (trailing /)", 
+    testCard(['test-example-00-e-file-issuer_url_with_trailing_slash.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL]])
+);
+
 test("Cards: invalid QR header", 
     testCard(['test-example-00-f-qr-code-numeric-wrong_qr_header.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR_HEADER]])
 );

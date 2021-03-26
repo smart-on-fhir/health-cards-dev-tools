@@ -87,6 +87,13 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
         log.error("Can't find 'iss' entry in JWS payload", ErrorCode.SCHEMA_ERROR);
     }
 
+    if (payload.iss.slice(0,8) !== 'https://') {
+        log.error("Issuer URL SHALL use https", ErrorCode.INVALID_ISSUER_URL);
+    }
+
+    if (payload.iss.slice(-1) === '/') {
+        log.error("Issuer URL SHALL NOT include a trailing /", ErrorCode.INVALID_ISSUER_URL);
+    }
 
     // download the keys into the keystore. if it fails, continue an try to use whatever is in the keystore.
     await downloadKey(path.join(payload.iss, '/.well-known/jwks.json'), log);
