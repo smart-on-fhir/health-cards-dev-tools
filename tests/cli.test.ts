@@ -111,6 +111,9 @@ test("Cards: valid 02 qr-code.png", () => expect(testCliCommand('node . --path t
 test("Cards: valid 02 qr-code.jpg", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.jpg --path testdata/example-02-g-qr-code-1.jpg --path testdata/example-02-g-qr-code-2.jpg --type qr --loglevel info')).toBe(0));
 test("Cards: valid 02 qr-code.bmp", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.bmp --path testdata/example-02-g-qr-code-1.bmp --path testdata/example-02-g-qr-code-2.bmp --type qr --loglevel info')).toBe(0));
 
+// valid key example
+test("Cards: valid key set", () => expect(testCliCommand('node . --path testdata/issuer.jwks.public.json --type jwkset --loglevel info')).toBe(0));
+
 // Bad paths to data files
 test("Cards: missing healthcard", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type healthcard --loglevel info')).toBe(ErrorCode.DATA_FILE_NOT_FOUND));
 test("Cards: missing jws", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type jws --loglevel info')).toBe(ErrorCode.DATA_FILE_NOT_FOUND));

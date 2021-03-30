@@ -1,13 +1,13 @@
 {
     "name": "health-cards-validation-sdk",
-    "version": "0.3.1",
+    "version": "0.4.1",
     "description": "",
     "main": "js/src/shc-validator.js",
     "scripts": {
         "build": "tsc",
         "fetch-examples": "ts-node --files src/fetch-examples.ts",
         "prevalidate-examples": "npm run fetch-examples",
-        "validate-examples": "ts-node --files src/shc-validator.ts --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info",
+        "validate-examples": "ts-node --files src/shc-validator.ts --path testdata/valid_key_with_x5c.json --type jwkset --loglevel info",
         "pretest": "npm run fetch-examples",
         "test": "jest --silent --rootDir tests",
         "generate-crypto-test-data": "ts-node --files src/generate-crypto-test-data",
