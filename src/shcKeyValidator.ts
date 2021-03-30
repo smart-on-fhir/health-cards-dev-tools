@@ -120,16 +120,28 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
         // Validate the issuer cert fields
         //
         const x509OutLines = fs.readFileSync(x509OutFile, 'utf-8').split(/\r?\n/);
-        if (!x509OutLines || x509OutLines.length < 8) {
-            throw 'Too few lines output by OpenSSL x509 command';
+        let lineIndex = 0;
+        let subjectAltName = '';
+        if (!x509OutLines) throw 'Error reading OpenSSL x509 command output';
+        if (x509OutLines.length >= 8) {
+            lineIndex = 1;  // skip header line 0
+            subjectAltName = x509OutLines[lineIndex++].trim();
+        } else {
+            // are we missing the Subject Alt Name?
+            if (x509OutLines[0].trim().search('X509v3 Subject Alternative Name') <= 0) {
+                log.error("Missing Subject Alternative Name extension in the issuer's cert (in x5c JWK value)", ErrorCode.INVALID_KEY_X5C);
+            } else {
+                // something else is wrong
+                throw 'Too few lines output by OpenSSL x509 command';
+            }
         }
-        const subjectAltName = x509OutLines[1].trim(); // skip header line 0
+        
         // 'prefix=Mon DD HH:MM:SS YYYY GMT' => 'Mon DD YYYY'
         const parseOpenSSLDate = (date: string, prefix: string): string =>
             date.substring(prefix.length, prefix.length + 7).concat(date.substring(date.length - 8, date.length - 4));
-        const notBefore = parseOpenSSLDate(x509OutLines[2].trim(), 'notBefore=');
-        const notAfter = parseOpenSSLDate(x509OutLines[3].trim(), 'notAfter=');
-        const derPublicKey = PEMtoDER(x509OutLines.slice(4));
+        const notBefore = parseOpenSSLDate(x509OutLines[lineIndex++].trim(), 'notBefore=');
+        const notAfter = parseOpenSSLDate(x509OutLines[lineIndex++].trim(), 'notAfter=');
+        const derPublicKey = PEMtoDER(x509OutLines.slice(lineIndex));
         if (derPublicKey.slice(0,26).toString('hex') !== EC_P256_ASN1_PUBLIC_KEY_HEADER_HEX) throw "Invalid EC P-256 ASN.1 public key header";
         if (derPublicKey.slice(26,27).toString('hex') !== EC_COMPRESSED_KEY_HEX) throw "Invalid EC public key encoding";
         return {
@@ -194,9 +206,16 @@ export async function verifyHealthCardIssuerKey(keySet: KeySet, log = new Log('V
                 }
                 checkKeyValue('x');
                 checkKeyValue('y');
-                if (expectedSubjectAltName && certFields.subjectAltName !== expectedSubjectAltName) {
-                    log.error(`Subject Alternative Name extension in the issuer's cert (in x5c JWK value) doesn't match issuer URL. 
-                    Expected: ${expectedSubjectAltName}. Actual: ${certFields.subjectAltName}`, ErrorCode.INVALID_KEY_X5C);
+
+                if (certFields.subjectAltName && certFields.subjectAltName.substring(0,4) !== "URI:") {
+                    const idx = certFields.subjectAltName.search(':');
+                    const prefix = idx > 0 ? certFields.subjectAltName.substring(0,idx) : 'no prefix found';
+                    log.error("Wrong prefix in the Subject Alternative Name extension of the issuer's cert (in x5c JWK value).\n" +
+                    `Expected: URI. Actual: ${prefix}`, ErrorCode.INVALID_KEY_X5C);
+                }
+                if (expectedSubjectAltName && certFields.subjectAltName && certFields.subjectAltName.substring(4) !== expectedSubjectAltName) {
+                    log.error("Subject Alternative Name extension in the issuer's cert (in x5c JWK value) doesn't match issuer URL.\n" +
+                    `Expected: ${expectedSubjectAltName}. Actual: ${certFields.subjectAltName}`, ErrorCode.INVALID_KEY_X5C);
                 }
                 const now = new Date();
                 if (now < new Date(certFields.notBefore)) {

@@ -6,7 +6,7 @@
     "scripts": {
         "build": "tsc",
         "fetch-examples": "ts-node --files src/fetch-examples.ts",
-        "validate-example": "ts-node --files src/shc-validator.ts --path testdata/valid_key_with_x5c.json --type jwkset --loglevel info",
+        "validate-example": "ts-node --files src/shc-validator.ts --path testdata/valid_key.json --type jwkset --loglevel info",
         "pretest": "npm run fetch-examples",
         "test": "jest --silent --rootDir tests",
         "generate-crypto-test-data": "ts-node --files src/generate-crypto-test-data",
