@@ -12,6 +12,7 @@ import execa from 'execa';
 import fs from 'fs';
 import path from 'path';
 import {v4 as uuidv4} from 'uuid';
+import { isOpensslAvailable } from './utils'
 
 
 // directory where to write cert files for openssl validation
@@ -54,10 +55,8 @@ interface EcPublicJWK extends JWK.Key {
 // validate a JWK certificate chain (x5c value)
 function validateX5c(x5c: string[], log: Log): CertFields | undefined {
     // we use OpenSSL to validate the certificate chain, first check if present
-    try {
-        execa.commandSync("openssl version");
-    } catch (err) {
-        log.warn('OpenSSL not available to validate the X.509 certificate chain; skipping validation', ErrorCode.ERROR);
+    if (!isOpensslAvailable()) {
+        log.warn('OpenSSL not available to validate the X.509 certificate chain; skipping validation', ErrorCode.OPENSSL_NOT_AVAILABLE);
         return;
     }
     if (!fs.existsSync(tmpDir)) {

@@ -10,6 +10,8 @@ const testdataDir = './testdata/';
 
 const EXPECTED_SUBJECT_ALT_NAME = 'https://smarthealth.cards/examples/issuer';
 
+const OPENSSL_AVAILABLE = utils.isOpensslAvailable();
+
 async function testKey(fileName: string, subjectAltName: string = ''): Promise<ErrorCode[]> {
     const filePath = path.join(testdataDir, fileName);
     const result = (await verifyHealthCardIssuerKey(utils.loadJSONFromFile(filePath), undefined ,subjectAltName));
@@ -25,11 +27,11 @@ test("Keys: valid keys", async () => {
 });
 
 test("Keys: valid with x5c (3-cert chain)", async () => {
-    expect(await testKey('valid_key_with_x5c.json', EXPECTED_SUBJECT_ALT_NAME)).toHaveLength(0);
+    expect(await testKey('valid_key_with_x5c.json', EXPECTED_SUBJECT_ALT_NAME)).toHaveLength(OPENSSL_AVAILABLE ? 0 : 1);
 });
 
 test("Keys: valid with x5c (2-cert chain)", async () => {
-    expect(await testKey('valid_2_chain.public.json', EXPECTED_SUBJECT_ALT_NAME)).toHaveLength(0);
+    expect(await testKey('valid_2_chain.public.json', EXPECTED_SUBJECT_ALT_NAME)).toHaveLength(OPENSSL_AVAILABLE ? 0 : 1);
 });
 
 test("Keys: wrong key identifier (kid)", async () => {
@@ -57,21 +59,21 @@ test("Keys: private key", async () => {
 });
 
 test("Keys: wrong SAN in x5c cert", async () => {
-    expect(await testKey('valid_key_with_x5c.json', 'https://invalid.url')).toContain(ErrorCode.INVALID_KEY_X5C);
+    expect(await testKey('valid_key_with_x5c.json', 'https://invalid.url')).toContain(OPENSSL_AVAILABLE ? ErrorCode.INVALID_KEY_X5C : ErrorCode.OPENSSL_NOT_AVAILABLE);
 });
 
 test("Keys: wrong SAN in x5c cert (DNS prefix)", async () => {
-    expect(await testKey('invalid_DNS_SAN.public.json', EXPECTED_SUBJECT_ALT_NAME)).toContain(ErrorCode.INVALID_KEY_X5C);
+    expect(await testKey('invalid_DNS_SAN.public.json', EXPECTED_SUBJECT_ALT_NAME)).toContain(OPENSSL_AVAILABLE ? ErrorCode.INVALID_KEY_X5C : ErrorCode.OPENSSL_NOT_AVAILABLE);
 });
 
 test("Keys: no SAN in x5c cert", async () => {
-    expect(await testKey('invalid_no_SAN.public.json', EXPECTED_SUBJECT_ALT_NAME)).toContain(ErrorCode.INVALID_KEY_X5C);
+    expect(await testKey('invalid_no_SAN.public.json', EXPECTED_SUBJECT_ALT_NAME)).toContain(OPENSSL_AVAILABLE ? ErrorCode.INVALID_KEY_X5C : ErrorCode.OPENSSL_NOT_AVAILABLE);
 });
 
 test("Keys: key and x5c cert mismatch", async () => {
-    expect(await testKey('cert_mismatch.public.json')).toContain(ErrorCode.INVALID_KEY_X5C);
+    expect(await testKey('cert_mismatch.public.json')).toContain(OPENSSL_AVAILABLE ? ErrorCode.INVALID_KEY_X5C : ErrorCode.OPENSSL_NOT_AVAILABLE);
 });
 
 test("Keys: invalid x5c cert chain", async () => {
-    expect(await testKey('invalid_chain.public.json')).toContain(ErrorCode.INVALID_KEY_X5C);
+    expect(await testKey('invalid_chain.public.json')).toContain(OPENSSL_AVAILABLE ? ErrorCode.INVALID_KEY_X5C : ErrorCode.OPENSSL_NOT_AVAILABLE);
 });
