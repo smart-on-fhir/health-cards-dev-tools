@@ -1,14 +1,13 @@
 {
   "resourceType": "Bundle",
   "type": "collection",
-  "meta" : "should not include meta",
-  "id" : "ShouldNotIncludeId",
   "entry": [
     {
       "fullUrl": "resource:0",
       "resource": {
         "managingOrganization": {"identifier" : {"type" : {"text" : "CodeableConcept.txt"}}},
         "resourceType": "Patient",
+        "meta" : "should not include meta",
         "name": [
           {
             "family": "Anyperson",
@@ -27,6 +26,7 @@
       "resource": {
         "resourceType": "Immunization",
         "status": "completed",
+        "id" : "ShouldNotIncludeId",
         "vaccineCode": {
           "coding": [
             {
