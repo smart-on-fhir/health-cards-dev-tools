@@ -5,7 +5,7 @@
     "type": "object",
     "required": [
         "iss",
-        "iat",
+        "nbf",
         "vc"
     ],
     "properties": {
@@ -14,9 +14,9 @@
             "title": "Iss",
             "type": "string"
         },
-        "iat": {
-            "$id": "#root/iat",
-            "title": "Iat",
+        "nbf": {
+            "$id": "#root/nbf",
+            "title": "Nbf",
             "type": "number",
             "$comment": "TODO: more restriction"
         },

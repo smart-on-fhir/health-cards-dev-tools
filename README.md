@@ -1,6 +1,6 @@
 # SMART Health Cards Validation SDK
 
-This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `0.4.1`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
+This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `0.4.3`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
 
 ## Setup
 
@@ -19,6 +19,10 @@ This project provides a tool to help implementers of the [SMART Health Card Fram
 3. Optionally, run the tests:
 
                 npm test
+
+The tests download and validate, among other things, the spec [examples](https://smarthealth.cards/examples/). A breaking spec change might invalidate the downloaded examples, which can be refreshed using:
+
+                npm run fetch-examples --force
 
 ### Running in Docker
 
