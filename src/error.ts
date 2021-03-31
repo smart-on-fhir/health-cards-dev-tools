@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 export enum ErrorCode {
+    // card errors
     ERROR = 100,
     DATA_FILE_NOT_FOUND,
     SCHEMA_FILE_NOT_FOUND,
@@ -24,6 +25,7 @@ export enum ErrorCode {
     INVALID_FILE_EXTENSION,
     TRAILING_CHARACTERS,
     
+    // key errors
     INVALID_KEY_MISSING_KTY = 200,
     INVALID_KEY_WRONG_KTY,
     INVALID_KEY_MISSING_ALG,
@@ -34,5 +36,9 @@ export enum ErrorCode {
     INVALID_KEY_WRONG_KID,
     INVALID_KEY_SCHEMA,
     INVALID_KEY_PRIVATE,
-    INVALID_KEY_UNKNOWN
+    INVALID_KEY_X5C,
+    INVALID_KEY_UNKNOWN,
+
+    // config errors
+    OPENSSL_NOT_AVAILABLE = 300
 }

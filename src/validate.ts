@@ -11,13 +11,10 @@ import * as jwsPayload from './jws-payload';
 import * as fhirBundle from './fhirBundle';
 import * as qr from './qr';
 import * as image from './image';
-//import { JWK } from 'node-jose';
 import { KeySet } from './keys';
 
 
 export type ValidationType = "qr" | "qrnumeric" | "healthcard" | "jws" | "jwspayload" | "fhirbundle" | "jwkset";
-
-
 
 
 export class ValidationResult {

@@ -90,6 +90,7 @@ async function _testCard(fileName: string | string[], fileType: ValidationType ,
 // for now, we get many not-short-url warnings for every use of example-02'
 const SHORT_URL_WARNINGS = 55;
 const JWS_TOO_LONG_WARNING = 1;
+const SCHEMA_ERROR_ARRAY = Array.apply(null, Array(SHORT_URL_WARNINGS)).map(() => ErrorCode.SCHEMA_ERROR);
 
 test("Cards: valid 00 FHIR bundle", testCard(['example-00-a-fhirBundle.json'], "fhirbundle"));
 test("Cards: valid 01 FHIR bundle", testCard(['example-01-a-fhirBundle.json'], "fhirbundle"));
@@ -145,8 +146,7 @@ test("Cards: jws w/ trailing chars", testCard('test-example-00-d-jws-trailing_ch
 test("Cards: health card w/ trailing chars", testCard('test-example-00-e-file-trailing_chars.smart-health-card', 'healthcard', [0, [ErrorCode.TRAILING_CHARACTERS]]));
 test("Cards: numeric QR w/ trailing chars", testCard('test-example-00-f-qr-code-numeric-value-0-trailing_chars.txt', 'qrnumeric', [0, [ErrorCode.TRAILING_CHARACTERS]]));
 
-test("Cards: jws too long", testCard('test-example-00-d-jws-jws_too_long.txt', 'jws', [0, [ErrorCode.JWS_TOO_LONG]]));
-
+test("Cards: jws too long", testCard('example-02-d-jws.txt', 'jws', [0, [ErrorCode.JWS_TOO_LONG].concat(SCHEMA_ERROR_ARRAY)]));
 
 // Error cases
 
@@ -183,7 +183,7 @@ test("Cards: invalid signature",
 );
 
 test("Cards: invalid single chunk QR header", 
-    testCard(['test-example-00-f-qr-code-numeric-value-0-wrong-multi-chunk.txt'], 'qrnumeric', [0, [ErrorCode.INVALID_NUMERIC_QR_HEADER, /*+2 short-url warnings*/ ErrorCode.SCHEMA_ERROR, ErrorCode.SCHEMA_ERROR]])
+    testCard(['test-example-00-f-qr-code-numeric-value-0-wrong-multi-chunk.txt'], 'qrnumeric', [0, [ErrorCode.INVALID_NUMERIC_QR_HEADER]])
 );
 
 test("Cards: missing QR chunk", 
@@ -199,7 +199,7 @@ test("Cards: QR chunk index out of range",
 );
 
 test("Cards: QR chunk too big",
-    testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR], /*1 JWS_TOO_LONG + 1 UNBALANCED_QR_CHUNKS + 107 short ref warnings*/ 109])
+    testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR, ErrorCode.INVALID_NUMERIC_QR], /*1 JWS_TOO_LONG + 55 short ref warnings*/ 56])
 );
 
 test("Cards: valid 00 FHIR bundle with non-dm properties", testCard(['test-example-00-a-non-dm-properties.json'], "fhirbundle", [0, 5 /*5x ErrorCode.SCHEMA_ERROR*/]));

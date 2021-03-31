@@ -8,7 +8,7 @@ import {promisify} from 'util';
 import {JWK} from 'node-jose';
 import got from 'got';
 import { svgToQRImage } from './image';
-
+import { Command } from 'commander';
 
 const outPath = 'testdata';
 const baseExampleUrl = 'https://smarthealth.cards/examples/';
@@ -27,7 +27,7 @@ const exampleSuffixes = [
 
 const pipeline = promisify(stream.pipeline);
 
-async function fetchExamples(outdir: string) : Promise<void> {
+async function fetchExamples(outdir: string, force: boolean = false) : Promise<void> {
     
     const getExamples = exampleSuffixes.map(async (exampleSuffix) => {
 
@@ -53,7 +53,7 @@ async function fetchExamples(outdir: string) : Promise<void> {
             for (const exampleFile of exampleFiles) {
                 const filePath = path.join(outdir, exampleFile);
 
-                if (!fs.existsSync(filePath)) {
+                if (force || !fs.existsSync(filePath)) {
                     const exampleUrl = baseExampleUrl + exampleFile;
                     console.log('Retrieving ' + exampleUrl);
                     try {
@@ -76,7 +76,7 @@ const issuerPrivateKeyUrl = 'https://raw.githubusercontent.com/smart-on-fhir/hea
 const issuerPublicKeyFileName = 'issuer.jwks.public.json';
 
 
-async function fetchKeys(outdir: string) : Promise<void> {
+async function fetchKeys(outdir: string, force: boolean = false) : Promise<void> {
 
     const filePath = path.join(outdir, issuerPublicKeyFileName);
 
@@ -94,21 +94,26 @@ async function fetchKeys(outdir: string) : Promise<void> {
 
 
 // for each .svg file, generate a png, jpg, and bmp QR image
-async function generateImagesFromSvg(dir: string) {
+async function generateImagesFromSvg(dir: string, force: boolean = false) {
     const files = fs.readdirSync(dir);
     for (let i = 0; i < files.length; i++) {
         const file = path.join(dir, files[i]);
         if (path.extname(file) === '.svg') {
+            // TODO make use of force option
             await svgToQRImage(file);
         }
     }
 }
 
+const program = new Command();
+program.option('-f, --force', 'forces example retrieval, even if already present');
+program.parse(process.argv);
+const force = program.opts().force || false;
 
 // We have to wrap these calls in an async function for ES5 support
 // Typescript error: Top-level 'await' expressions are only allowed when the 'module' option is set to 'esnext'
 void (async () => {
-    await fetchExamples(outPath);
-    await fetchKeys(outPath);
+    await fetchExamples(outPath, force);
+    await fetchKeys(outPath, force);
     await generateImagesFromSvg(outPath);
 })();
