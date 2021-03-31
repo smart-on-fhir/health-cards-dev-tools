@@ -17,6 +17,7 @@ import { verifyHealthCardIssuerKey } from './shcKeyValidator';
 
 export const schema = jwsCompactSchema;
 
+const MAX_JWS_SINGLE_CHUNK_LENGTH = 1195;
 
 export async function validate(jws: JWS): Promise<ValidationResult> {
 
@@ -24,8 +25,16 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
 
     const log = new Log('JWS-compact');
 
+    if (jws.trim() !== jws) {
+        log.warn(`JWS has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
+        jws = jws.trim();
+    }
 
-    if (!/[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+/g.test(jws.trim())) {
+    if (jws.length > MAX_JWS_SINGLE_CHUNK_LENGTH) {
+        log.warn(`JWS is longer than ${MAX_JWS_SINGLE_CHUNK_LENGTH} characters, and will result in split QR codes`, ErrorCode.JWS_TOO_LONG);
+    }
+
+    if (!/[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+/g.test(jws)) {
         return new ValidationResult(
             undefined,
             log.fatal('Failed to parse JWS-compact data as \'base64url.base64url.base64url\' string.', ErrorCode.JSON_PARSE_ERROR)
@@ -78,6 +87,13 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
         log.error("Can't find 'iss' entry in JWS payload", ErrorCode.SCHEMA_ERROR);
     }
 
+    if (payload.iss.slice(0,8) !== 'https://') {
+        log.error("Issuer URL SHALL use https", ErrorCode.INVALID_ISSUER_URL);
+    }
+
+    if (payload.iss.slice(-1) === '/') {
+        log.error("Issuer URL SHALL NOT include a trailing /", ErrorCode.INVALID_ISSUER_URL);
+    }
 
     // download the keys into the keystore. if it fails, continue an try to use whatever is in the keystore.
     await downloadKey(path.join(payload.iss, '/.well-known/jwks.json'), log);

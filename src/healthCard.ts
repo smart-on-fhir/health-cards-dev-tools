@@ -17,6 +17,11 @@ export async function validate(healthCardText: string): Promise<ValidationResult
 
     const log = new Log('SMART Health Card');
 
+    if (healthCardText.trim() !== healthCardText) {
+        log.warn(`Health Card has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
+        healthCardText = healthCardText.trim();
+    }
+
     const healthCard = utils.parseJson<HealthCard>(healthCardText);
     if (healthCard == undefined) {
         return {

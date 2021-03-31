@@ -17,6 +17,10 @@ export function validate(jwsPayloadText: string): ValidationResult {
 
     const log = new Log('JWS.payload');
 
+    if (jwsPayloadText.trim() !== jwsPayloadText) {
+        log.warn(`JWS payload has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
+        jwsPayloadText = jwsPayloadText.trim();
+    }
 
     const jwsPayload = utils.parseJson<JWSPayload>(jwsPayloadText);
     if (jwsPayload === undefined) {
