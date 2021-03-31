@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-
 import path from 'path';
 import { ErrorCode } from '../src/error';
 import { LogLevels } from '../src/logger';
@@ -9,9 +8,11 @@ import { verifyHealthCardIssuerKey } from '../src/shcKeyValidator';
 import * as utils from '../src/utils';
 const testdataDir = './testdata/';
 
-async function testKey(fileName: string): Promise<ErrorCode[]> {
+const EXPECTED_SUBJECT_ALT_NAME = 'https://smarthealth.cards/examples/issuer';
+
+async function testKey(fileName: string, subjectAltName: string = ''): Promise<ErrorCode[]> {
     const filePath = path.join(testdataDir, fileName);
-    const result = (await verifyHealthCardIssuerKey(utils.loadJSONFromFile(filePath)));
+    const result = (await verifyHealthCardIssuerKey(utils.loadJSONFromFile(filePath), undefined ,subjectAltName));
     return result.log.flatten(LogLevels.WARNING).map(item => item.code);
 }
 
@@ -21,6 +22,14 @@ test("Keys: valid", async () => {
 
 test("Keys: valid keys", async () => {
     expect(await testKey('valid_keys.json')).toHaveLength(0);
+});
+
+test("Keys: valid with x5c (3-cert chain)", async () => {
+    expect(await testKey('valid_key_with_x5c.json', EXPECTED_SUBJECT_ALT_NAME)).toHaveLength(0);
+});
+
+test("Keys: valid with x5c (2-cert chain)", async () => {
+    expect(await testKey('valid_2_chain.public.json', EXPECTED_SUBJECT_ALT_NAME)).toHaveLength(0);
 });
 
 test("Keys: wrong key identifier (kid)", async () => {
@@ -45,4 +54,24 @@ test("Keys: wrong key type (kty)", async () => {
 
 test("Keys: private key", async () => {
     expect(await testKey('private_key.json')).toContain(ErrorCode.INVALID_KEY_PRIVATE);
+});
+
+test("Keys: wrong SAN in x5c cert", async () => {
+    expect(await testKey('valid_key_with_x5c.json', 'https://invalid.url')).toContain(ErrorCode.INVALID_KEY_X5C);
+});
+
+test("Keys: wrong SAN in x5c cert (DNS prefix)", async () => {
+    expect(await testKey('invalid_DNS_SAN.public.json', EXPECTED_SUBJECT_ALT_NAME)).toContain(ErrorCode.INVALID_KEY_X5C);
+});
+
+test("Keys: no SAN in x5c cert", async () => {
+    expect(await testKey('invalid_no_SAN.public.json', EXPECTED_SUBJECT_ALT_NAME)).toContain(ErrorCode.INVALID_KEY_X5C);
+});
+
+test("Keys: key and x5c cert mismatch", async () => {
+    expect(await testKey('cert_mismatch.public.json')).toContain(ErrorCode.INVALID_KEY_X5C);
+});
+
+test("Keys: invalid x5c cert chain", async () => {
+    expect(await testKey('invalid_chain.public.json')).toContain(ErrorCode.INVALID_KEY_X5C);
 });

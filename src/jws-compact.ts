@@ -96,7 +96,7 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
     }
 
     // download the keys into the keystore. if it fails, continue an try to use whatever is in the keystore.
-    await downloadKey(path.join(payload.iss, '/.well-known/jwks.json'), log);
+    await downloadKey(payload.iss, log);
 
 
     if (await verifyJws(jws, log)) {
@@ -110,15 +110,16 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
 }
 
 
-async function downloadKey(keyPath: string, log: Log): Promise<keys.KeySet | undefined> {
+async function downloadKey(issuerURL: string, log: Log): Promise<keys.KeySet | undefined> {
 
-    log.info("Retrieving issuer key from " + keyPath);
+    const jwkURL = issuerURL + '/.well-known/jwks.json';
+    log.info("Retrieving issuer key from " + jwkURL);
 
-    return await got(keyPath).json<keys.KeySet>()
+    return await got(jwkURL).json<keys.KeySet>()
         // TODO: split up download/parsing to provide finer-grained error message
         .then(async keySet => {
             log.debug("Downloaded issuer key(s) : ");
-            return (await verifyHealthCardIssuerKey(keySet, log)).result as (keys.KeySet | undefined);
+            return (await verifyHealthCardIssuerKey(keySet, log, issuerURL)).result as (keys.KeySet | undefined);
         })
         .catch(() => {
             log.error("Can't parse downloaded issuer keys as a key set",

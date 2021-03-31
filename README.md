@@ -1,10 +1,10 @@
 # SMART Health Cards Validation SDK
 
-This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `0.3.1`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
+This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `0.4.3`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
 
 ## Setup
 
-1. Make sure [node.js](https://nodejs.org/) and [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) are installed on your system; the latest Long-Term Support (LTS) version is recommended for both.
+1. Make sure [node.js](https://nodejs.org/) and [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) are installed on your system; the latest Long-Term Support (LTS) version is recommended for both. [OpenSSL](https://www.openssl.org/) is also needed to validate certificate chains which could be present in issuer JSON Web Keys (`x5c` value); if absent, chain validation is skipped.
 
 2. Get the source, for example using git:
 
@@ -19,6 +19,10 @@ This project provides a tool to help implementers of the [SMART Health Card Fram
 3. Optionally, run the tests:
 
                 npm test
+
+The tests download and validate, among other things, the spec [examples](https://smarthealth.cards/examples/). A breaking spec change might invalidate the downloaded examples, which can be refreshed using:
+
+                npm run fetch-examples --force
 
 ### Running in Docker
 
@@ -81,7 +85,7 @@ The tool currently verifies proper encoding of the:
  - QR code image (single file or split in chunks)
  - Numeric QR data (header, content)
  - SMART Health Card file (schema)
- - JWS (schema, deflate compression, format, size limits, signature, issuer key retrieval)
+ - JWS (schema, deflate compression, format, size limits, signature, issuer key retrieval, x5c cert chain validation)
  - JWS payload (schema)
  - FHIR bundle (basic schema validation).
  - Issuer JSON Key Set (schema, algorithm, EC Curve, ID, type, usage)
