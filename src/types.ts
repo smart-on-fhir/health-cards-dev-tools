@@ -12,7 +12,7 @@ interface HealthCard {
 
 interface JWSPayload {
     "iss": string,
-    "iat": number,
+    "nbf": number,
     "vc": {
         credentialSubject: {
             fhirBundle: FhirBundle

@@ -12,7 +12,7 @@ import { KeySet } from './keys';
 const schemaCache: Record<string, AnyValidateFunction> = {};
 
 
-export function validateSchema(schema: AnySchemaObject | AnySchemaObject[], data: FhirBundle | JWS | JWSPayload | HealthCard | KeySet | Resource, log: Log): boolean {
+export function validateSchema(schema: AnySchemaObject, data: FhirBundle | JWS | JWSPayload | HealthCard | KeySet | Resource, log: Log): boolean {
 
     // by default, the validator will stop at the first failure. 'allErrors' allows it to keep going.
     const schemaId = (schema as { [key: string]: string })["$id"] || (schema as { [key: string]: string })["$ref"];
@@ -21,8 +21,11 @@ export function validateSchema(schema: AnySchemaObject | AnySchemaObject[], data
 
         if (!schemaCache[schemaId]) {
             const ajv = new Ajv({ strict: false, allErrors: false });
-            const validate = ajv.addSchema(fhirSchema).compile(schema);
-            schemaCache[schemaId] = validate;
+            if(schema.$ref) {
+                schemaCache[schemaId] = ajv.addSchema(fhirSchema).compile(schema);
+            } else {
+                schemaCache[schemaId] = ajv.compile(schema);
+            }
         }
 
         const validate = schemaCache[schemaId];
