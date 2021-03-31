@@ -5936,7 +5936,7 @@
                     "$ref": "#/definitions/uri"
                 },
                 "resource": {
-                    "$ref": "#/definitions/ResourceList"
+                    "type" : "object"
                 },
                 "search": {
                     "$ref": "#/definitions/Bundle_Search"

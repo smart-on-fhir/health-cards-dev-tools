@@ -52,25 +52,28 @@ export function validate(fhirBundleText: string): ValidationResult {
     }
 
 
-    if (fhirBundle.id) {
-        log.warn("fhirBundle should not include Resource.id elements", ErrorCode.SCHEMA_ERROR);
-    }
-
-    if (fhirBundle.meta) {
-        log.warn("fhirBundle should not include Resource.meta elements", ErrorCode.SCHEMA_ERROR);
-    }
-
-    if (fhirBundle.text) {
-        log.warn("fhirBundle should not include Resource.text elements", ErrorCode.SCHEMA_ERROR);
-    }
-    
     for (let i = 0; i < fhirBundle.entry.length; i++) {
 
         const entry = fhirBundle.entry[i];
+        const resource = entry.resource;
 
-        if (entry.resource == null) {
+        validateSchema({ $ref: 'https://smarthealth.cards/schema/fhir-schema.json#/definitions/' + resource.resourceType }, resource, log);
+
+        if (resource == null) {
             log.error("Bundle.entry[" + i.toString() + "].resource missing");
             continue;
+    }
+
+        if (resource.id) {
+            log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .id elements", ErrorCode.SCHEMA_ERROR);
+    }
+
+        if (resource.meta) {
+            log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .meta elements", ErrorCode.SCHEMA_ERROR);
+    }
+    
+        if (resource.text) {
+            log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .text elements", ErrorCode.SCHEMA_ERROR);
         }
 
         // walks the property tree of this resource object
