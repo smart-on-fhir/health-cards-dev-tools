@@ -10,6 +10,8 @@ const testdataDir = './testdata/';
 
 const EXPECTED_SUBJECT_ALT_NAME = 'https://smarthealth.cards/examples/issuer';
 
+// Check if openssl is available. If not, this will add a warning in tests where an issuer key
+// set contains a key with a x5c value.
 const OPENSSL_AVAILABLE = utils.isOpensslAvailable();
 
 async function testKey(fileName: string, subjectAltName: string = ''): Promise<ErrorCode[]> {
