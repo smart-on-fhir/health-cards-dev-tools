@@ -22,7 +22,7 @@ This project provides a tool to help implementers of the [SMART Health Card Fram
 
 The tests download and validate, among other things, the spec [examples](https://smarthealth.cards/examples/). A breaking spec change might invalidate the downloaded examples, which can be refreshed using:
 
-                npm run fetch-examples --force
+                npm run fetch-examples -- --force
 
 ### Running in Docker
 
