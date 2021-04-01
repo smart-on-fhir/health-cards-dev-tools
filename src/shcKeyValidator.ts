@@ -214,7 +214,7 @@ export async function verifyHealthCardIssuerKey(keySet: KeySet, log = new Log('V
                 }
                 if (expectedSubjectAltName && certFields.subjectAltName && certFields.subjectAltName.substring(4) !== expectedSubjectAltName) {
                     log.error("Subject Alternative Name extension in the issuer's cert (in x5c JWK value) doesn't match issuer URL.\n" +
-                    `Expected: ${expectedSubjectAltName}. Actual: ${certFields.subjectAltName}`, ErrorCode.INVALID_KEY_X5C);
+                    `Expected: ${expectedSubjectAltName}. Actual: ${certFields.subjectAltName.substring(4)}`, ErrorCode.INVALID_KEY_X5C);
                 }
                 const now = new Date();
                 if (now < new Date(certFields.notBefore)) {
