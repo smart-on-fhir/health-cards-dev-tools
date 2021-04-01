@@ -162,12 +162,14 @@ test("Cards: invalid issuer url",
     testCard(['test-example-00-e-file-invalid_issuer_url.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR]])
 );
 
+// the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch
 test("Cards: invalid issuer url (http)", 
-    testCard(['test-example-00-e-file-invalid_issuer_url_http.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL]])
+    testCard(['test-example-00-e-file-invalid_issuer_url_http.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL, ErrorCode.INVALID_KEY_X5C]])
 );
 
+// the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch
 test("Cards: invalid issuer url (trailing /)", 
-    testCard(['test-example-00-e-file-issuer_url_with_trailing_slash.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL]])
+    testCard(['test-example-00-e-file-issuer_url_with_trailing_slash.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL, ErrorCode.INVALID_KEY_X5C]])
 );
 
 test("Cards: invalid QR header", 

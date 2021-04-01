@@ -127,7 +127,7 @@ test("Logs: valid 00-e health card single log file", () => {
 
     const logFile = 'log-00-e-single.txt';
     const expectedEntries = 1;
-    const expectedLogItems = 6;
+    const expectedLogItems = 7;
 
     runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
 
@@ -142,7 +142,7 @@ test("Logs: valid 00-e health card append log file", () => {
 
     const logFile = 'log-00-e-append.txt';
     const expectedEntries = 2;
-    const expectedLogItems = [6, 6];
+    const expectedLogItems = [7, 7];
 
     runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
     runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
