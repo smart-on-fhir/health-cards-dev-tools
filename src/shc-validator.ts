@@ -4,7 +4,7 @@
 /* Validate SMART Health Card artifacts */
 import path from 'path';
 import fs from 'fs';
-import { Option, Command } from 'commander';
+import { Option, Command, version } from 'commander';
 import * as validator from './validate';
 import { LogLevels } from './logger';
 import { getFileData } from './file';
@@ -13,6 +13,7 @@ import * as utils from './utils'
 import npmpackage from '../package.json';
 import { KeySet } from './keys';
 import { FhirLogOutput } from './fhirBundle';
+import * as versions from './check-for-update';
 
 /**
  *  Defines the program
@@ -54,6 +55,11 @@ function exit(message: string, exitCode: ErrorCode = 0): void {
  */
 async function processOptions(options: CliOptions) {
 
+    console.log("SMART Health Card Validation SDK (validating spec v" + npmpackage.version + ")");
+
+    // check the latest SDK and spec version
+    const vLatestSDK = versions.latestSdkVersion();
+    const vLatestSpec = versions.latestSpecVersion();
 
     // map the --loglevel option to the Log.LogLevel enum
     const level = loglevelChoices.indexOf(options.loglevel) as LogLevels;
@@ -163,6 +169,22 @@ async function processOptions(options: CliOptions) {
             console.log(output.log.toString(level));
     }
 
+    // check if we are running the latest version of the SDK
+    await vLatestSDK.then(v => {
+        if (!v) {
+            console.log("Can't determine the latest SDK version. Make sure you have the latest version.")
+        } else if (versions.compareVersions(v,versions.stringToVersion(npmpackage.version) as versions.Version) > 0) {
+            console.log(`NOTE: You are not using the latest SDK version. Current: v${npmpackage.version}, latest: v${v.str}`);
+        }
+    });
+    // check if the SDK is behind the spec
+    await vLatestSpec.then(v => {
+        if (!v) {
+            console.log("Can't determine the latest spec version.");
+        } else if (versions.compareVersions(v,versions.stringToVersion(npmpackage.version) as versions.Version) > 0) {
+            console.log(`NOTE: the SDK v${npmpackage.version} is not validating the latest version of the spec: v${v.str}`);
+        }
+    })
     console.log("Validation completed");
 }
 
