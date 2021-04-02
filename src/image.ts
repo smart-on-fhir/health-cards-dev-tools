@@ -145,12 +145,3 @@ export async function dataToQRImage(path: string, data: QRCodeSegment[]) : Promi
         });
 
 }
-
-
-// const exampleQrCodes: string[] = await Promise.all(
-//     qrSet.map((qrSegments): Promise<string> => new Promise((resolve, reject) =>
-//       QrCode.toString(qrSegments, { type: 'svg', errorCorrectionLevel: 'low' }, function (err: any, result: string) {
-//         if (err) return reject(err);
-//         resolve(result as string);
-//       })
-//     )));
