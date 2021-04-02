@@ -210,3 +210,10 @@ test("Cards: valid 00 FHIR bundle with non-dm properties", testCard(['test-examp
 
 test("Cards: valid 00 FHIR bundle with non-short refs", testCard(['test-example-00-a-short-refs.json'], "fhirbundle", [0, 4 /*4x ErrorCode.SCHEMA_ERROR*/]));
 
+test("Cards: der encoded signature", testCard(['test-example-00-d-jws-der-signature.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR], OPENSSL_WARNING]));
+
+test("Cards: der encoded signature s-negative", testCard(['test-example-00-d-jws-der-signature-s-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR], OPENSSL_WARNING]));
+
+test("Cards: der encoded signature r-negative", testCard(['test-example-00-d-jws-der-signature-r-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR], OPENSSL_WARNING]));
+
+test("Cards: der encoded signature r&s negative", testCard(['test-example-00-d-jws-der-signature-rs-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR], OPENSSL_WARNING]));
