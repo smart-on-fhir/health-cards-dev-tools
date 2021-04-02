@@ -24,7 +24,7 @@ export function compareVersions(vA: Version, vB: Version): number {
         if (vA.minor > vB.minor) {
             return 1;
         } else if (vA.minor === vB.minor) {
-            if (vA.patch > vB.major) {
+            if (vA.patch > vB.patch) {
                 return 1;
             } else if (vA.patch === vB.patch) {
                 return 0;
