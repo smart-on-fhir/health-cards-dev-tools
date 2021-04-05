@@ -32,6 +32,7 @@ program.addOption(new Option('-l, --loglevel <loglevel>', 'set the minimum log l
 program.option('-o, --logout <path>', 'output path for log (if not specified log will be printed on console)');
 program.option('-f, --fhirout <path>', 'output path for the extracted FHIR bundle');
 program.option('-k, --jwkset <key>', 'path to trusted issuer key set');
+program.option('-e, --exclude <error>', 'error to exclude. Can be repeated.', (e: string, errors: string[]) => errors.concat([e]), []);
 program.parse(process.argv);
 
 
@@ -42,6 +43,7 @@ export interface CliOptions {
     loglevel: string;
     logout: string;
     fhirout: string;
+    exclude: string[];
 }
 
 
@@ -57,6 +59,7 @@ function exit(message: string, exitCode: ErrorCode = 0): void {
 async function processOptions(options: CliOptions) {
 
     console.log("SMART Health Card Validation SDK v" + npmpackage.version);
+    console.log(options.exclude);
 
     // check the latest SDK and spec version
     const vLatestSDK = versions.latestSdkVersion();
