@@ -1,3 +1,5 @@
+![Node.js CI](https://github.com/microsoft/health-cards-validation-SDK/actions/workflows/node.js.yml/badge.svg)
+
 # SMART Health Cards Validation SDK
 
 This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `0.4.3`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
