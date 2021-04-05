@@ -125,3 +125,6 @@ testdata/issuer.jwks.public.json
 # compiled js files
 js/*
 testdata/missing_kid_key.json
+
+# temp files
+tmp/*

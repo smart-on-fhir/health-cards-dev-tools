@@ -183,8 +183,7 @@ export async function verifyHealthCardIssuerKey(keySet: KeySet, log = new Log('V
 
         // check for private key material (as to happen before the following store.add, because the returned
         // value will be the corresponding public key)
-        // TODO: this is RSA/ECDSA specific, find a different API to detect private keys more broadly
-        //       (although the spec mandates ECDSA, for now...)
+        // Note: this is RSA/ECDSA specific, but ok since ECDSA is mandated
         if ((key as (JWK.Key & { d: string })).d) {
             log.error(keyName + ': ' + "key contains private key material.", ErrorCode.INVALID_KEY_PRIVATE);
         }
