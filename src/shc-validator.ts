@@ -14,6 +14,7 @@ import npmpackage from '../package.json';
 import { KeySet } from './keys';
 import { FhirLogOutput } from './fhirBundle';
 import * as versions from './check-for-update';
+import semver from 'semver';
 
 /**
  *  Defines the program
@@ -55,7 +56,7 @@ function exit(message: string, exitCode: ErrorCode = 0): void {
  */
 async function processOptions(options: CliOptions) {
 
-    console.log("SMART Health Card Validation SDK (validating spec v" + npmpackage.version + ")");
+    console.log("SMART Health Card Validation SDK v" + npmpackage.version);
 
     // check the latest SDK and spec version
     const vLatestSDK = versions.latestSdkVersion();
@@ -173,16 +174,16 @@ async function processOptions(options: CliOptions) {
     await vLatestSDK.then(v => {
         if (!v) {
             console.log("Can't determine the latest SDK version. Make sure you have the latest version.")
-        } else if (versions.compareVersions(v,versions.stringToVersion(npmpackage.version) as versions.Version) > 0) {
-            console.log(`NOTE: You are not using the latest SDK version. Current: v${npmpackage.version}, latest: v${v.str}`);
+        } else if (semver.gt(v,npmpackage.version)) {
+            console.log(`NOTE: You are not using the latest SDK version. Current: v${npmpackage.version}, latest: v${v}`);
         }
     });
     // check if the SDK is behind the spec
     await vLatestSpec.then(v => {
         if (!v) {
             console.log("Can't determine the latest spec version.");
-        } else if (versions.compareVersions(v,versions.stringToVersion(npmpackage.version) as versions.Version) > 0) {
-            console.log(`NOTE: the SDK v${npmpackage.version} is not validating the latest version of the spec: v${v.str}`);
+        } else if (semver.gt(v,npmpackage.version)) {
+            console.log(`NOTE: the SDK v${npmpackage.version} is not validating the latest version of the spec: v${v}`);
         }
     })
     console.log("Validation completed");
