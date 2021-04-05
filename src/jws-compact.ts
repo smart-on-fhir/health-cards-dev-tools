@@ -88,22 +88,41 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
         log.error("Signature is " + sigBytes.length.toString() + "-bytes. Signature is expected to be 64-bytes", ErrorCode.SIGNATURE_FORMAT_ERROR);
     }
 
-
-    let inflatedPayload;
+    let b64DecodedPayloadBuffer;
+    let b64DecodedPayloadString;
     try {
-        inflatedPayload = pako.inflateRaw(Buffer.from(rawPayload, 'base64'), { to: 'string' });
-        log.info('JWS payload inflated');
+        b64DecodedPayloadBuffer = Buffer.from(rawPayload, 'base64');
     } catch (err) {
-        // TODO: we should try non-raw inflate, or try to parse JSON directly (if they forgot to deflate) and continue, to report the exact error
-        log.error(
-            ["Error inflating JWS payload. Did you use raw DEFLATE compression?",
-                (err as string)].join('\n'),
+        log.error([
+            "Error base64-decoding the JWS payload.",
+            (err as string)].join('\n'),
             ErrorCode.INFLATION_ERROR);
     }
-
+    let inflatedPayload;
+    if (b64DecodedPayloadBuffer) {
+        try {
+            inflatedPayload = pako.inflateRaw(b64DecodedPayloadBuffer, { to: 'string' });
+            log.info('JWS payload inflated');
+        } catch (err) {
+            // try normal inflate
+            try {
+                inflatedPayload = pako.inflate(b64DecodedPayloadBuffer, { to: 'string' });
+                log.error(
+                    "Error inflating JWS payload. Compression should use raw DEFLATE (without wrapper header and adler32 crc)",
+                    ErrorCode.INFLATION_ERROR);
+            } catch (err) {
+                log.error(
+                    ["Error inflating JWS payload. Did you use raw DEFLATE compression?",
+                    (err as string)].join('\n'),
+                    ErrorCode.INFLATION_ERROR);
+                // inflating failed, let's try to parse the base64-decoded string directly
+                b64DecodedPayloadString = b64DecodedPayloadBuffer.toString('utf-8');
+            }
+        }
+    }
 
     // try to validate the payload (even if inflation failed)
-    const payloadResult = jwsPayload.validate(inflatedPayload || rawPayload);
+    const payloadResult = jwsPayload.validate(inflatedPayload || b64DecodedPayloadString || rawPayload);
     const payload = payloadResult.result as JWSPayload;
     log.child = payloadResult.log;
 
