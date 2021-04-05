@@ -9,7 +9,6 @@ import * as keys from './keys';
 import pako from 'pako';
 import got from 'got';
 import jose from 'node-jose';
-import path from 'path';
 import Log from './logger';
 import { ValidationResult } from './validate';
 import { verifyHealthCardIssuerKey } from './shcKeyValidator';
@@ -48,10 +47,47 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
     // split into header[0], payload[1], key[2]
     const parts = jws.split('.');
     const rawPayload = parts[1];
+    const sigBytes = Buffer.from(parts[2], 'base64');
 
 
     log.debug('JWS.header = ' + Buffer.from(parts[0], 'base64').toString());
-    log.debug('JWS.key (hex) = ' + Buffer.from(parts[2], 'binary').toString('hex'));
+    log.debug('JWS.signature = ' + sigBytes.toString('hex'));
+
+
+    if (sigBytes.length > 64 && sigBytes[0] === 0x30 && sigBytes[2] === 0x02) {
+
+        log.error("Signature appears to be in DER encoded form. Signature is expected to be 64-byte r||s concatenated form.\n" + 
+        "See https://tools.ietf.org/html/rfc7515#appendix-A.3 for expected ES256 signature form.", ErrorCode.SIGNATURE_FORMAT_ERROR);
+
+        // DER encoded signature will constructed as follows:
+        // 0             |1                       |2            |3                 |4-35                       |36           |37                |38-69
+        // 0x30          |0x44                    |0x02         |0x20              |<r-component of signature> |0x02         |0x20 or 0x21      |<s-component of signature>
+        // Sequence-type |length-of-sequence-data |Integer-type |length-of-integer |integer-data               |Integer-type |length-of-integer |integer-data
+
+        // sigBytes[3] contains length of r-integer; it may be 32 or 33 bytes.
+        // DER encoding dictates an Integer is negative if the high-order bit of the first byte is set. 
+        //   To represent an integer with a high-order bit as positive, a leading zero byte is required.
+        //   This increases the Integer length to 33. 
+
+        // For signature use, the sign is irrelevant and the leading zero, if present, is ignored.
+        const rStart = 4 + (sigBytes[3] - 32);  // adjust for the potential leading zero
+        const rBytes = sigBytes.slice(rStart, rStart + 32); // 32 bytes of the r-integer 
+        const sStart = sigBytes.length - 32;
+        const sBytes = sigBytes.slice(sStart); // 32 bytes of the s-integer
+
+        // Make Base64url
+        const newSig = Buffer.concat([rBytes, sBytes]).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+        parts[2] = newSig;
+
+        log.debug("jws-signature converted from DER form to r||s form: " + newSig);
+
+        jws = parts.join('.');
+
+
+    } else if (sigBytes.length !== 64) {
+        log.error("Signature is " + sigBytes.length.toString() + "-bytes. Signature is expected to be 64-bytes", ErrorCode.SIGNATURE_FORMAT_ERROR);
+    }
+
 
     let inflatedPayload;
     try {
