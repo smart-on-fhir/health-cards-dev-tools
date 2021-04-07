@@ -153,11 +153,11 @@ test("Cards: jws too long", testCard('example-02-d-jws.txt', 'jws', [0, [ErrorCo
 // Error cases
 
 test("Cards: invalid deflate", 
-    testCard(['test-example-00-e-file-invalid_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR, ErrorCode.JSON_PARSE_ERROR]])
+    testCard(['test-example-00-e-file-invalid_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR]])
 );
 
 test("Cards: no deflate", 
-    testCard(['test-example-00-e-file-no_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR, ErrorCode.JSON_PARSE_ERROR],[ErrorCode.JWS_TOO_LONG]])
+    testCard(['test-example-00-e-file-no_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR],[ErrorCode.JWS_TOO_LONG]])
 );
 
 test("Cards: invalid issuer url", 
