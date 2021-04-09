@@ -32,10 +32,10 @@ export function validate(fhirBundleText: string): ValidationResult {
     }
 
     if (FhirLogOutput.Path) {
-        fs.writeFileSync(FhirLogOutput.Path, fhirBundleText); // should we instead print out the output of beautify above?
+        fs.writeFileSync(FhirLogOutput.Path, fhirBundleText); // should we instead print out the output of beautify
     }
 
-    // failures will be recorded in the log.
+    // failures will be recorded in the log
     if (!validateSchema(fhirSchema, fhirBundle, log)) return new ValidationResult(undefined, log);
 
 
@@ -104,8 +104,9 @@ export function validate(fhirBundleText: string): ValidationResult {
         }
     }
 
-    log.info("Fhir Bundle Contents:");
-    log.info(beautify(fhirBundle, null as unknown as Array<string>, 3, 100));
+    log.info("FHIR bundle validated");
+    log.debug("FHIR Bundle Contents:");
+    log.debug(beautify(fhirBundle, null as unknown as Array<string>, 3, 100));
 
     return { result: fhirBundle, log: log };
 }
