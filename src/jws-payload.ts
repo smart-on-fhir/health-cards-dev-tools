@@ -8,7 +8,7 @@ import jwsPayloadSchema from '../schema/smart-health-card-vc-schema.json';
 import * as fhirBundle from './fhirBundle';
 import Log from './logger';
 import { ValidationResult } from './validate';
-
+import beautify from 'json-beautify'
 
 export const schema = jwsPayloadSchema;
 
@@ -29,13 +29,14 @@ export function validate(jwsPayloadText: string): ValidationResult {
             log: log.fatal("Failed to parse JWS.payload data as JSON.", ErrorCode.JSON_PARSE_ERROR)
         }
     }
-
-
+    log.debug("JWS Payload Contents:");
+    log.debug(beautify(jwsPayload, null as unknown as Array<string>, 3, 100));
+    
     // failures will be recorded in the log. we can continue processing.
     validateSchema(jwsPayloadSchema, jwsPayload, log);
 
 
-    // to continue validation, we must have a jws-compact string to validate
+    // to continue validation, we must have a FHIR bundle string to validate
     if (
         !jwsPayload.vc ||
         !jwsPayload.vc.credentialSubject ||
@@ -47,6 +48,8 @@ export function validate(jwsPayloadText: string): ValidationResult {
             log: log.fatal("JWS.payload.vc.credentialSubject.fhirBundle{} required to continue.", ErrorCode.CRITICAL_DATA_MISSING)
         }
     }
+
+    log.info("JWS Payload validated");
 
     const fhirBundleText = JSON.stringify(jwsPayload.vc.credentialSubject.fhirBundle);
 
