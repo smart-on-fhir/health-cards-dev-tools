@@ -2,26 +2,28 @@
 // Licensed under the MIT license.
 
 export enum ErrorCode {
-    // card errors
+    // misc errors
     ERROR = 100,
-    DATA_FILE_NOT_FOUND,
-    SCHEMA_FILE_NOT_FOUND,
-    LOG_PATH_NOT_FOUND,
+
+    DATA_FILE_NOT_FOUND, // fatal
+    LOG_PATH_NOT_FOUND, // fatal
+    CRITICAL_DATA_MISSING, // fatal
+
+    // card errors
     SCHEMA_ERROR,
     INFLATION_ERROR,
     JWS_VERIFICATION_ERROR,
     SIGNATURE_FORMAT_ERROR,
-    QR_DECODE_ERROR,
+    QR_DECODE_ERROR, // fatal
     ISSUER_KEY_DOWNLOAD_ERROR,
     INVALID_ISSUER_URL,
     INVALID_NUMERIC_QR,
     INVALID_NUMERIC_QR_HEADER,
-    MISSING_QR_CHUNK,
+    MISSING_QR_CHUNK, // fatal
     UNBALANCED_QR_CHUNKS,
-    NOT_IMPLEMENTED,
     UNKNOWN_FILE_DATA,
     JSON_PARSE_ERROR,
-    CRITICAL_DATA_MISSING,
+
     JWS_TOO_LONG,
     INVALID_FILE_EXTENSION,
     TRAILING_CHARACTERS,
@@ -42,4 +44,30 @@ export enum ErrorCode {
 
     // config errors
     OPENSSL_NOT_AVAILABLE = 300
+}
+
+interface ExcludableError {
+    error: string,
+    code: number[]
+}
+
+// maps error strings to error codes (potentienly more than one, so stored in an array)
+// TODO: should we make all errors excludable, or only ones known to cause problems in dev
+export const ExcludableErrors: ExcludableError[] = [
+    {error: 'openssl-not-available', code: [ErrorCode.OPENSSL_NOT_AVAILABLE]},
+    {error: 'invalid-issuer-url', code: [ErrorCode.INVALID_ISSUER_URL]},
+    {error: 'invalid-key-x5c', code: [ErrorCode.INVALID_KEY_X5C]}
+]
+
+export function getExcludeErrorCodes(errors: string[]): Set<ErrorCode> {
+    let errorCodes: Set<ErrorCode> = new Set<ErrorCode>();
+    for (let error of errors) {
+        for (let excludableError of ExcludableErrors) {
+            if (excludableError.error === error) // TODO: regex match 
+            {
+                excludableError.code.map(e => errorCodes.add(e));
+            }
+        }
+    }
+    return errorCodes;
 }

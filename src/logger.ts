@@ -30,6 +30,8 @@ export enum LogLevels {
 export default class Log {
     public child: Log | undefined;
     public log: LogItem[] = [];
+    // static exclusion list, because each Log object is constucted in different files
+    public static Exclusions: Set<ErrorCode> = new Set<ErrorCode>();
     private _exitCode = 0;
 
     constructor(public title: string = '') { }
@@ -65,7 +67,9 @@ export default class Log {
         if (code == null || code === 0) {
             throw new Error("Non-zero error code required.");
         }
-        this.log.push(new LogItem(message, code, LogLevels.WARNING));
+        if (!Log.Exclusions.has(code)) {
+            this.log.push(new LogItem(message, code, LogLevels.WARNING));
+        }
         return this;
     }
 
@@ -73,7 +77,9 @@ export default class Log {
         if (code == null || code === 0) {
             throw new Error("Non-zero error code required.");
         }
-        this.log.push(new LogItem(message, code, LogLevels.ERROR));
+        if (!Log.Exclusions.has(code)) {
+            this.log.push(new LogItem(message, code, LogLevels.ERROR));
+        }
         return this;
     }
 
