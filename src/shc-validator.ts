@@ -32,7 +32,9 @@ program.addOption(new Option('-l, --loglevel <loglevel>', 'set the minimum log l
 program.option('-o, --logout <path>', 'output path for log (if not specified log will be printed on console)');
 program.option('-f, --fhirout <path>', 'output path for the extracted FHIR bundle');
 program.option('-k, --jwkset <key>', 'path to trusted issuer key set');
-program.option('-e, --exclude <error>', 'error to exclude. Can be repeated.', (e: string, errors: string[]) => errors.concat([e]), []); // TODO: document options
+program.option('-e, --exclude <error>', 'error to exclude. Can be repeated. Valid options:' +
+    ExcludableErrors.map(e => ` "${e.error}"`).join(),
+    (e: string, errors: string[]) => errors.concat([e]), []);
 program.parse(process.argv);
 
 
