@@ -42,17 +42,16 @@ export enum ErrorCode {
     OPENSSL_NOT_AVAILABLE = 300
 }
 
-interface ExcludableError {
-    error: string,
-    code: number[]
+class ExcludableError {
+    constructor(public error: string, public code: number[]) { }
 }
 
-// maps error strings to error codes (potentienly more than one, so stored in an array)
+// maps error strings to error codes
 // TODO: should we make all errors excludable, or only ones known to cause problems in dev
 export const ExcludableErrors: ExcludableError[] = [
-    {error: 'openssl-not-available', code: [ErrorCode.OPENSSL_NOT_AVAILABLE]},
-    {error: 'invalid-issuer-url', code: [ErrorCode.INVALID_ISSUER_URL]},
-    {error: 'invalid-key-x5c', code: [ErrorCode.INVALID_KEY_X5C]}
+    new ExcludableError('openssl-not-available', [ErrorCode.OPENSSL_NOT_AVAILABLE]),
+    new ExcludableError('invalid-issuer-url', [ErrorCode.INVALID_ISSUER_URL]),
+    new ExcludableError('invalid-key-x5c', [ErrorCode.INVALID_KEY_X5C])
 ]
 
 export function getExcludeErrorCodes(errors: string[]): Set<ErrorCode> {
