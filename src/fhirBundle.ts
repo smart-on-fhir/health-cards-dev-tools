@@ -62,15 +62,20 @@ export function validate(fhirBundleText: string): ValidationResult {
         if (resource == null) {
             log.error("Bundle.entry[" + i.toString() + "].resource missing");
             continue;
-    }
+        }
 
         if (resource.id) {
             log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .id elements", ErrorCode.SCHEMA_ERROR);
-    }
+        }
 
         if (resource.meta) {
-            log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .meta elements", ErrorCode.SCHEMA_ERROR);
-    }
+            // only meta.security is allowed
+            // TODO: check that meta.security is the only key with a value of an array of ID assurance codes 
+            // see: http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/#identity-assurance
+            if (true /* TODO: FIXME */) {
+                log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should only include .meta elements to encode a security field with an array of identity assurance codes", ErrorCode.SCHEMA_ERROR);
+            }
+        }
     
         if (resource.text) {
             log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .text elements", ErrorCode.SCHEMA_ERROR);
