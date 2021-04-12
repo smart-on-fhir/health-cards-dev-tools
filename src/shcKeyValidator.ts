@@ -55,6 +55,7 @@ interface EcPublicJWK extends JWK.Key {
 // validate a JWK certificate chain (x5c value)
 function validateX5c(x5c: string[], log: Log): CertFields | undefined {
     // we use OpenSSL to validate the certificate chain, first check if present
+    // NOTE: the code below only works with OpenSSL 1.1.1, TODO: fix so it also works with 1.0.2 and libressl
     if (!isOpensslAvailable()) {
         log.warn('OpenSSL not available to validate the X.509 certificate chain; skipping validation', ErrorCode.OPENSSL_NOT_AVAILABLE);
         return;
@@ -89,10 +90,15 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
         //
         const opensslVerifyCommand = "openssl verify " + rootCaArg + caArg + issuerCert;
         log.debug('Calling openssl for x5c validation: ' + opensslVerifyCommand);
-        let result = execa.commandSync(opensslVerifyCommand);
-        if (result.exitCode != 0) {
-            log.debug(result.stderr);
-            throw 'OpenSSL returned an error: exit code ' + result.exitCode;
+        try {
+            const result = execa.commandSync(opensslVerifyCommand);
+            if (result.exitCode != 0) {
+                log.debug(result.stderr);
+                throw 'OpenSSL returned an error: exit code ' + result.exitCode;
+            }
+        } catch (err) {
+            log.warn('OpenSSL error while validating the X.509 certificate chain; skipping validation', ErrorCode.OPENSSL_NOT_AVAILABLE);
+            return;
         }
 
         //
@@ -109,10 +115,15 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
         //   <multi-line base64 encoded key>
         //   -----END PUBLIC KEY-----
         log.debug('Calling openssl for parsing issuer cert: ' + opensslX509Command);
-        result = execa.commandSync(opensslX509Command);
-        if (result.exitCode != 0) {
-            log.debug(result.stderr);
-            throw 'OpenSSL returned an error: exit code ' + result.exitCode;
+        try {
+            const result = execa.commandSync(opensslX509Command);
+            if (result.exitCode != 0) {
+                log.debug(result.stderr);
+                throw 'OpenSSL returned an error: exit code ' + result.exitCode;
+            }
+        } catch (err) {
+            log.warn('OpenSSL error while validating the X.509 certificate chain; skipping validation', ErrorCode.OPENSSL_NOT_AVAILABLE);
+            return;
         }
         
         //
