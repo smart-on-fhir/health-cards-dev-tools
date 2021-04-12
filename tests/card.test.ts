@@ -147,8 +147,8 @@ test("Cards: jws payload w/ trailing chars", testCard('test-example-00-b-jws-pay
 test("Cards: jws w/ trailing chars", testCard('test-example-00-d-jws-trailing_chars.txt', 'jws', [0, [ErrorCode.TRAILING_CHARACTERS].concat(OPENSSL_AVAILABLE ? [] : [ErrorCode.OPENSSL_NOT_AVAILABLE])]));
 test("Cards: health card w/ trailing chars", testCard('test-example-00-e-file-trailing_chars.smart-health-card', 'healthcard', [0, [ErrorCode.TRAILING_CHARACTERS].concat(OPENSSL_AVAILABLE ? [] : [ErrorCode.OPENSSL_NOT_AVAILABLE])]));
 test("Cards: numeric QR w/ trailing chars", testCard('test-example-00-f-qr-code-numeric-value-0-trailing_chars.txt', 'qrnumeric', [0, [ErrorCode.TRAILING_CHARACTERS].concat(OPENSSL_AVAILABLE ? [] : [ErrorCode.OPENSSL_NOT_AVAILABLE])]));
-
 test("Cards: jws too long", testCard('example-02-d-jws.txt', 'jws', [0, [ErrorCode.JWS_TOO_LONG].concat(OPENSSL_AVAILABLE ? [] : [ErrorCode.OPENSSL_NOT_AVAILABLE]).concat(SCHEMA_ERROR_ARRAY)]));
+test("Cards: not yet valid", testCard('test-example-00-b-jws-payload-expanded-nbf_not_yet_valid.json', 'jwspayload', [0, [ErrorCode.NOT_YET_VALID]]));
 
 // Error cases
 
@@ -162,6 +162,10 @@ test("Cards: no deflate",
 
 test("Cards: invalid issuer url", 
     testCard(['test-example-00-e-file-invalid_issuer_url.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR]])
+);
+
+test("Cards: nbf in miliseconds",
+    testCard(['test-example-00-b-jws-payload-expanded-nbf_miliseconds.json'], 'jwspayload', [[ErrorCode.NOT_YET_VALID]])
 );
 
 // the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch

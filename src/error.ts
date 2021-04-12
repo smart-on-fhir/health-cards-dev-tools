@@ -25,6 +25,7 @@ export enum ErrorCode {
     JWS_TOO_LONG,
     INVALID_FILE_EXTENSION,
     TRAILING_CHARACTERS,
+    NOT_YET_VALID,
     
     // key errors
     INVALID_KEY_MISSING_KTY = 200,
