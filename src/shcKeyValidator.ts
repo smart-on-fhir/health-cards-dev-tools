@@ -90,15 +90,10 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
         //
         const opensslVerifyCommand = "openssl verify " + rootCaArg + caArg + issuerCert;
         log.debug('Calling openssl for x5c validation: ' + opensslVerifyCommand);
-        try {
-            const result = execa.commandSync(opensslVerifyCommand);
-            if (result.exitCode != 0) {
-                log.debug(result.stderr);
-                throw 'OpenSSL returned an error: exit code ' + result.exitCode;
-            }
-        } catch (err) {
-            log.warn('OpenSSL error while validating the X.509 certificate chain; skipping validation', ErrorCode.OPENSSL_NOT_AVAILABLE);
-            return;
+        let result = execa.commandSync(opensslVerifyCommand);
+        if (result.exitCode != 0) {
+            log.debug(result.stderr);
+            throw 'OpenSSL returned an error: exit code ' + result.exitCode;
         }
 
         //
@@ -115,15 +110,10 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
         //   <multi-line base64 encoded key>
         //   -----END PUBLIC KEY-----
         log.debug('Calling openssl for parsing issuer cert: ' + opensslX509Command);
-        try {
-            const result = execa.commandSync(opensslX509Command);
-            if (result.exitCode != 0) {
-                log.debug(result.stderr);
-                throw 'OpenSSL returned an error: exit code ' + result.exitCode;
-            }
-        } catch (err) {
-            log.warn('OpenSSL error while validating the X.509 certificate chain; skipping validation', ErrorCode.OPENSSL_NOT_AVAILABLE);
-            return;
+        result = execa.commandSync(opensslX509Command);
+        if (result.exitCode != 0) {
+            log.debug(result.stderr);
+            throw 'OpenSSL returned an error: exit code ' + result.exitCode;
         }
         
         //
