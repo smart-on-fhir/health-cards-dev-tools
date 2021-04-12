@@ -88,7 +88,7 @@ async function _testCard(fileName: string | string[], fileType: ValidationType ,
 // set contains a key with a x5c value. Hard to automate because tests that fail before parsing the JWS
 // won't add this warning.
 const OPENSSL_AVAILABLE = isOpensslAvailable();
-if (OPENSSL_AVAILABLE) {
+if (!OPENSSL_AVAILABLE) {
     Log.Exclusions.add(ErrorCode.OPENSSL_NOT_AVAILABLE);
 }
 // for now, we get many not-short-url warnings for every use of example-02'
@@ -181,7 +181,7 @@ test("Cards: invalid QR header",
 );
 
 test("Cards: wrong file extension", 
-    testCard(['test-example-00-e-file.wrong-extension'], 'healthcard', [0, [ErrorCode.INVALID_FILE_EXTENSION].concat(OPENSSL_AVAILABLE ? [] : [ErrorCode.OPENSSL_NOT_AVAILABLE])])
+    testCard(['test-example-00-e-file.wrong-extension'], 'healthcard', [0, [ErrorCode.INVALID_FILE_EXTENSION]])
 );
 
 test("Cards: invalid signature", 
@@ -189,7 +189,7 @@ test("Cards: invalid signature",
 );
 
 test("Cards: invalid single chunk QR header", 
-    testCard(['test-example-00-f-qr-code-numeric-value-0-wrong-multi-chunk.txt'], 'qrnumeric', [0, [ErrorCode.INVALID_NUMERIC_QR_HEADER].concat(OPENSSL_AVAILABLE ? [] : [ErrorCode.OPENSSL_NOT_AVAILABLE])])
+    testCard(['test-example-00-f-qr-code-numeric-value-0-wrong-multi-chunk.txt'], 'qrnumeric', [0, [ErrorCode.INVALID_NUMERIC_QR_HEADER]])
 );
 
 test("Cards: missing QR chunk", 
