@@ -77,7 +77,7 @@ The supported file types, as expressed with the `--type` option, are:
  - *qr*: a QR code image encoding a health card
  - *jwkset*: a JSON Web Key (JWK) Set, encoding the issuer public signing key
 
-The tool outputs validation information, depending on the verbosity level, in particular, the parsed FHIR bundle is printed at the `info` verbosity log level. The tool tries to continue parsing the artefact even if a warning or error occurred. Certain erros can be suppressed from the output using the `--exclude` option.
+The tool outputs validation information, depending on the verbosity level, in particular, the parsed FHIR bundle is printed at the `info` verbosity log level. The tool tries to continue parsing the artefact even if a warning or error occurred. Certain errors can be suppressed from the output using the `--exclude` option.
 
 Issuer signing public keys (encoded in a JSON Web Key Set) can be validated before being uploaded to their well-known URL. To validate a `issuerPublicKeys.json` JSON Web Key Set (JWK), call:
 
