@@ -52,7 +52,8 @@ class ExcludableError {
 export const ExcludableErrors: ExcludableError[] = [
     new ExcludableError('openssl-not-available', [ErrorCode.OPENSSL_NOT_AVAILABLE]),
     new ExcludableError('invalid-issuer-url', [ErrorCode.INVALID_ISSUER_URL]),
-    new ExcludableError('invalid-key-x5c', [ErrorCode.INVALID_KEY_X5C])
+    new ExcludableError('invalid-key-x5c', [ErrorCode.INVALID_KEY_X5C]),
+    new ExcludableError('not-yet-valid', [ErrorCode.NOT_YET_VALID])
 ]
 
 export function getExcludeErrorCodes(errors: string[]): Set<ErrorCode> {
