@@ -217,3 +217,7 @@ test("Cards: der encoded signature s-negative", testCard(['test-example-00-d-jws
 test("Cards: der encoded signature r-negative", testCard(['test-example-00-d-jws-der-signature-r-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR], OPENSSL_WARNING]));
 
 test("Cards: der encoded signature r&s negative", testCard(['test-example-00-d-jws-der-signature-rs-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR], OPENSSL_WARNING]));
+
+test("Cards: bad meta with extra key", testCard(['test-example-00-a-fhirBundle-bad_meta_extra_key.json'], 'fhirbundle', [[ErrorCode.SCHEMA_ERROR]]));
+test("Cards: bad meta without security key", testCard(['test-example-00-a-fhirBundle-bad_meta_non_security.json'], 'fhirbundle', [[ErrorCode.SCHEMA_ERROR]]));
+test("Cards: bad meta with wrong security field", testCard(['test-example-00-a-fhirBundle-bad_meta_wrong_security.json'], 'fhirbundle', [[ErrorCode.SCHEMA_ERROR]]));
