@@ -62,16 +62,22 @@ export function validate(fhirBundleText: string): ValidationResult {
         if (resource == null) {
             log.error("Bundle.entry[" + i.toString() + "].resource missing");
             continue;
-    }
+        }
 
         if (resource.id) {
             log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .id elements", ErrorCode.SCHEMA_ERROR);
-    }
+        }
 
         if (resource.meta) {
-            log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .meta elements", ErrorCode.SCHEMA_ERROR);
-    }
-    
+            // resource.meta.security allowed as special case, however, no other properties may be included on .meta
+            if (!resource.meta.security) {
+                log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .meta elements", ErrorCode.SCHEMA_ERROR);
+                
+            } else if (Object.keys(resource.meta).length > 1) {
+                log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "].meta may only include .security property", ErrorCode.SCHEMA_ERROR);
+            }
+        }
+
         if (resource.text) {
             log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .text elements", ErrorCode.SCHEMA_ERROR);
         }
