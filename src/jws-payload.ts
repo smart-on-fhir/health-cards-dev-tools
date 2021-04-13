@@ -35,6 +35,23 @@ export function validate(jwsPayloadText: string): ValidationResult {
     // failures will be recorded in the log. we can continue processing.
     validateSchema(jwsPayloadSchema, jwsPayload, log);
 
+    // validate issuance date
+    const nbf = new Date();
+    nbf.setTime(jwsPayload.nbf * 1000); // convert seconds to miliseconds
+    const now = new Date();
+    if (nbf > now) {
+        if (jwsPayload.nbf > new Date(2021,1,1).getTime()) {
+            // we will assume the nbf was encoded in miliseconds, and we will return an error
+            let dateParsedInMiliseconds = new Date();
+            dateParsedInMiliseconds.setTime(jwsPayload.nbf);
+            log.error(`Health card is not yet valid, nbf=${jwsPayload.nbf} (${nbf.toUTCString()}).\n` + 
+                "nbf should be encoded in seconds since 1970-01-01T00:00:00Z UTC.\n" + 
+                `Did you encode the date in miliseconds, which would give the date: ${dateParsedInMiliseconds.toUTCString()}?`,
+                ErrorCode.NOT_YET_VALID);
+        } else {
+            log.warn(`Health card is not yet valid, nbf=${jwsPayload.nbf} (${nbf.toUTCString()}).`, ErrorCode.NOT_YET_VALID);
+        }
+    }
 
     // to continue validation, we must have a FHIR bundle string to validate
     if (
