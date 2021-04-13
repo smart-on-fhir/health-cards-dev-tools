@@ -5,7 +5,7 @@ import path from 'path';
 import { validateCard, ValidationType } from '../src/validate';
 import { getFileData } from '../src/file';
 import { ErrorCode } from '../src/error';
-import { LogLevels } from '../src/logger';
+import Log, { LogLevels } from '../src/logger';
 import { isOpensslAvailable } from '../src/utils';
 
 const testdataDir = './testdata/';
@@ -88,7 +88,9 @@ async function _testCard(fileName: string | string[], fileType: ValidationType ,
 // set contains a key with a x5c value. Hard to automate because tests that fail before parsing the JWS
 // won't add this warning.
 const OPENSSL_AVAILABLE = isOpensslAvailable();
-const OPENSSL_WARNING = OPENSSL_AVAILABLE ? 0 : 1;
+if (!OPENSSL_AVAILABLE) {
+    Log.Exclusions.add(ErrorCode.OPENSSL_NOT_AVAILABLE);
+}
 // for now, we get many not-short-url warnings for every use of example-02'
 const SHORT_URL_WARNINGS = 55;
 const SCHEMA_ERROR_ARRAY = Array.apply(null, Array(SHORT_URL_WARNINGS)).map(() => ErrorCode.SCHEMA_ERROR);
@@ -106,48 +108,48 @@ test("Cards: valid 00 JWS payload minified", testCard(['example-00-c-jws-payload
 test("Cards: valid 01 JWS payload minified", testCard(['example-01-c-jws-payload-minified.json'], "jwspayload"));
 test("Cards: valid 02 JWS payload minified", testCard(['example-02-c-jws-payload-minified.json'], "jwspayload", [0, SHORT_URL_WARNINGS]));
 
-test("Cards: valid 00 JWS", testCard(['example-00-d-jws.txt'], "jws", [0, OPENSSL_WARNING]));
-test("Cards: valid 01 JWS", testCard(['example-01-d-jws.txt'], "jws", [0, OPENSSL_WARNING]));
-test("Cards: valid 02 JWS", testCard(['example-02-d-jws.txt'], "jws", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING + OPENSSL_WARNING]));
+test("Cards: valid 00 JWS", testCard(['example-00-d-jws.txt'], "jws"));
+test("Cards: valid 01 JWS", testCard(['example-01-d-jws.txt'], "jws"));
+test("Cards: valid 02 JWS", testCard(['example-02-d-jws.txt'], "jws", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
-test("Cards: valid 00 health card", testCard(['example-00-e-file.smart-health-card'], "healthcard", [0, OPENSSL_WARNING]));
-test("Cards: valid 01 health card", testCard(['example-01-e-file.smart-health-card'], "healthcard", [0, OPENSSL_WARNING]));
-test("Cards: valid 02 health card", testCard(['example-02-e-file.smart-health-card'], "healthcard", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING + OPENSSL_WARNING]));
+test("Cards: valid 00 health card", testCard(['example-00-e-file.smart-health-card'], "healthcard"));
+test("Cards: valid 01 health card", testCard(['example-01-e-file.smart-health-card'], "healthcard"));
+test("Cards: valid 02 health card", testCard(['example-02-e-file.smart-health-card'], "healthcard", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
-test("Cards: valid 00 QR numeric", testCard(['example-00-f-qr-code-numeric-value-0.txt'], "qrnumeric", [0, OPENSSL_WARNING]));
-test("Cards: valid 01 QR numeric", testCard(['example-01-f-qr-code-numeric-value-0.txt'], "qrnumeric", [0, OPENSSL_WARNING]));
+test("Cards: valid 00 QR numeric", testCard(['example-00-f-qr-code-numeric-value-0.txt'], "qrnumeric"));
+test("Cards: valid 01 QR numeric", testCard(['example-01-f-qr-code-numeric-value-0.txt'], "qrnumeric"));
 test("Cards: valid 02 QR numeric",  
     testCard(['example-02-f-qr-code-numeric-value-0.txt',
         'example-02-f-qr-code-numeric-value-1.txt',
-        'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING + OPENSSL_WARNING]));
+        'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 test("Cards: valid 02 QR numeric (out of order)", 
     testCard(['example-02-f-qr-code-numeric-value-1.txt',
         'example-02-f-qr-code-numeric-value-0.txt',
-        'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING + OPENSSL_WARNING]));
+        'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
-test("Cards: valid 00 QR code", testCard(['example-00-g-qr-code-0.svg'], "qr", [0, OPENSSL_WARNING]));
-test("Cards: valid 01 QR code", testCard(['example-01-g-qr-code-0.svg'], "qr", [0, OPENSSL_WARNING]));
+test("Cards: valid 00 QR code", testCard(['example-00-g-qr-code-0.svg'], "qr"));
+test("Cards: valid 01 QR code", testCard(['example-01-g-qr-code-0.svg'], "qr"));
 
 test("Cards: valid 02 QR code", 
-    testCard(['example-02-g-qr-code-0.svg', 'example-02-g-qr-code-1.svg', 'example-02-g-qr-code-2.svg'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING + OPENSSL_WARNING]));
+    testCard(['example-02-g-qr-code-0.svg', 'example-02-g-qr-code-1.svg', 'example-02-g-qr-code-2.svg'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
 test("Cards: valid 02 QR code PNG", 
-    testCard(['example-02-g-qr-code-0.png', 'example-02-g-qr-code-1.png', 'example-02-g-qr-code-2.png'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING + OPENSSL_WARNING]));
+    testCard(['example-02-g-qr-code-0.png', 'example-02-g-qr-code-1.png', 'example-02-g-qr-code-2.png'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
 test("Cards: valid 02 QR code JPG", 
-    testCard(['example-02-g-qr-code-0.jpg', 'example-02-g-qr-code-1.jpg', 'example-02-g-qr-code-2.jpg'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING + OPENSSL_WARNING]));
+    testCard(['example-02-g-qr-code-0.jpg', 'example-02-g-qr-code-1.jpg', 'example-02-g-qr-code-2.jpg'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
 test("Cards: valid 02 QR code BMP",
-    testCard(['example-02-g-qr-code-0.bmp', 'example-02-g-qr-code-1.bmp', 'example-02-g-qr-code-2.bmp'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING + OPENSSL_WARNING]));
+    testCard(['example-02-g-qr-code-0.bmp', 'example-02-g-qr-code-1.bmp', 'example-02-g-qr-code-2.bmp'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
 // Warning cases
 
 test("Cards: fhir bundle w/ trailing chars", testCard(['test-example-00-a-fhirBundle-trailing_chars.json'], 'fhirbundle', [0, [ErrorCode.TRAILING_CHARACTERS]]));
 test("Cards: jws payload w/ trailing chars", testCard('test-example-00-b-jws-payload-expanded-trailing_chars.json', 'jwspayload', [0, [ErrorCode.TRAILING_CHARACTERS]]));
-test("Cards: jws w/ trailing chars", testCard('test-example-00-d-jws-trailing_chars.txt', 'jws', [0, [ErrorCode.TRAILING_CHARACTERS].concat(OPENSSL_AVAILABLE ? [] : [ErrorCode.OPENSSL_NOT_AVAILABLE])]));
-test("Cards: health card w/ trailing chars", testCard('test-example-00-e-file-trailing_chars.smart-health-card', 'healthcard', [0, [ErrorCode.TRAILING_CHARACTERS].concat(OPENSSL_AVAILABLE ? [] : [ErrorCode.OPENSSL_NOT_AVAILABLE])]));
-test("Cards: numeric QR w/ trailing chars", testCard('test-example-00-f-qr-code-numeric-value-0-trailing_chars.txt', 'qrnumeric', [0, [ErrorCode.TRAILING_CHARACTERS].concat(OPENSSL_AVAILABLE ? [] : [ErrorCode.OPENSSL_NOT_AVAILABLE])]));
-test("Cards: jws too long", testCard('example-02-d-jws.txt', 'jws', [0, [ErrorCode.JWS_TOO_LONG].concat(OPENSSL_AVAILABLE ? [] : [ErrorCode.OPENSSL_NOT_AVAILABLE]).concat(SCHEMA_ERROR_ARRAY)]));
+test("Cards: jws w/ trailing chars", testCard('test-example-00-d-jws-trailing_chars.txt', 'jws', [0, [ErrorCode.TRAILING_CHARACTERS]]));
+test("Cards: health card w/ trailing chars", testCard('test-example-00-e-file-trailing_chars.smart-health-card', 'healthcard', [0, [ErrorCode.TRAILING_CHARACTERS]]));
+test("Cards: numeric QR w/ trailing chars", testCard('test-example-00-f-qr-code-numeric-value-0-trailing_chars.txt', 'qrnumeric', [0, [ErrorCode.TRAILING_CHARACTERS]]));
+test("Cards: jws too long", testCard('example-02-d-jws.txt', 'jws', [0, [ErrorCode.JWS_TOO_LONG].concat(SCHEMA_ERROR_ARRAY)]));
 test("Cards: not yet valid", testCard('test-example-00-b-jws-payload-expanded-nbf_not_yet_valid.json', 'jwspayload', [0, [ErrorCode.NOT_YET_VALID]]));
 
 // Error cases
@@ -170,12 +172,12 @@ test("Cards: nbf in miliseconds",
 
 // the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch
 test("Cards: invalid issuer url (http)", 
-    testCard(['test-example-00-e-file-invalid_issuer_url_http.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL].concat(OPENSSL_AVAILABLE ? [ErrorCode.INVALID_KEY_X5C] : []), OPENSSL_WARNING])
+    testCard(['test-example-00-e-file-invalid_issuer_url_http.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL].concat(OPENSSL_AVAILABLE ? [ErrorCode.INVALID_KEY_X5C] : [])])
 );
 
 // the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch
 test("Cards: invalid issuer url (trailing /)", 
-    testCard(['test-example-00-e-file-issuer_url_with_trailing_slash.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL].concat(OPENSSL_AVAILABLE ? [ErrorCode.INVALID_KEY_X5C] : []), OPENSSL_WARNING])
+    testCard(['test-example-00-e-file-issuer_url_with_trailing_slash.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL].concat(OPENSSL_AVAILABLE ? [ErrorCode.INVALID_KEY_X5C] : [])])
 );
 
 test("Cards: invalid QR header", 
@@ -183,15 +185,15 @@ test("Cards: invalid QR header",
 );
 
 test("Cards: wrong file extension", 
-    testCard(['test-example-00-e-file.wrong-extension'], 'healthcard', [0, [ErrorCode.INVALID_FILE_EXTENSION].concat(OPENSSL_AVAILABLE ? [] : [ErrorCode.OPENSSL_NOT_AVAILABLE])])
+    testCard(['test-example-00-e-file.wrong-extension'], 'healthcard', [0, [ErrorCode.INVALID_FILE_EXTENSION]])
 );
 
 test("Cards: invalid signature", 
-    testCard(['test-example-00-d-jws-invalid-signature.txt'], 'jws', [[ErrorCode.JWS_VERIFICATION_ERROR], OPENSSL_WARNING])
+    testCard(['test-example-00-d-jws-invalid-signature.txt'], 'jws', [[ErrorCode.JWS_VERIFICATION_ERROR]])
 );
 
 test("Cards: invalid single chunk QR header", 
-    testCard(['test-example-00-f-qr-code-numeric-value-0-wrong-multi-chunk.txt'], 'qrnumeric', [0, [ErrorCode.INVALID_NUMERIC_QR_HEADER].concat(OPENSSL_AVAILABLE ? [] : [ErrorCode.OPENSSL_NOT_AVAILABLE])])
+    testCard(['test-example-00-f-qr-code-numeric-value-0-wrong-multi-chunk.txt'], 'qrnumeric', [0, [ErrorCode.INVALID_NUMERIC_QR_HEADER]])
 );
 
 test("Cards: missing QR chunk", 
@@ -207,17 +209,17 @@ test("Cards: QR chunk index out of range",
 );
 
 test("Cards: QR chunk too big",
-    testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR, ErrorCode.INVALID_NUMERIC_QR], JWS_TOO_LONG_WARNING + SHORT_URL_WARNINGS + OPENSSL_WARNING])
+    testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR, ErrorCode.INVALID_NUMERIC_QR], JWS_TOO_LONG_WARNING + SHORT_URL_WARNINGS])
 );
 
 test("Cards: valid 00 FHIR bundle with non-dm properties", testCard(['test-example-00-a-non-dm-properties.json'], "fhirbundle", [0, 5 /*5x ErrorCode.SCHEMA_ERROR*/]));
 
 test("Cards: valid 00 FHIR bundle with non-short refs", testCard(['test-example-00-a-short-refs.json'], "fhirbundle", [0, 4 /*4x ErrorCode.SCHEMA_ERROR*/]));
 
-test("Cards: der encoded signature", testCard(['test-example-00-d-jws-der-signature.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR], OPENSSL_WARNING]));
+test("Cards: der encoded signature", testCard(['test-example-00-d-jws-der-signature.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));
 
-test("Cards: der encoded signature s-negative", testCard(['test-example-00-d-jws-der-signature-s-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR], OPENSSL_WARNING]));
+test("Cards: der encoded signature s-negative", testCard(['test-example-00-d-jws-der-signature-s-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));
 
-test("Cards: der encoded signature r-negative", testCard(['test-example-00-d-jws-der-signature-r-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR], OPENSSL_WARNING]));
+test("Cards: der encoded signature r-negative", testCard(['test-example-00-d-jws-der-signature-r-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));
 
-test("Cards: der encoded signature r&s negative", testCard(['test-example-00-d-jws-der-signature-rs-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR], OPENSSL_WARNING]));
+test("Cards: der encoded signature r&s negative", testCard(['test-example-00-d-jws-der-signature-rs-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));

@@ -6,9 +6,9 @@ import path from 'path';
 import fs from 'fs';
 import { Option, Command, version } from 'commander';
 import * as validator from './validate';
-import { LogLevels } from './logger';
+import Log, { LogLevels } from './logger';
 import { getFileData } from './file';
-import { ErrorCode } from './error';
+import { ErrorCode, ExcludableErrors, getExcludeErrorCodes } from './error';
 import * as utils from './utils'
 import npmpackage from '../package.json';
 import { KeySet } from './keys';
@@ -32,6 +32,9 @@ program.addOption(new Option('-l, --loglevel <loglevel>', 'set the minimum log l
 program.option('-o, --logout <path>', 'output path for log (if not specified log will be printed on console)');
 program.option('-f, --fhirout <path>', 'output path for the extracted FHIR bundle');
 program.option('-k, --jwkset <key>', 'path to trusted issuer key set');
+program.option('-e, --exclude <error>', 'error to exclude. Can be repeated. Valid options:' +
+    ExcludableErrors.map(e => ` "${e.error}"`).join(),
+    (e: string, errors: string[]) => errors.concat([e]), []);
 program.parse(process.argv);
 
 
@@ -42,6 +45,7 @@ export interface CliOptions {
     loglevel: string;
     logout: string;
     fhirout: string;
+    exclude: string[];
 }
 
 
@@ -72,6 +76,12 @@ async function processOptions(options: CliOptions) {
         if (!fs.existsSync(logDir)) {
             return exit('Log file directory does not exist : ' + logDir, ErrorCode.LOG_PATH_NOT_FOUND);
         }
+    }
+
+
+    // set the log exclusions
+    if (options.exclude) {
+        Log.Exclusions = getExcludeErrorCodes(options.exclude);
     }
 
 
