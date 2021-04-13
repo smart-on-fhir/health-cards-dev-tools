@@ -234,7 +234,7 @@ export async function verifyHealthCardIssuerKey(keySet: KeySet, log = new Log('V
 
         // check that kid is properly generated
         if (!key.kid) {
-            log.error(keyName + ': ' + "'kid' missing in issuer key", ErrorCode.INVALID_KEY_MISSING_KID);
+            log.error(keyName + ': ' + "'kid' missing in issuer key", ErrorCode.INVALID_KEY_SCHEMA);
         } else {
 
             await key.thumbprint('SHA-256')
@@ -252,21 +252,21 @@ export async function verifyHealthCardIssuerKey(keySet: KeySet, log = new Log('V
 
         // check that key type is 'EC'
         if (!key.kty) {
-            log.error(keyName + ': ' + "'kty' missing in issuer key", ErrorCode.INVALID_KEY_MISSING_KTY);
+            log.error(keyName + ': ' + "'kty' missing in issuer key", ErrorCode.INVALID_KEY_SCHEMA);
         } else if (key.kty !== 'EC') {
             log.error(keyName + ': ' + "wrong key type in issuer key. expected: 'EC', actual: " + key.kty, ErrorCode.INVALID_KEY_WRONG_KTY);
         }
 
         // check that EC curve is 'ES256'
         if (!key.alg) {
-            log.error(keyName + ': ' + "'alg' missing in issuer key", ErrorCode.INVALID_KEY_MISSING_ALG);
+            log.error(keyName + ': ' + "'alg' missing in issuer key", ErrorCode.INVALID_KEY_SCHEMA);
         } else if (key.alg !== 'ES256') {
             log.warn(keyName + ': ' + "wrong algorithm in issuer key. expected: 'ES256', actual: " + key.alg, ErrorCode.INVALID_KEY_WRONG_ALG);
         }
 
         // check that usage is 'sig'
         if (!key.use) {
-            log.error(keyName + ': ' + "'use' missing in issuer key", ErrorCode.INVALID_KEY_MISSING_USE);
+            log.error(keyName + ': ' + "'use' missing in issuer key", ErrorCode.INVALID_KEY_SCHEMA);
         } else if (key.use !== 'sig') {
             log.warn(keyName + ': ' + "wrong usage in issuer key. expected: 'sig', actual: " + key.use, ErrorCode.INVALID_KEY_WRONG_USE);
         }
