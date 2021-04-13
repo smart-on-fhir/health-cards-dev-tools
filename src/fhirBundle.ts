@@ -57,7 +57,7 @@ export function validate(fhirBundleText: string): ValidationResult {
         const entry = fhirBundle.entry[i];
         const resource = entry.resource;
 
-        validateSchema({ $ref: 'https://smarthealth.cards/schema/fhir-schema.json#/definitions/' + resource.resourceType }, resource, log);
+        validateSchema({ $ref: 'https://smarthealth.cards/schema/fhir-schema.json#/definitions/' + resource.resourceType }, resource, log, '/entry/' + i.toString());
 
         if (resource == null) {
             log.error("Bundle.entry[" + i.toString() + "].resource missing");
@@ -69,14 +69,16 @@ export function validate(fhirBundleText: string): ValidationResult {
         }
 
         if (resource.meta) {
-            // only meta.security is allowed
-            // TODO: check that meta.security is the only key with a value of an array of ID assurance codes 
+            // resource.meta.security allowed as special case, however, no other properties may be included on .meta
             // see: http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/#identity-assurance
-            if (true /* TODO: FIXME */) {
-                log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should only include .meta elements to encode a security field with an array of identity assurance codes", ErrorCode.SCHEMA_ERROR);
+            if (!resource.meta.security) {
+                log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .meta elements", ErrorCode.SCHEMA_ERROR);
+
+            } else if (Object.keys(resource.meta).length > 1) {
+                log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "].meta may only include .security property", ErrorCode.SCHEMA_ERROR);
             }
         }
-    
+
         if (resource.text) {
             log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .text elements", ErrorCode.SCHEMA_ERROR);
         }
