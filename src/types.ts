@@ -30,7 +30,7 @@ interface FhirBundle {
     "entry": BundleEntry[]
 }
 
-type Resource = { resourceType: string } & Record<string, unknown>;
+type Resource = { resourceType: string, meta? : {security? : unknown[]} } & Record<string, unknown>;
 
 interface BundleEntry {
     id?: string,

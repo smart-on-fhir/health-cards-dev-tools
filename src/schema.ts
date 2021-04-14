@@ -12,7 +12,7 @@ import { KeySet } from './keys';
 const schemaCache: Record<string, AnyValidateFunction> = {};
 
 
-export function validateSchema(schema: AnySchemaObject, data: FhirBundle | JWS | JWSPayload | HealthCard | KeySet | Resource, log: Log): boolean {
+export function validateSchema(schema: AnySchemaObject, data: FhirBundle | JWS | JWSPayload | HealthCard | KeySet | Resource, log: Log, pathPrefix = ''): boolean {
 
     // by default, the validator will stop at the first failure. 'allErrors' allows it to keep going.
     const schemaId = (schema as { [key: string]: string })["$id"] || (schema as { [key: string]: string })["$ref"];
@@ -43,6 +43,18 @@ export function validateSchema(schema: AnySchemaObject, data: FhirBundle | JWS |
             .filter((err, index) => errors.indexOf(err) === index);
 
         errors.forEach(ve => {
+            //"dataPath":"/meta/security/0"
+
+            // prefix 'dataPath' property with passed in pathPrefix
+            // because when validating sub-schemas our paths are relative and it may
+            // not be apparent what the full path is when referring to common properties like 'id'
+            const pathPart = ve.indexOf('"dataPath":"');
+
+            if (pathPart > 0 && pathPrefix.length > 0) {
+                const insertIndex = pathPart + '"dataPath":"'.length;
+                ve = ve.slice(0, insertIndex) + pathPrefix + ve.slice(insertIndex);
+            }
+
             log.error('Schema: ' + ve, ErrorCode.SCHEMA_ERROR);
         });
 
@@ -68,7 +80,14 @@ export function objPathToSchema(path: string) : string {
     for (let i = 1; i < properties.length; i++) {
 
         if (p.properties) {
+
             p = p.properties[properties[i]];
+
+            // this property is not valid according to the schema
+            if (!p) {
+                t = "unknown";
+                continue;
+            }
 
             // directly has a ref, then it is that type
             if (p.$ref) {
