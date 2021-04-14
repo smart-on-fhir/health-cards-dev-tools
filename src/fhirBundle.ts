@@ -70,12 +70,8 @@ export function validate(fhirBundleText: string): ValidationResult {
 
         if (resource.meta) {
             // resource.meta.security allowed as special case, however, no other properties may be included on .meta
-            // see: http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/#identity-assurance
-            if (!resource.meta.security) {
-                log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .meta elements", ErrorCode.SCHEMA_ERROR);
-
-            } else if (Object.keys(resource.meta).length > 1) {
-                log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "].meta may only include .security property", ErrorCode.SCHEMA_ERROR);
+            if (!resource.meta.security || Object.keys(resource.meta).length > 1) {
+                log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "].meta should only include .security property with an array of identity assurance codes", ErrorCode.SCHEMA_ERROR);
             }
         }
 
