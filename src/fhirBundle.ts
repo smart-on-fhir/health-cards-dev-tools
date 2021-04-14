@@ -57,7 +57,7 @@ export function validate(fhirBundleText: string): ValidationResult {
         const entry = fhirBundle.entry[i];
         const resource = entry.resource;
 
-        validateSchema({ $ref: 'https://smarthealth.cards/schema/fhir-schema.json#/definitions/' + resource.resourceType }, resource, log, '/entry/' + i.toString());
+        validateSchema({ $ref: 'https://smarthealth.cards/schema/fhir-schema.json#/definitions/' + resource.resourceType }, resource, log, ['', 'entry', i.toString(), resource.resourceType].join('/'));
 
         if (resource == null) {
             log.error("Bundle.entry[" + i.toString() + "].resource missing");
