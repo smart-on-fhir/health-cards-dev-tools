@@ -101,6 +101,7 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
     }
 
     // TODO : create a test that causes failure here
+    // TODO: check QR version
     const code = jsQR(new Uint8ClampedArray(data.data.buffer), data.width, data.height);
 
     if (code == null) {
