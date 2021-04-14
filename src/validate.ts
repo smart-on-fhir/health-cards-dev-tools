@@ -2,7 +2,7 @@
 // Licensed under the MIT license.
 
 import Log from './logger';
-import { verifyHealthCardIssuerKey } from './shcKeyValidator';
+import { verifyAndImportHealthCardIssuerKey } from './shcKeyValidator';
 import { FileInfo } from './file';
 import { ErrorCode } from './error';
 import * as healthCard from './healthCard';
@@ -27,7 +27,7 @@ export class ValidationResult {
 
 /** Validate the issuer key */
 export async function validateKey(keySet: KeySet): Promise<ValidationResult> {
-    return await verifyHealthCardIssuerKey(keySet);
+    return await verifyAndImportHealthCardIssuerKey(keySet);
 }
 
 

@@ -4,7 +4,7 @@
 import path from 'path';
 import { ErrorCode } from '../src/error';
 import { LogLevels } from '../src/logger';
-import { verifyHealthCardIssuerKey } from '../src/shcKeyValidator';
+import { verifyAndImportHealthCardIssuerKey } from '../src/shcKeyValidator';
 import * as utils from '../src/utils';
 const testdataDir = './testdata/';
 
@@ -16,7 +16,7 @@ const OPENSSL_AVAILABLE = utils.isOpensslAvailable();
 
 async function testKey(fileName: string, subjectAltName: string = ''): Promise<ErrorCode[]> {
     const filePath = path.join(testdataDir, fileName);
-    const result = (await verifyHealthCardIssuerKey(utils.loadJSONFromFile(filePath), undefined ,subjectAltName));
+    const result = (await verifyAndImportHealthCardIssuerKey(utils.loadJSONFromFile(filePath), undefined ,subjectAltName));
     return result.log.flatten(LogLevels.WARNING).map(item => item.code);
 }
 

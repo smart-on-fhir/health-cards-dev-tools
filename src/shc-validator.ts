@@ -47,7 +47,9 @@ export interface CliOptions {
     fhirout: string;
     exclude: string[];
 }
-
+export const globalOptions = {
+    skipJwksDownload: false
+}
 
 function exit(message: string, exitCode: ErrorCode = 0): void {
     process.exitCode = exitCode;
@@ -62,9 +64,11 @@ async function processOptions(options: CliOptions) {
 
     console.log("SMART Health Card Validation SDK v" + npmpackage.version);
 
+
     // check the latest SDK and spec version
     const vLatestSDK = versions.latestSdkVersion();
     const vLatestSpec = versions.latestSpecVersion();
+
 
     // map the --loglevel option to the Log.LogLevel enum
     const level = loglevelChoices.indexOf(options.loglevel) as LogLevels;
@@ -83,6 +87,10 @@ async function processOptions(options: CliOptions) {
     if (options.exclude) {
         Log.Exclusions = getExcludeErrorCodes(options.exclude);
     }
+
+
+    // set global options
+    globalOptions.skipJwksDownload = !!options.jwkset;
 
 
     // verify that the directory of the fhir output file exists, if provided
