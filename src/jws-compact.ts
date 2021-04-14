@@ -12,8 +12,11 @@ import jose from 'node-jose';
 import Log from './logger';
 import { ValidationResult } from './validate';
 import { verifyAndImportHealthCardIssuerKey } from './shcKeyValidator';
-import { globalOptions } from './shc-validator';
 
+export const JwsValidationOptions = {
+    skipJwksDownload: false,
+    jwksDownloadTimeOut: 5000
+}
 
 export const schema = jwsCompactSchema;
 
@@ -152,7 +155,7 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
     }
 
     // download the keys into the keystore. if it fails, continue an try to use whatever is in the keystore.
-    if (payload.iss && !globalOptions.skipJwksDownload) {
+    if (payload.iss && !JwsValidationOptions.skipJwksDownload) {
         await downloadAndImportKey(payload.iss, log);
     } else {
         log.info("skipping issuer JWK set download");
@@ -174,7 +177,7 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.K
     const jwkURL = issuerURL + '/.well-known/jwks.json';
     log.info("Retrieving issuer key from " + jwkURL);
 
-    return await got(jwkURL, {timeout: 5000}).json<keys.KeySet>()
+    return await got(jwkURL, {timeout: JwsValidationOptions.jwksDownloadTimeOut}).json<keys.KeySet>()
         .then(async keySet => {
             log.debug("Downloaded issuer key(s) : ");
             let result;

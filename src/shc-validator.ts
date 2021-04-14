@@ -15,6 +15,7 @@ import { KeySet } from './keys';
 import { FhirLogOutput } from './fhirBundle';
 import * as versions from './check-for-update';
 import semver from 'semver';
+import { JwsValidationOptions } from './jws-compact';
 
 /**
  *  Defines the program
@@ -47,9 +48,7 @@ export interface CliOptions {
     fhirout: string;
     exclude: string[];
 }
-export const globalOptions = {
-    skipJwksDownload: false
-}
+
 
 function exit(message: string, exitCode: ErrorCode = 0): void {
     process.exitCode = exitCode;
@@ -90,7 +89,9 @@ async function processOptions(options: CliOptions) {
 
 
     // set global options
-    globalOptions.skipJwksDownload = !!options.jwkset;
+
+
+    JwsValidationOptions.skipJwksDownload = !!options.jwkset;
 
 
     // verify that the directory of the fhir output file exists, if provided
