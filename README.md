@@ -6,7 +6,7 @@ This project provides a tool to help implementers of the [SMART Health Card Fram
 
 ## Setup
 
-1. Make sure [node.js](https://nodejs.org/) and [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) are installed on your system; the latest Long-Term Support (LTS) version is recommended for both. [OpenSSL](https://www.openssl.org/) is also needed to validate certificate chains which could be present in issuer JSON Web Keys (`x5c` value); if absent, chain validation is skipped.
+1. Make sure [node.js](https://nodejs.org/) and [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) are installed on your system; the latest Long-Term Support (LTS) version is recommended for both. [OpenSSL 1.1.1](https://www.openssl.org/) is also needed to validate certificate chains which could be present in issuer JSON Web Keys (`x5c` value); if absent, chain validation is skipped.
 
 2. Get the source, for example using git:
 
