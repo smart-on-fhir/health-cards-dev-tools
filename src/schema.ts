@@ -16,6 +16,7 @@ export function validateSchema(schema: AnySchemaObject, data: FhirBundle | JWS |
 
     // by default, the validator will stop at the first failure. 'allErrors' allows it to keep going.
     const schemaId = (schema as { [key: string]: string })["$id"] || (schema as { [key: string]: string })["$ref"];
+    const isFhirSchema = schemaId.startsWith(fhirSchema.$id);
 
     try {
 
@@ -55,14 +56,14 @@ export function validateSchema(schema: AnySchemaObject, data: FhirBundle | JWS |
                 ve = ve.slice(0, insertIndex) + pathPrefix + ve.slice(insertIndex);
             }
 
-            log.error('Schema: ' + ve, ErrorCode.SCHEMA_ERROR);
+            log.error('Schema: ' + ve, isFhirSchema ? ErrorCode.FHIR_SCHEMA_ERROR : ErrorCode.SCHEMA_ERROR);
         });
 
         return false;
 
     } catch (err) {
         // TODO: get to this catch in test
-        log.error('Schema: ' + (err as Error).message, ErrorCode.SCHEMA_ERROR);
+        log.error('Schema: ' + (err as Error).message, isFhirSchema ? ErrorCode.FHIR_SCHEMA_ERROR : ErrorCode.SCHEMA_ERROR);
         return false;
     }
 }
