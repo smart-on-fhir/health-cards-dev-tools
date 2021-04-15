@@ -201,7 +201,7 @@ async function processOptions(options: CliOptions) {
     await vLatestSpec.then(v => {
         if (!v) {
             console.log("Can't determine the latest spec version.");
-        } else if (semver.gt(v,npmpackage.version)) {
+        } else if (semver.gt(v,npmpackage.version.substr(0,'x.y.z'.length))) { // ignore prerelease tag
             console.log(`NOTE: the SDK v${npmpackage.version} is not validating the latest version of the spec: v${v}`);
         }
     })
