@@ -15,6 +15,7 @@ import { KeySet } from './keys';
 import { FhirLogOutput } from './fhirBundle';
 import * as versions from './check-for-update';
 import semver from 'semver';
+import { JwsValidationOptions } from './jws-compact';
 
 /**
  *  Defines the program
@@ -62,9 +63,11 @@ async function processOptions(options: CliOptions) {
 
     console.log("SMART Health Card Validation SDK v" + npmpackage.version);
 
+
     // check the latest SDK and spec version
     const vLatestSDK = versions.latestSdkVersion();
     const vLatestSpec = versions.latestSpecVersion();
+
 
     // map the --loglevel option to the Log.LogLevel enum
     const level = loglevelChoices.indexOf(options.loglevel) as LogLevels;
@@ -83,6 +86,12 @@ async function processOptions(options: CliOptions) {
     if (options.exclude) {
         Log.Exclusions = getExcludeErrorCodes(options.exclude);
     }
+
+
+    // set global options
+
+
+    JwsValidationOptions.skipJwksDownload = !!options.jwkset;
 
 
     // verify that the directory of the fhir output file exists, if provided
