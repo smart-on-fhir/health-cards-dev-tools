@@ -14,6 +14,7 @@ interface JWSPayload {
     "iss": string,
     "nbf": number,
     "vc": {
+        type: string[],
         credentialSubject: {
             fhirBundle: FhirBundle
         }
