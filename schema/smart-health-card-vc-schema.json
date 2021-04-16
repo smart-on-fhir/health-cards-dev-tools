@@ -25,27 +25,10 @@
             "title": "Vc",
             "type": "object",
             "required": [
-                "@context",
                 "type",
                 "credentialSubject"
             ],
             "properties": {
-                "@context": {
-                    "$id": "#root/vc/@context",
-                    "title": "@context",
-                    "type": "array",
-                    "default": [],
-                    "items": {
-                        "$id": "#root/vc/@context/items",
-                        "title": "Items",
-                        "type": "string",
-                        "default": "",
-                        "examples": [
-                            "https://www.w3.org/2018/credentials/v1"
-                        ],
-                        "pattern": "^.*$"
-                    }
-                },
                 "type": {
                     "$id": "#root/vc/type",
                     "title": "Type",
@@ -57,7 +40,6 @@
                         "type": "string",
                         "default": "",
                         "examples": [
-                            "VerifiableCredential",
                             "https://smarthealth.cards#health-card",
                             "https://smarthealth.cards#immunization",
                             "https://smarthealth.cards#covid19"

@@ -53,6 +53,14 @@ export function validate(jwsPayloadText: string): ValidationResult {
         }
     }
 
+    if (jwsPayload.vc && Object.keys(jwsPayload.vc).includes("@context")) {
+        log.warn("JWS.payload.vc shouldn't have a @context property", ErrorCode.SCHEMA_ERROR);
+    }
+
+    if (!jwsPayload.vc.type || !jwsPayload.vc.type.includes('https://smarthealth.cards#health-card')) {
+        log.warn("JWS.payload.vc.type should contain 'https://smarthealth.cards#health-card'", ErrorCode.SCHEMA_ERROR);
+    }
+
     // to continue validation, we must have a FHIR bundle string to validate
     if (
         !jwsPayload.vc ||
