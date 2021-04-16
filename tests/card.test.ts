@@ -217,13 +217,13 @@ test("Cards: valid 00 FHIR bundle with non-dm properties", testCard(['test-examp
 test("Cards: valid 00 FHIR bundle with non-short refs", testCard(['test-example-00-a-short-refs.json'], "fhirbundle", [0, 4 /*4x ErrorCode.SCHEMA_ERROR*/]));
 
 // TODO: der examples need to be generated to avoid schema errors introduced by spec v0.4.5
-test("Cards: der encoded signature", testCard(['test-example-00-d-jws-der-signature.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR], [ErrorCode.SCHEMA_ERROR]]));
+test("Cards: der encoded signature", testCard(['test-example-00-d-jws-der-signature.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));
 
-test("Cards: der encoded signature s-negative", testCard(['test-example-00-d-jws-der-signature-s-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR], [ErrorCode.SCHEMA_ERROR]]));
+test("Cards: der encoded signature s-negative", testCard(['test-example-00-d-jws-der-signature-s-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));
 
-test("Cards: der encoded signature r-negative", testCard(['test-example-00-d-jws-der-signature-r-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR], [ErrorCode.SCHEMA_ERROR]]));
+test("Cards: der encoded signature r-negative", testCard(['test-example-00-d-jws-der-signature-r-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));
 
-test("Cards: der encoded signature r&s negative", testCard(['test-example-00-d-jws-der-signature-rs-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR], [ErrorCode.SCHEMA_ERROR]]));
+test("Cards: der encoded signature r&s negative", testCard(['test-example-00-d-jws-der-signature-rs-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));
 
 test("Cards: bad meta with extra key", testCard(['test-example-00-a-fhirBundle-bad_meta_extra_key.json'], 'fhirbundle', [0, [ErrorCode.SCHEMA_ERROR]]));
 
