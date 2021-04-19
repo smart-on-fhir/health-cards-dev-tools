@@ -132,8 +132,9 @@ function shcToJws(shc: string, log: Log, chunkCount = 1): { result: JWS, chunkIn
     const b64Offset = '-'.charCodeAt(0);
     const digitPairs = shc.substring(bodyIndex).match(/(\d\d?)/g);
 
-    if (digitPairs == null) {
-        log.fatal("Invalid numeric QR code", ErrorCode.INVALID_NUMERIC_QR);
+    if (digitPairs == null || digitPairs[digitPairs.length - 1].length == 1) {
+        log.fatal("Invalid numeric QR code, can't parse digit pairs. Numeric values should have even length.\n" +
+                  "Make sure no leading 0 are deleted from the encoding.", ErrorCode.INVALID_NUMERIC_QR);
         return undefined;
     }
 
