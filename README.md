@@ -75,7 +75,7 @@ The supported file types, as expressed with the `--type` option, are:
  - *healthcard*: a health card file
  - *qrnumeric*: a numeric QR code encoding a health card
  - *qr*: a QR code image encoding a health card
- - *jwkset*: a JSON Web Key (JWK) Set, encoding the issuer public signing key
+ - *jwkset*: a JSON Web Key (JWK) Set, encoding the issuer public signing key. This superceedes downloading the key from the well-known location.
 
 The tool outputs validation information, depending on the verbosity level, in particular, the parsed FHIR bundle is printed at the `info` verbosity log level. The tool tries to continue parsing the artefact even if a warning or error occurred. Certain errors can be suppressed from the output using the `--exclude` option.
 
