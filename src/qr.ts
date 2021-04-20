@@ -141,10 +141,8 @@ function shcToJws(shc: string, log: Log, chunkCount = 1): { result: JWS, chunkIn
     // since source of numeric encoding is base64url-encoded data (A-Z, a-z, 0-9, -, _, =), the lowest
     // expected value is 0 (ascii(-) - 45) and the biggest one is 77 (ascii(z) - 45), check that each pair
     // is no larger than 77
-    const max = Math.max(...digitPairs.map(d => Number.parseInt(d)));
-    if (max > 77) {
-        console.log(max);
-        log.fatal(max + " Invalid numeric QR code, one digit pair is bigger than the max value 77 (encoding of 'z')." +
+    if (Math.max(...digitPairs.map(d => Number.parseInt(d))) > 77) {
+        log.fatal("Invalid numeric QR code, one digit pair is bigger than the max value 77 (encoding of 'z')." +
                   "Make sure you followed the encoding rules.", ErrorCode.INVALID_NUMERIC_QR);
         return undefined;
     }
