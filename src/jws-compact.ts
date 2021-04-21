@@ -51,14 +51,61 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
     // split into header[0], payload[1], key[2]
     const parts = jws.split('.');
     const rawPayload = parts[1];
-    const sigBytes = Buffer.from(parts[2], 'base64');
 
+    // check header
+    let headerBytes;
+    let errString;
+    try {
+        headerBytes = Buffer.from(parts[0], 'base64');
+        log.debug('JWS.header = ' + headerBytes.toString());
+    } catch (err) {
+        errString = err as string;
+    } finally {
+        if (!headerBytes) {
+            log.error(["Error base64-decoding the JWS header.",
+                errString].join('\n'),
+                ErrorCode.JWS_VERIFICATION_ERROR);
+        }
+    }
 
-    log.debug('JWS.header = ' + Buffer.from(parts[0], 'base64').toString());
-    log.debug('JWS.signature = ' + sigBytes.toString('hex'));
+    let headerJson;
+    if (headerBytes) {
+        headerJson = JSON.parse(headerBytes.toString());
+        if (!headerJson) {
+            log.error(["Can't parse JWS header as JSON.",
+                errString].join('\n'),
+                ErrorCode.JWS_HEADER_ERROR);
+        }
+        const headerKeys = Object.keys(headerJson);
+        if (!headerKeys.includes('alg')) {
+            log.error("JWS header missing 'alg' property.", ErrorCode.JWS_HEADER_ERROR);
+        } else if (headerJson['alg'] !== 'ES256') {
+            log.error(`Wrong value for JWS header property 'alg' property; expected: "ES256", actual: "${headerJson['alg']}".`, ErrorCode.JWS_HEADER_ERROR);
+        }
+        if (!headerKeys.includes('zip')) {
+            log.error("JWS header missing 'zip' property.", ErrorCode.JWS_HEADER_ERROR);
+        } else if (headerJson['zip'] !== 'DEF') {
+            log.error(`Wrong value for JWS header property 'zip' property; expected: "DEF", actual: "${headerJson['zip']}".`, ErrorCode.JWS_HEADER_ERROR);
+        }
+        if (!headerKeys.includes('kid')) {
+            log.error("JWS header missing 'kid' property.", ErrorCode.JWS_HEADER_ERROR);
+        }
+        // the value of the kid will be used in the crypto validation of the signature to select the issuer's public key
+    }
 
+    // check signature format
+    let sigBytes;
+    try {
+        sigBytes = Buffer.from(parts[2], 'base64');
+        log.debug('JWS.signature = ' + sigBytes.toString('hex'));
+    } catch (err) {
+        log.error([
+            "Error base64-decoding the JWS signature.",
+            (err as string)].join('\n'),
+            ErrorCode.JWS_VERIFICATION_ERROR);
+    }
 
-    if (sigBytes.length > 64 && sigBytes[0] === 0x30 && sigBytes[2] === 0x02) {
+    if (sigBytes && sigBytes.length > 64 && sigBytes[0] === 0x30 && sigBytes[2] === 0x02) {
 
         log.error("Signature appears to be in DER encoded form. Signature is expected to be 64-byte r||s concatenated form.\n" + 
         "See https://tools.ietf.org/html/rfc7515#appendix-A.3 for expected ES256 signature form.", ErrorCode.SIGNATURE_FORMAT_ERROR);
@@ -87,11 +134,11 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
 
         jws = parts.join('.');
 
-
-    } else if (sigBytes.length !== 64) {
+    } else if (sigBytes && sigBytes.length !== 64) {
         log.error("Signature is " + sigBytes.length.toString() + "-bytes. Signature is expected to be 64-bytes", ErrorCode.SIGNATURE_FORMAT_ERROR);
     }
 
+    // check payload
     let b64DecodedPayloadBuffer;
     let b64DecodedPayloadString;
     try {
@@ -100,7 +147,7 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
         log.error([
             "Error base64-decoding the JWS payload.",
             (err as string)].join('\n'),
-            ErrorCode.INFLATION_ERROR);
+            ErrorCode.JWS_VERIFICATION_ERROR);
     }
     let inflatedPayload;
     if (b64DecodedPayloadBuffer) {
@@ -161,12 +208,9 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
         log.info("skipping issuer JWK set download");
     }
 
-    if (await verifyJws(jws, log)) {
+    if (await verifyJws(jws, headerJson['kid'], log)) {
         log.info("JWS signature verified");
     }
-
-
-    // TODO: the result should probably be the expanded (non-compact) JWS object.
 
     return { result: jws, log: log };
 }
@@ -197,17 +241,21 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.K
 }
 
 
-async function verifyJws(jws: string, log: Log): Promise<boolean> {
+async function verifyJws(jws: string, kid: string, log: Log): Promise<boolean> {
 
     const verifier: jose.JWS.Verifier = jose.JWS.createVerify(keys.store);
 
+    if (kid && !keys.store.get(kid)) {
+        log.error(`JWS verification failed: can't find key with 'kid' = ${kid} in issuer set`, ErrorCode.JWS_VERIFICATION_ERROR);
+        return false;
+    }
     try {
-        await verifier.verify(jws, { allowEmbeddedKey: true });
+        await verifier.verify(jws);
         return true;
-
     } catch (error) {
-        log.error('JWS verification failed : (' + (error as Error).message + ')',
-            ErrorCode.JWS_VERIFICATION_ERROR);
+        // The error message is always 'no key found', regardless if a key is missing or
+        // if the signature was tempered with. Don't return the node-jose error message.
+        log.error('JWS verification failed', ErrorCode.JWS_VERIFICATION_ERROR);
         return false;
     }
 

@@ -158,11 +158,27 @@ test("Cards: invalid deflate",
     testCard(['test-example-00-e-file-invalid_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR]])
 );
 
-test("Cards: no deflate", 
-    testCard(['test-example-00-e-file-no_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR],[ErrorCode.JWS_TOO_LONG]])
+test("Cards: no deflate",
+    testCard(['test-example-00-e-file-no_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR, ErrorCode.JWS_HEADER_ERROR],[ErrorCode.JWS_TOO_LONG]])
 );
 
-test("Cards: invalid issuer url", 
+test("Cards: no JWS header 'alg'",
+    testCard(['test-example-00-d-jws-no_jws_header_alg.txt'], 'jws', [[ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]])
+);
+
+test("Cards: no JWS header 'kid'",
+    testCard(['test-example-00-d-jws-no_jws_header_kid.txt'], 'jws', [[ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]])
+);
+
+test("Cards: no JWS header 'zip'",
+    testCard(['test-example-00-d-jws-no_jws_header_zip.txt'], 'jws', [[ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]])
+);
+
+test("Cards: wrong JWS header 'kid'",
+    testCard(['test-example-00-d-jws-wrong_jws_header_kid.txt'], 'jws', [[ErrorCode.JWS_VERIFICATION_ERROR]])
+);
+
+test("Cards: invalid issuer url",
     testCard(['test-example-00-e-file-invalid_issuer_url.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR]])
 );
 
