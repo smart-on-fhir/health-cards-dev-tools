@@ -12,7 +12,6 @@ import fs from 'fs';
 import Jimp from 'jimp';
 import { toFile, QRCodeSegment } from 'qrcode';
 
-
 export async function validate(images: FileInfo[]): Promise<{ result: JWS | undefined, log: Log }> {
 
     const log = new Log(
@@ -101,7 +100,7 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
     }
 
     // TODO : create a test that causes failure here
-    // TODO: check QR version
+    // TODO: check QR version. The function readVersion in jsQR.js would do the trick (how to access it?)
     const code = jsQR(new Uint8ClampedArray(data.data.buffer), data.width, data.height);
 
     if (code == null) {
