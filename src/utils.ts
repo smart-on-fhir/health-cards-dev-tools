@@ -6,7 +6,6 @@ import path from 'path';
 import pako from 'pako';
 import jose from 'node-jose';
 import execa from 'execa';
-import { stdout } from 'node:process';
 
 export function parseJson<T>(json: string): T | undefined  {
     try {
