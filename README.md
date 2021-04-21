@@ -26,6 +26,10 @@ The tests download and validate, among other things, the spec [examples](https:/
 
                 npm run fetch-examples -- --force
 
+The tool can be updated to the latest version by running (assuming you obtained it with git):
+
+                npm run update-validator
+
 ### Running in Docker
 
 ```json

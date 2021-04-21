@@ -21,7 +21,7 @@ export function validateSchema(schema: AnySchemaObject, data: FhirBundle | JWS |
     try {
 
         if (!schemaCache[schemaId]) {
-            const ajv = new Ajv({ strict: false, allErrors: false });
+            const ajv = new Ajv({ strict: false, allErrors: true });
             if(schema.$ref) {
                 schemaCache[schemaId] = ajv.addSchema(fhirSchema).compile(schema);
             } else {
@@ -85,9 +85,9 @@ export function objPathToSchema(path: string) : string {
             p = p.properties[properties[i]];
 
             // this property is not valid according to the schema
-            if (!p) {
+            if (p == null) {
                 t = "unknown";
-                continue;
+                break;
             }
 
             // directly has a ref, then it is that type

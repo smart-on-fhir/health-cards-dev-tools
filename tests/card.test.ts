@@ -158,11 +158,27 @@ test("Cards: invalid deflate",
     testCard(['test-example-00-e-file-invalid_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR]])
 );
 
-test("Cards: no deflate", 
-    testCard(['test-example-00-e-file-no_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR],[ErrorCode.JWS_TOO_LONG]])
+test("Cards: no deflate",
+    testCard(['test-example-00-e-file-no_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR, ErrorCode.JWS_HEADER_ERROR],[ErrorCode.JWS_TOO_LONG]])
 );
 
-test("Cards: invalid issuer url", 
+test("Cards: no JWS header 'alg'",
+    testCard(['test-example-00-d-jws-no_jws_header_alg.txt'], 'jws', [[ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]])
+);
+
+test("Cards: no JWS header 'kid'",
+    testCard(['test-example-00-d-jws-no_jws_header_kid.txt'], 'jws', [[ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]])
+);
+
+test("Cards: no JWS header 'zip'",
+    testCard(['test-example-00-d-jws-no_jws_header_zip.txt'], 'jws', [[ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]])
+);
+
+test("Cards: wrong JWS header 'kid'",
+    testCard(['test-example-00-d-jws-wrong_jws_header_kid.txt'], 'jws', [[ErrorCode.JWS_VERIFICATION_ERROR]])
+);
+
+test("Cards: invalid issuer url",
     testCard(['test-example-00-e-file-invalid_issuer_url.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR]])
 );
 
@@ -214,6 +230,10 @@ test("Cards: QR chunk too big",
 
 test("Cards: invalid numeric QR with odd count",
     testCard(['test-example-00-f-qr-code-numeric-value-0-odd-count.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR]])
+);
+
+test("Cards: invalid numeric QR with value too big",
+    testCard(['test-example-00-f-qr-code-numeric-value-0-number-too-big.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR]])
 );
 
 test("Cards: valid 00 FHIR bundle with non-dm properties", testCard(['test-example-00-a-non-dm-properties.json'], "fhirbundle", [0, 5 /*5x ErrorCode.SCHEMA_ERROR*/]));

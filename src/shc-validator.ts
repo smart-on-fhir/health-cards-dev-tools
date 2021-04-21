@@ -194,7 +194,8 @@ async function processOptions(options: CliOptions) {
         if (!v) {
             console.log("Can't determine the latest SDK version. Make sure you have the latest version.")
         } else if (semver.gt(v,npmpackage.version)) {
-            console.log(`NOTE: You are not using the latest SDK version. Current: v${npmpackage.version}, latest: v${v}`);
+            console.log(`NOTE: You are not using the latest SDK version. Current: v${npmpackage.version}, latest: v${v}\n` +
+                        "You can update by running 'npm run update-validator'.");
         }
     });
     // check if the SDK is behind the spec
