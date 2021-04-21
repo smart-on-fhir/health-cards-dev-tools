@@ -55,6 +55,7 @@ interface EcPublicJWK extends JWK.Key {
 // validate a JWK certificate chain (x5c value)
 function validateX5c(x5c: string[], log: Log): CertFields | undefined {
     // we use OpenSSL to validate the certificate chain, first check if present
+    // NOTE: the code below only works with OpenSSL 1.1.1, TODO: fix so it also works with 1.0.2 and libressl
     if (!isOpensslAvailable()) {
         log.warn('OpenSSL not available to validate the X.509 certificate chain; skipping validation', ErrorCode.OPENSSL_NOT_AVAILABLE);
         return;
@@ -160,7 +161,7 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
     }
 }
 
-export async function verifyHealthCardIssuerKey(keySet: KeySet, log = new Log('Validate Key-Set'), expectedSubjectAltName = ''): Promise<ValidationResult> {
+export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = new Log('Validate Key-Set'), expectedSubjectAltName = ''): Promise<ValidationResult> {
 
     // check that keySet is valid
     if (!(keySet instanceof Object) || !keySet.keys || !(keySet.keys instanceof Array)) {

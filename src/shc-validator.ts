@@ -15,6 +15,7 @@ import { KeySet } from './keys';
 import { FhirLogOutput } from './fhirBundle';
 import * as versions from './check-for-update';
 import semver from 'semver';
+import { JwsValidationOptions } from './jws-compact';
 
 /**
  *  Defines the program
@@ -62,9 +63,11 @@ async function processOptions(options: CliOptions) {
 
     console.log("SMART Health Card Validation SDK v" + npmpackage.version);
 
+
     // check the latest SDK and spec version
     const vLatestSDK = versions.latestSdkVersion();
     const vLatestSpec = versions.latestSpecVersion();
+
 
     // map the --loglevel option to the Log.LogLevel enum
     const level = loglevelChoices.indexOf(options.loglevel) as LogLevels;
@@ -83,6 +86,12 @@ async function processOptions(options: CliOptions) {
     if (options.exclude) {
         Log.Exclusions = getExcludeErrorCodes(options.exclude);
     }
+
+
+    // set global options
+
+
+    JwsValidationOptions.skipJwksDownload = !!options.jwkset;
 
 
     // verify that the directory of the fhir output file exists, if provided
@@ -185,14 +194,15 @@ async function processOptions(options: CliOptions) {
         if (!v) {
             console.log("Can't determine the latest SDK version. Make sure you have the latest version.")
         } else if (semver.gt(v,npmpackage.version)) {
-            console.log(`NOTE: You are not using the latest SDK version. Current: v${npmpackage.version}, latest: v${v}`);
+            console.log(`NOTE: You are not using the latest SDK version. Current: v${npmpackage.version}, latest: v${v}\n` +
+                        "You can update by running 'npm run update-validator'.");
         }
     });
     // check if the SDK is behind the spec
     await vLatestSpec.then(v => {
         if (!v) {
             console.log("Can't determine the latest spec version.");
-        } else if (semver.gt(v,npmpackage.version)) {
+        } else if (semver.gt(v,npmpackage.version.substr(0,'x.y.z'.length))) { // ignore prerelease tag
             console.log(`NOTE: the SDK v${npmpackage.version} is not validating the latest version of the spec: v${v}`);
         }
     })

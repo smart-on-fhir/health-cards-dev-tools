@@ -1,6 +1,6 @@
- 	
- {
+{
   "resourceType": "Bundle",
+  "id": "Scenario1Bundle",
   "type": "collection",
   "entry": [
     {
@@ -23,11 +23,15 @@
       "fullUrl": "resource:1",
       "resource": {
         "resourceType": "Immunization",
+        "meta": {
+	          "id": "extra meta value",
+            "security": [{"code": "IAL1"}]
+        },
         "status": "completed",
         "vaccineCode": {
           "coding": [
             {
-              "system": "http://hl7.org/fhir/sid/cvx",
+              "system": "http://hl7.org/fhir/sid/cvx-TEMPORARY-CODE-SYSTEM",
               "code": "207"
             }
           ]
@@ -50,11 +54,14 @@
       "fullUrl": "resource:2",
       "resource": {
         "resourceType": "Immunization",
+        "meta": {
+          "security": [{"code": "IAL1.2"}]
+        },
         "status": "completed",
         "vaccineCode": {
           "coding": [
             {
-              "system": "http://hl7.org/fhir/sid/cvx",
+              "system": "http://hl7.org/fhir/sid/cvx-TEMPORARY-CODE-SYSTEM",
               "code": "207"
             }
           ]
@@ -74,5 +81,4 @@
       }
     }
   ]
-} 	
- 
+}

@@ -6,7 +6,7 @@ This project provides a tool to help implementers of the [SMART Health Card Fram
 
 ## Setup
 
-1. Make sure [node.js](https://nodejs.org/) and [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) are installed on your system; the latest Long-Term Support (LTS) version is recommended for both. [OpenSSL](https://www.openssl.org/) is also needed to validate certificate chains which could be present in issuer JSON Web Keys (`x5c` value); if absent, chain validation is skipped.
+1. Make sure [node.js](https://nodejs.org/) and [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) are installed on your system; the latest Long-Term Support (LTS) version is recommended for both. [OpenSSL 1.1.1](https://www.openssl.org/) is also needed to validate certificate chains which could be present in issuer JSON Web Keys (`x5c` value); if absent, chain validation is skipped.
 
 2. Get the source, for example using git:
 
@@ -25,6 +25,10 @@ This project provides a tool to help implementers of the [SMART Health Card Fram
 The tests download and validate, among other things, the spec [examples](https://smarthealth.cards/examples/). A breaking spec change might invalidate the downloaded examples, which can be refreshed using:
 
                 npm run fetch-examples -- --force
+
+The tool can be updated to the latest version by running (assuming you obtained it with git):
+
+                npm run update-validator
 
 ### Running in Docker
 
@@ -75,7 +79,7 @@ The supported file types, as expressed with the `--type` option, are:
  - *healthcard*: a health card file
  - *qrnumeric*: a numeric QR code encoding a health card
  - *qr*: a QR code image encoding a health card
- - *jwkset*: a JSON Web Key (JWK) Set, encoding the issuer public signing key
+ - *jwkset*: a JSON Web Key (JWK) Set, encoding the issuer public signing key. This superceedes downloading the key from the well-known location.
 
 The tool outputs validation information, depending on the verbosity level, in particular, the parsed FHIR bundle is printed at the `info` verbosity log level. The tool tries to continue parsing the artefact even if a warning or error occurred. Certain errors can be suppressed from the output using the `--exclude` option.
 

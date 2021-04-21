@@ -11,8 +11,12 @@ import got from 'got';
 import jose from 'node-jose';
 import Log from './logger';
 import { ValidationResult } from './validate';
-import { verifyHealthCardIssuerKey } from './shcKeyValidator';
+import { verifyAndImportHealthCardIssuerKey } from './shcKeyValidator';
 
+export const JwsValidationOptions = {
+    skipJwksDownload: false,
+    jwksDownloadTimeOut: 5000
+}
 
 export const schema = jwsCompactSchema;
 
@@ -151,8 +155,11 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
     }
 
     // download the keys into the keystore. if it fails, continue an try to use whatever is in the keystore.
-    await downloadKey(payload.iss, log);
-
+    if (payload.iss && !JwsValidationOptions.skipJwksDownload) {
+        await downloadAndImportKey(payload.iss, log);
+    } else {
+        log.info("skipping issuer JWK set download");
+    }
 
     if (await verifyJws(jws, log)) {
         log.info("JWS signature verified");
@@ -165,20 +172,25 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
 }
 
 
-async function downloadKey(issuerURL: string, log: Log): Promise<keys.KeySet | undefined> {
+async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.KeySet | undefined> {
 
     const jwkURL = issuerURL + '/.well-known/jwks.json';
     log.info("Retrieving issuer key from " + jwkURL);
 
-    return await got(jwkURL).json<keys.KeySet>()
-        // TODO: split up download/parsing to provide finer-grained error message
+    return await got(jwkURL, {timeout: JwsValidationOptions.jwksDownloadTimeOut}).json<keys.KeySet>()
         .then(async keySet => {
             log.debug("Downloaded issuer key(s) : ");
-            return (await verifyHealthCardIssuerKey(keySet, log, issuerURL)).result as (keys.KeySet | undefined);
+            let result;
+            try {
+                result = (await verifyAndImportHealthCardIssuerKey(keySet, log, issuerURL)).result as (keys.KeySet | undefined)
+            } catch (err) {
+                log.error("Can't parse downloaded issuer JWK set: " + err, ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
+                return undefined;
+            }
+            return result;
         })
-        .catch(() => {
-            log.error("Can't parse downloaded issuer keys as a key set",
-                ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
+        .catch(err => {
+            log.error("Failed to download issuer JWK set: " + err, ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
             return undefined;
         });
 

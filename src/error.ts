@@ -11,12 +11,14 @@ export enum ErrorCode {
 
     // card errors
     SCHEMA_ERROR,
+    FHIR_SCHEMA_ERROR,
     INFLATION_ERROR,
     JWS_VERIFICATION_ERROR,
     SIGNATURE_FORMAT_ERROR,
     QR_DECODE_ERROR, // fatal
     ISSUER_KEY_DOWNLOAD_ERROR,
     INVALID_ISSUER_URL,
+    INVALID_QR,
     INVALID_NUMERIC_QR,
     INVALID_NUMERIC_QR_HEADER,
     MISSING_QR_CHUNK, // fatal
@@ -49,12 +51,18 @@ class ExcludableError {
 }
 
 // maps error strings to error codes
-// TODO: should we make all errors excludable, or only ones known to cause problems in dev
+// note: we currently only make certain errors excludable (e.g., those common in development)
 export const ExcludableErrors: ExcludableError[] = [
     new ExcludableError('openssl-not-available', [ErrorCode.OPENSSL_NOT_AVAILABLE]),
     new ExcludableError('invalid-issuer-url', [ErrorCode.INVALID_ISSUER_URL]),
     new ExcludableError('invalid-key-x5c', [ErrorCode.INVALID_KEY_X5C]),
-    new ExcludableError('not-yet-valid', [ErrorCode.NOT_YET_VALID])
+    new ExcludableError('not-yet-valid', [ErrorCode.NOT_YET_VALID]),
+    new ExcludableError('fhir-schema-error', [ErrorCode.FHIR_SCHEMA_ERROR]),
+    new ExcludableError('issuer-key-download-error', [ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR]),
+    new ExcludableError('unbalanced-qr-chunks', [ErrorCode.UNBALANCED_QR_CHUNKS]),
+    new ExcludableError('jws-too-long', [ErrorCode.JWS_TOO_LONG]),
+    new ExcludableError('invalid-file-extension', [ErrorCode.INVALID_FILE_EXTENSION]),
+    new ExcludableError('trailing-characters', [ErrorCode.TRAILING_CHARACTERS])
 ]
 
 export function getExcludeErrorCodes(errors: string[]): Set<ErrorCode> {

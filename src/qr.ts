@@ -132,8 +132,18 @@ function shcToJws(shc: string, log: Log, chunkCount = 1): { result: JWS, chunkIn
     const b64Offset = '-'.charCodeAt(0);
     const digitPairs = shc.substring(bodyIndex).match(/(\d\d?)/g);
 
-    if (digitPairs == null) {
-        log.fatal("Invalid numeric QR code", ErrorCode.INVALID_NUMERIC_QR);
+    if (digitPairs == null || digitPairs[digitPairs.length - 1].length == 1) {
+        log.fatal("Invalid numeric QR code, can't parse digit pairs. Numeric values should have even length.\n" +
+                  "Make sure no leading 0 are deleted from the encoding.", ErrorCode.INVALID_NUMERIC_QR);
+        return undefined;
+    }
+
+    // since source of numeric encoding is base64url-encoded data (A-Z, a-z, 0-9, -, _, =), the lowest
+    // expected value is 0 (ascii(-) - 45) and the biggest one is 77 (ascii(z) - 45), check that each pair
+    // is no larger than 77
+    if (Math.max(...digitPairs.map(d => Number.parseInt(d))) > 77) {
+        log.fatal("Invalid numeric QR code, one digit pair is bigger than the max value 77 (encoding of 'z')." +
+                  "Make sure you followed the encoding rules.", ErrorCode.INVALID_NUMERIC_QR);
         return undefined;
     }
 

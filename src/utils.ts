@@ -59,8 +59,10 @@ export function inflatePayload(verificationResult: jose.JWS.VerificationResult):
 
 export function isOpensslAvailable(): boolean {
     try {
-        execa.commandSync("openssl version");
-        return true;
+        const expectedPrefix = 'OpenSSL 1.1.1'; // the x5c validation currently only works with openssl 1.1.1
+        const result = execa.commandSync("openssl version");
+        return (result.exitCode == 0 &&
+                result.stdout.substr(0, expectedPrefix.length) === expectedPrefix);
     } catch (err) {
         return false;
     }

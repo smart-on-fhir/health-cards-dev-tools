@@ -57,23 +57,26 @@ export function validate(fhirBundleText: string): ValidationResult {
         const entry = fhirBundle.entry[i];
         const resource = entry.resource;
 
-        validateSchema({ $ref: 'https://smarthealth.cards/schema/fhir-schema.json#/definitions/' + resource.resourceType }, resource, log);
+        validateSchema({ $ref: 'https://smarthealth.cards/schema/fhir-schema.json#/definitions/' + resource.resourceType }, resource, log, ['', 'entry', i.toString(), resource.resourceType].join('/'));
 
         if (resource == null) {
             log.error("Bundle.entry[" + i.toString() + "].resource missing");
             continue;
-    }
+        }
 
         if (resource.id) {
-            log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .id elements", ErrorCode.SCHEMA_ERROR);
-    }
+            log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .id elements", ErrorCode.FHIR_SCHEMA_ERROR);
+        }
 
         if (resource.meta) {
-            log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .meta elements", ErrorCode.SCHEMA_ERROR);
-    }
-    
+            // resource.meta.security allowed as special case, however, no other properties may be included on .meta
+            if (!resource.meta.security || Object.keys(resource.meta).length > 1) {
+                log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "].meta should only include .security property with an array of identity assurance codes", ErrorCode.FHIR_SCHEMA_ERROR);
+            }
+        }
+
         if (resource.text) {
-            log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .text elements", ErrorCode.SCHEMA_ERROR);
+            log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .text elements", ErrorCode.FHIR_SCHEMA_ERROR);
         }
 
         // walks the property tree of this resource object
@@ -85,11 +88,11 @@ export function validate(fhirBundleText: string): ValidationResult {
             const propType = objPathToSchema(path.join('.'));
 
             if (propType === 'CodeableConcept' && o['text']) {
-                log.warn('fhirBundle.entry[' + i.toString() + ']' + ".resource." + path.join('.') + " (CodeableConcept) should not include .text elements", ErrorCode.SCHEMA_ERROR);
+                log.warn('fhirBundle.entry[' + i.toString() + ']' + ".resource." + path.join('.') + " (CodeableConcept) should not include .text elements", ErrorCode.FHIR_SCHEMA_ERROR);
             }
 
             if (propType === 'Coding' && o['display']) {
-                log.warn('fhirBundle.entry[' + i.toString() + ']' + ".resource." + path.join('.') + " (Coding) should not include .display elements", ErrorCode.SCHEMA_ERROR);
+                log.warn('fhirBundle.entry[' + i.toString() + ']' + ".resource." + path.join('.') + " (Coding) should not include .display elements", ErrorCode.FHIR_SCHEMA_ERROR);
             }
 
             if (propType === 'Reference' && o['reference'] && !/[^:]+:\d+/.test(o['reference'] as string)) {
@@ -100,7 +103,7 @@ export function validate(fhirBundleText: string): ValidationResult {
 
         // with Bundle.entry.fullUrl populated with short resource-scheme URIs (e.g., {"fullUrl": "resource:0})
         if ((typeof entry.fullUrl !== 'string') || !/resource:\d+/.test(entry.fullUrl)) {
-            log.warn('fhirBundle.entry.fullUrl should be short resource-scheme URIs (e.g., {“fullUrl”: “resource:0}"', ErrorCode.SCHEMA_ERROR);
+            log.warn('fhirBundle.entry.fullUrl should be short resource-scheme URIs (e.g., {“fullUrl”: “resource:0}"', ErrorCode.FHIR_SCHEMA_ERROR);
         }
     }
 

@@ -213,6 +213,14 @@ test("Cards: QR chunk too big",
     testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR, ErrorCode.INVALID_NUMERIC_QR], JWS_TOO_LONG_WARNING + SHORT_URL_WARNINGS])
 );
 
+test("Cards: invalid numeric QR with odd count",
+    testCard(['test-example-00-f-qr-code-numeric-value-0-odd-count.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR]])
+);
+
+test("Cards: invalid numeric QR with value too big",
+    testCard(['test-example-00-f-qr-code-numeric-value-0-number-too-big.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR]])
+);
+
 test("Cards: valid 00 FHIR bundle with non-dm properties", testCard(['test-example-00-a-non-dm-properties.json'], "fhirbundle", [0, 5 /*5x ErrorCode.SCHEMA_ERROR*/]));
 
 test("Cards: valid 00 FHIR bundle with non-short refs", testCard(['test-example-00-a-short-refs.json'], "fhirbundle", [0, 4 /*4x ErrorCode.SCHEMA_ERROR*/]));
@@ -224,3 +232,9 @@ test("Cards: der encoded signature s-negative", testCard(['test-example-00-d-jws
 test("Cards: der encoded signature r-negative", testCard(['test-example-00-d-jws-der-signature-r-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));
 
 test("Cards: der encoded signature r&s negative", testCard(['test-example-00-d-jws-der-signature-rs-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));
+
+test("Cards: bad meta with extra key", testCard(['test-example-00-a-fhirBundle-bad_meta_extra_key.json'], 'fhirbundle', [0, [ErrorCode.FHIR_SCHEMA_ERROR]]));
+
+test("Cards: bad meta without security key", testCard(['test-example-00-a-fhirBundle-bad_meta_non_security.json'], 'fhirbundle', [0, [ErrorCode.FHIR_SCHEMA_ERROR]]));
+
+test("Cards: bad meta with wrong security field", testCard(['test-example-00-a-fhirBundle-bad_meta_wrong_security.json'], 'fhirbundle', [[ErrorCode.FHIR_SCHEMA_ERROR]]));

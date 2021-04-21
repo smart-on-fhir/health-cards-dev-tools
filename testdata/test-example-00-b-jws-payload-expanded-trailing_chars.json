@@ -1,16 +1,10 @@
  	
  {
   "iss": "https://smarthealth.cards/examples/issuer",
-  "nbf": 1616038143.393,
+  "nbf": 1618551447.486,
   "vc": {
-    "@context": [
-      "https://www.w3.org/2018/credentials/v1"
-    ],
     "type": [
-      "VerifiableCredential",
-      "https://smarthealth.cards#immunization",
-      "https://smarthealth.cards#covid19",
-      "https://smarthealth.cards#wrong-health-card",
+      "https://smarthealth.cards#health-card",
       "https://smarthealth.cards#immunization",
       "https://smarthealth.cards#covid19"
     ],
@@ -33,7 +27,6 @@
                   ]
                 }
               ],
-              "gender": "male",
               "birthDate": "1951-01-20"
             }
           },
@@ -54,14 +47,14 @@
                 "reference": "resource:0"
               },
               "occurrenceDateTime": "2021-01-01",
-              "lotNumber": "Lot #0000001",
               "performer": [
                 {
                   "actor": {
                     "display": "ABC General Hospital"
                   }
                 }
-              ]
+              ],
+              "lotNumber": "0000001"
             }
           },
           {
@@ -81,14 +74,14 @@
                 "reference": "resource:0"
               },
               "occurrenceDateTime": "2021-01-29",
-              "lotNumber": "Lot #0000007",
               "performer": [
                 {
                   "actor": {
                     "display": "ABC General Hospital"
                   }
                 }
-              ]
+              ],
+              "lotNumber": "0000007"
             }
           }
         ]
