@@ -51,6 +51,7 @@ export async function validate(healthCardText: string): Promise<ValidationResult
 
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    // TODO: check all VCs, not just vc[0]
     log.child = (await jws.validate(vc[0])).log;
 
 
