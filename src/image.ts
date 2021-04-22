@@ -99,13 +99,15 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
         return undefined;
     }
 
-    // TODO : create a test that causes failure here
-    // TODO: check QR version. The function readVersion in jsQR.js would do the trick (how to access it?)
     const code = jsQR(new Uint8ClampedArray(data.data.buffer), data.width, data.height);
 
     if (code == null) {
         log.fatal('Could not decode QR image from : ' + fileInfo.name, ErrorCode.QR_DECODE_ERROR);
         return result;
+    }
+
+    if (code.version > 22) {
+        log.warn(`QR code version of ${code.version} is larger than the maximum allowed of 22`);
     }
 
     // check chunks. Note: jsQR calls chunks and type what the SMART Health Cards spec call segments and mode,
