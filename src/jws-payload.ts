@@ -23,9 +23,9 @@ export function validate(jwsPayloadText: string): ValidationResult {
     }
 
     const jwsPayload = utils.parseJson<JWSPayload>(jwsPayloadText);
-    if (jwsPayload === undefined) {
+    if (!jwsPayload || typeof jwsPayload !== 'object') {
         return {
-            result: jwsPayload,
+            result: undefined,
             log: log.fatal("Failed to parse JWS.payload data as JSON.", ErrorCode.JSON_PARSE_ERROR)
         }
     }
