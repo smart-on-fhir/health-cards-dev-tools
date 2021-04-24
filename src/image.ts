@@ -107,7 +107,7 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
     }
 
     if (code.version > 22) {
-        log.warn(`QR code version of ${code.version} is larger than the maximum allowed of 22`);
+        log.warn(`QR code version of ${code.version} is larger than the maximum allowed of 22`, ErrorCode.INVALID_QR_VERSION);
     }
 
     // check chunks. Note: jsQR calls chunks and type what the SMART Health Cards spec call segments and mode,
