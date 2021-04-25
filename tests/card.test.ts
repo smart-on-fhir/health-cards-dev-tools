@@ -236,7 +236,7 @@ test("Cards: invalid numeric QR with value too big",
     testCard(['test-example-00-f-qr-code-numeric-value-0-number-too-big.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR]])
 );
 
-test("Cards: single segment QR", testCard('test-example-00-g-qr-code-0-single_qr_segment.svg','qr', [0, [ErrorCode.INVALID_QR]]));
+test("Cards: single segment QR", testCard('test-example-00-g-qr-code-0-single_qr_segment.png','qr', [[ErrorCode.INVALID_QR]]));
 
 test("Cards: invalid JWS payload encoding (double-stringify)",
     testCard(['test-invalid-jws-payload.png'], 'qr', [[ErrorCode.JSON_PARSE_ERROR]])
