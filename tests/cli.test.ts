@@ -174,3 +174,7 @@ test("Logs: valid 00-e health card bad log path", () => {
     const commandResult = runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --fhirout ' + logFile);
     expect(commandResult.exitCode).toBe(ErrorCode.LOG_PATH_NOT_FOUND);
 });
+
+// error exclusion
+test("Cards: fhir bundle w/ trailing chars", () => expect(testCliCommand('node . --path testdata/test-example-00-a-fhirBundle-trailing_chars.json --type fhirbundle --jwkset testdata/issuer.jwks.public.json --exclude trailing-characters')).toBe(0));
+test("Cards: fhir bundle w/ trailing chars", () => expect(testCliCommand('node . --path testdata/test-example-00-a-fhirBundle-trailing_chars.json --type fhirbundle --jwkset testdata/issuer.jwks.public.json --exclude trailing-*')).toBe(0)); // wildcard

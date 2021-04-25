@@ -56,6 +56,11 @@ export const ExcludableErrors: ExcludableError[] = [
     new ExcludableError('openssl-not-available', [ErrorCode.OPENSSL_NOT_AVAILABLE]),
     new ExcludableError('invalid-issuer-url', [ErrorCode.INVALID_ISSUER_URL]),
     new ExcludableError('invalid-key-x5c', [ErrorCode.INVALID_KEY_X5C]),
+    new ExcludableError('invalid-key-wrong-kty', [ErrorCode.INVALID_KEY_WRONG_KTY]),
+    new ExcludableError('invalid-key-wrong-alg', [ErrorCode.INVALID_KEY_WRONG_ALG]),
+    new ExcludableError('invalid-key-wrong-use', [ErrorCode.INVALID_KEY_WRONG_USE]),
+    new ExcludableError('invalid-key-wrong-kid', [ErrorCode.INVALID_KEY_WRONG_KID]),
+    new ExcludableError('invalid-key-schema', [ErrorCode.INVALID_KEY_SCHEMA]),
     new ExcludableError('not-yet-valid', [ErrorCode.NOT_YET_VALID]),
     new ExcludableError('fhir-schema-error', [ErrorCode.FHIR_SCHEMA_ERROR]),
     new ExcludableError('issuer-key-download-error', [ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR]),
@@ -69,7 +74,7 @@ export function getExcludeErrorCodes(errors: string[]): Set<ErrorCode> {
     let errorCodes: Set<ErrorCode> = new Set<ErrorCode>();
     for (let error of errors) {
         for (let excludableError of ExcludableErrors) {
-            if (excludableError.error === error) // TODO: regex match 
+            if (excludableError.error === error || new RegExp('^' + error.replace('*','.*') + '$').test(excludableError.error))
             {
                 excludableError.code.map(e => errorCodes.add(e));
             }
