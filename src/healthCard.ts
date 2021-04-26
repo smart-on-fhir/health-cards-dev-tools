@@ -51,6 +51,10 @@ export async function validate(healthCardText: string): Promise<ValidationResult
 
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    if (vc.length > 1) {
+        // TODO: delete me when PR 70 is completed
+        console.log("The validation SDK doesn't currently support cards with multiple JWS. Only the first one will be validated.");
+    }
     log.child = (await jws.validate(vc[0])).log;
 
 
