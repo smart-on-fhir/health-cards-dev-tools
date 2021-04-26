@@ -238,7 +238,7 @@ test("Cards: invalid numeric QR with value too big",
 );
 
 test("Cards: single segment QR",
-     testCard('test-example-00-g-qr-code-0-single_qr_segment.png','qr', [[ErrorCode.INVALID_QR]])
+     testCard('test-example-00-g-qr-code-0-single_qr_segment.png','qr', [[ErrorCode.INVALID_QR],[ErrorCode.INVALID_QR_VERSION]])
 );
 
 test("Cards: corrupted QR code",
