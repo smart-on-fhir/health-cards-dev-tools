@@ -237,6 +237,10 @@ test("Cards: invalid numeric QR with value too big",
     testCard(['test-example-00-f-qr-code-numeric-value-0-number-too-big.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR]])
 );
 
+test("Cards: single segment QR",
+     testCard('test-example-00-g-qr-code-0-single_qr_segment.png','qr', [[ErrorCode.INVALID_QR]])
+);
+
 test("Cards: corrupted QR code",
     testCard(['test-example-00-g-qr-code-0-corrupted.png'], 'qr', [[ErrorCode.QR_DECODE_ERROR]])
 );
