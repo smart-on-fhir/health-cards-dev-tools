@@ -71,7 +71,7 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
 
     let headerJson;
     if (headerBytes) {
-        headerJson = parseJson<{kid : string, alg : string, zip : string}>(headerBytes.toString());
+        headerJson = parseJson<{ kid: string, alg: string, zip: string }>(headerBytes.toString());
 
         if (headerJson == null) {
             log.error(["Can't parse JWS header as JSON.",
@@ -185,31 +185,38 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
     // if we did not get a payload back, it failed to be parsed and we cannot extract the key url
     // so we can stop.
     // the jws-payload child will contain the parse errors.
-    // The payload validation may have a Fatal error if 
-    if (payload == null) {
+    // The payload validation may have a Fatal error
+    if (!payload) {
         return { result: payload, log: log };
     }
 
 
     // Extract the key url
-    if (!payload.iss) {
+    if (payload.iss) {
+        if (typeof payload.iss === 'string') {
+
+            if (payload.iss.slice(0, 8) !== 'https://') {
+                log.error("Issuer URL SHALL use https", ErrorCode.INVALID_ISSUER_URL);
+            }
+
+            if (payload.iss.slice(-1) === '/') {
+                log.error("Issuer URL SHALL NOT include a trailing /", ErrorCode.INVALID_ISSUER_URL);
+            }
+
+            // download the keys into the keystore. if it fails, continue an try to use whatever is in the keystore.
+            if (!JwsValidationOptions.skipJwksDownload) {
+                await downloadAndImportKey(payload.iss, log);
+            } else {
+                log.info("skipping issuer JWK set download");
+            }
+
+        } else {
+            log.error(`JWS payload 'iss' should be a string, not a ${typeof payload.iss}`);
+        }
+
+    } else {
         // continue, since we might have the key we need in the global keystore
         log.error("Can't find 'iss' entry in JWS payload", ErrorCode.SCHEMA_ERROR);
-    }
-
-    if (payload.iss.slice(0, 8) !== 'https://') {
-        log.error("Issuer URL SHALL use https", ErrorCode.INVALID_ISSUER_URL);
-    }
-
-    if (payload.iss.slice(-1) === '/') {
-        log.error("Issuer URL SHALL NOT include a trailing /", ErrorCode.INVALID_ISSUER_URL);
-    }
-
-    // download the keys into the keystore. if it fails, continue an try to use whatever is in the keystore.
-    if (payload.iss && !JwsValidationOptions.skipJwksDownload) {
-        await downloadAndImportKey(payload.iss, log);
-    } else {
-        log.info("skipping issuer JWK set download");
     }
 
     if (headerJson && await verifyJws(jws, headerJson['kid'], log)) {
