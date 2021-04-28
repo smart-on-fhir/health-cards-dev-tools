@@ -72,13 +72,21 @@ export const ExcludableErrors: ExcludableError[] = [
 
 export function getExcludeErrorCodes(errors: string[]): Set<ErrorCode> {
     let errorCodes: Set<ErrorCode> = new Set<ErrorCode>();
+    let invalidErrors: Set<string> = new Set<string>();
     for (let error of errors) {
         for (let excludableError of ExcludableErrors) {
-            if (excludableError.error === error || new RegExp('^' + error.replace('*','.*') + '$').test(excludableError.error))
-            {
-                excludableError.code.map(e => errorCodes.add(e));
+            try {
+                if (excludableError.error === error || new RegExp('^' + error.replace('*','.*') + '$').test(excludableError.error))
+                {
+                    excludableError.code.map(e => errorCodes.add(e));
+                }
+            } catch {
+                invalidErrors.add(error);
             }
         }
+    }
+    if (invalidErrors.size > 0) {
+        console.log("Invalid exclusion error strings: ", Array.from(invalidErrors));
     }
     return errorCodes;
 }
