@@ -33,7 +33,7 @@ program.addOption(new Option('-l, --loglevel <loglevel>', 'set the minimum log l
 program.option('-o, --logout <path>', 'output path for log (if not specified log will be printed on console)');
 program.option('-f, --fhirout <path>', 'output path for the extracted FHIR bundle');
 program.option('-k, --jwkset <key>', 'path to trusted issuer key set');
-program.option('-e, --exclude <error>', 'error to exclude. Can be repeated. Valid options:' +
+program.option('-e, --exclude <error>', 'error to exclude, can be repeated, can use a * wildcard. Valid options:' +
     ExcludableErrors.map(e => ` "${e.error}"`).join(),
     (e: string, errors: string[]) => errors.concat([e]), []);
 program.parse(process.argv);
@@ -89,8 +89,6 @@ async function processOptions(options: CliOptions) {
 
 
     // set global options
-
-
     JwsValidationOptions.skipJwksDownload = !!options.jwkset;
 
 

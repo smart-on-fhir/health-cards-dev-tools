@@ -54,8 +54,11 @@ To validate health card artifacts, use the `shc-validator.ts` script, or simply 
                   -o, --logout <path>        output path for log (if not specified log will be printed on console)
                   -f, --fhirout <path>       output path for the extracted FHIR bundle
                   -k, --jwkset <key>         path to trusted issuer key set
-                  -e, --exclude <error>      error to exclude. Can be repeated. Valid options: "openssl-not-available",
-                                             "invalid-issuer-url", "invalid-key-x5c" (default: [])
+                  -e, --exclude <error>      error to exclude, can be repeated, can use a * wildcard. Valid options: "openssl-not-available",
+                                             "invalid-issuer-url", "invalid-key-x5c", "invalid-key-wrong-kty", "invalid-key-wrong-alg",
+                                             "invalid-key-wrong-use", "invalid-key-wrong-kid", "invalid-key-schema", "not-yet-valid",
+                                             "fhir-schema-error", "issuer-key-download-error", "unbalanced-qr-chunks", "jws-too-long",
+                                             "invalid-file-extension", "trailing-characters" (default: [])
                   -h, --help                 display help for command
 
 For example, to validate a `data.smart-health-card` file, call:
@@ -81,7 +84,7 @@ The supported file types, as expressed with the `--type` option, are:
  - *qr*: a QR code image encoding a health card
  - *jwkset*: a JSON Web Key (JWK) Set, encoding the issuer public signing key. This superceedes downloading the key from the well-known location.
 
-The tool outputs validation information, depending on the verbosity level, in particular, the parsed FHIR bundle is printed at the `info` verbosity log level. The tool tries to continue parsing the artefact even if a warning or error occurred. Certain errors can be suppressed from the output using the `--exclude` option.
+The tool outputs validation information, depending on the verbosity level, in particular, the parsed FHIR bundle is printed at the `info` verbosity log level. The tool tries to continue parsing the artefact even if a warning or error occurred. Certain errors can be suppressed from the output using the `--exclude` option (using the full error name or a * wildcard character).
 
 Issuer signing public keys (encoded in a JSON Web Key Set) can be validated before being uploaded to their well-known URL. To validate a `issuerPublicKeys.json` JSON Web Key Set (JWK), call:
 
