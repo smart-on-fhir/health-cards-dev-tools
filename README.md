@@ -30,6 +30,10 @@ The tool can be updated to the latest version by running (assuming you obtained 
 
                 npm run update-validator
 
+The tool can be packaged (and later installed into another npm project with `npm install <path to .tgz>`) using:
+
+                npm pack
+
 ### Running in Docker
 
 ```json
@@ -89,6 +93,12 @@ The tool outputs validation information, depending on the verbosity level, in pa
 Issuer signing public keys (encoded in a JSON Web Key Set) can be validated before being uploaded to their well-known URL. To validate a `issuerPublicKeys.json` JSON Web Key Set (JWK), call:
 
                 node . --path issuerPublicKeys.json --type jwkset
+
+The tool can be invoked programmaticaly by installing the `.tgz` file resulting from `npm pack` in a project, by importing the `src/api.js` file, and by calling the right `validate.<artifact-type>` method, where `<artifact-type>` can be one of `qrnumeric, healthcard, jws, jwspayload, fhirbundle, keyset`. The validation errors, if any, are returned in an array. For example:
+
+                import { validate } from 'health-cards-validation-sdk/js/src/api.js'
+                const jwsString = 'eyJ6aXAiOiJ...';
+                const errors = validate.jws(jwsString);
 
 ## Validating tests
 
