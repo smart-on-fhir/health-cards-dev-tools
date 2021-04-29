@@ -94,11 +94,14 @@ Issuer signing public keys (encoded in a JSON Web Key Set) can be validated befo
 
                 node . --path issuerPublicKeys.json --type jwkset
 
-The tool can be invoked programmaticaly by installing the `.tgz` file resulting from `npm pack` in a project, by importing the `src/api.js` file, and by calling the right `validate.<artifact-type>` method, where `<artifact-type>` can be one of `qrnumeric, healthcard, jws, jwspayload, fhirbundle, keyset`. The validation errors, if any, are returned in an array. For example:
+The tool can be invoked programmatically. First, install the tool in your own project, either from  GitHub via `npm install microsoft/health-cards-validation-SDK`, or from a local .tgz file resulting from `npm pack` as described above. Then import `src/api.js` and call the right `validate.<artifact-type>` method, where `<artifact-type>` can be one of `qrnumeric`, `healthcard`, `jws`, `jwspayload`, `fhirbundle`, or `keyset`. The validation results, if any, are returned in Promise-wrapped array. For example you could check a JWS via:
 
-                import { validate } from 'health-cards-validation-sdk/js/src/api.js'
-                const jwsString = 'eyJ6aXAiOiJ...';
-                const errors = validate.jws(jwsString);
+```js
+import { validate } from 'health-cards-validation-sdk/js/src/api.js'
+const jwsString = 'eyJ6aXAiOiJ...';
+const results = validate.jws(jwsString);
+results.then(console.log)
+```
 
 ## Validating tests
 
