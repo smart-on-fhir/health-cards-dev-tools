@@ -46,12 +46,12 @@ async function validateJws(text: string, logLevel: LogLevels = LogLevels.WARNING
     return formatOutput(result.log, logLevel);
 }
 
-function validateJwspayload(payload: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
+async function validateJwspayload(payload: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
     const result = jwsPayload.validate(payload);
     return Promise.resolve(formatOutput(result.log, logLevel));
 }
 
-function validateFhirBundle(json: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
+async function validateFhirBundle(json: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
     const result = fhirBundle.validate(json);
     return Promise.resolve(formatOutput(result.log, logLevel));
 }
