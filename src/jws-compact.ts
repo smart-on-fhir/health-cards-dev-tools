@@ -12,6 +12,7 @@ import jose from 'node-jose';
 import Log from './logger';
 import { ValidationResult } from './validate';
 import { verifyAndImportHealthCardIssuerKey } from './shcKeyValidator';
+import { parseJson } from './utils';
 
 export const JwsValidationOptions = {
     skipJwksDownload: false,
@@ -70,27 +71,30 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
 
     let headerJson;
     if (headerBytes) {
-        headerJson = JSON.parse(headerBytes.toString());
-        if (!headerJson) {
+        headerJson = parseJson<{ kid: string, alg: string, zip: string }>(headerBytes.toString());
+
+        if (headerJson == null) {
             log.error(["Can't parse JWS header as JSON.",
                 errString].join('\n'),
                 ErrorCode.JWS_HEADER_ERROR);
+        } else {
+            const headerKeys = Object.keys(headerJson);
+            if (!headerKeys.includes('alg')) {
+                log.error("JWS header missing 'alg' property.", ErrorCode.JWS_HEADER_ERROR);
+            } else if (headerJson['alg'] !== 'ES256') {
+                log.error(`Wrong value for JWS header property 'alg' property; expected: "ES256", actual: "${headerJson['alg']}".`, ErrorCode.JWS_HEADER_ERROR);
+            }
+            if (!headerKeys.includes('zip')) {
+                log.error("JWS header missing 'zip' property.", ErrorCode.JWS_HEADER_ERROR);
+            } else if (headerJson['zip'] !== 'DEF') {
+                log.error(`Wrong value for JWS header property 'zip' property; expected: "DEF", actual: "${headerJson['zip']}".`, ErrorCode.JWS_HEADER_ERROR);
+            }
+            if (!headerKeys.includes('kid')) {
+                log.error("JWS header missing 'kid' property.", ErrorCode.JWS_HEADER_ERROR);
+            }
+
+            // the value of the kid will be used in the crypto validation of the signature to select the issuer's public key
         }
-        const headerKeys = Object.keys(headerJson);
-        if (!headerKeys.includes('alg')) {
-            log.error("JWS header missing 'alg' property.", ErrorCode.JWS_HEADER_ERROR);
-        } else if (headerJson['alg'] !== 'ES256') {
-            log.error(`Wrong value for JWS header property 'alg' property; expected: "ES256", actual: "${headerJson['alg']}".`, ErrorCode.JWS_HEADER_ERROR);
-        }
-        if (!headerKeys.includes('zip')) {
-            log.error("JWS header missing 'zip' property.", ErrorCode.JWS_HEADER_ERROR);
-        } else if (headerJson['zip'] !== 'DEF') {
-            log.error(`Wrong value for JWS header property 'zip' property; expected: "DEF", actual: "${headerJson['zip']}".`, ErrorCode.JWS_HEADER_ERROR);
-        }
-        if (!headerKeys.includes('kid')) {
-            log.error("JWS header missing 'kid' property.", ErrorCode.JWS_HEADER_ERROR);
-        }
-        // the value of the kid will be used in the crypto validation of the signature to select the issuer's public key
     }
 
     // check signature format
@@ -107,8 +111,8 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
 
     if (sigBytes && sigBytes.length > 64 && sigBytes[0] === 0x30 && sigBytes[2] === 0x02) {
 
-        log.error("Signature appears to be in DER encoded form. Signature is expected to be 64-byte r||s concatenated form.\n" + 
-        "See https://tools.ietf.org/html/rfc7515#appendix-A.3 for expected ES256 signature form.", ErrorCode.SIGNATURE_FORMAT_ERROR);
+        log.error("Signature appears to be in DER encoded form. Signature is expected to be 64-byte r||s concatenated form.\n" +
+            "See https://tools.ietf.org/html/rfc7515#appendix-A.3 for expected ES256 signature form.", ErrorCode.SIGNATURE_FORMAT_ERROR);
 
         // DER encoded signature will constructed as follows:
         // 0             |1                       |2            |3                 |4-35                       |36           |37                |38-69
@@ -164,7 +168,7 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
             } catch (err) {
                 log.error(
                     ["Error inflating JWS payload. Did you use raw DEFLATE compression?",
-                    (err as string)].join('\n'),
+                        (err as string)].join('\n'),
                     ErrorCode.INFLATION_ERROR);
                 // inflating failed, let's try to parse the base64-decoded string directly
                 b64DecodedPayloadString = b64DecodedPayloadBuffer.toString('utf-8');
@@ -191,7 +195,7 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
     if (payload.iss) {
         if (typeof payload.iss === 'string') {
 
-            if (payload.iss.slice(0,8) !== 'https://') {
+            if (payload.iss.slice(0, 8) !== 'https://') {
                 log.error("Issuer URL SHALL use https", ErrorCode.INVALID_ISSUER_URL);
             }
 
@@ -215,7 +219,7 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
         log.error("Can't find 'iss' entry in JWS payload", ErrorCode.SCHEMA_ERROR);
     }
 
-    if (await verifyJws(jws, headerJson['kid'], log)) {
+    if (headerJson && await verifyJws(jws, headerJson['kid'], log)) {
         log.info("JWS signature verified");
     }
 
@@ -228,20 +232,20 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.K
     const jwkURL = issuerURL + '/.well-known/jwks.json';
     log.info("Retrieving issuer key from " + jwkURL);
 
-    return await got(jwkURL, {timeout: JwsValidationOptions.jwksDownloadTimeOut}).json<keys.KeySet>()
+    return await got(jwkURL, { timeout: JwsValidationOptions.jwksDownloadTimeOut }).json<keys.KeySet>()
         .then(async keySet => {
             log.debug("Downloaded issuer key(s) : ");
             let result;
             try {
                 result = (await verifyAndImportHealthCardIssuerKey(keySet, log, issuerURL)).result as (keys.KeySet | undefined)
             } catch (err) {
-                log.error("Can't parse downloaded issuer JWK set: " + err, ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
+                log.error("Can't parse downloaded issuer JWK set: " + (err as Error).toString(), ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
                 return undefined;
             }
             return result;
         })
         .catch(err => {
-            log.error("Failed to download issuer JWK set: " + err, ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
+            log.error("Failed to download issuer JWK set: " + (err as Error).toString(), ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
             return undefined;
         });
 

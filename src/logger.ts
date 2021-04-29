@@ -30,7 +30,7 @@ export enum LogLevels {
 export default class Log {
     public child: Log | undefined;
     public log: LogItem[] = [];
-    // static exclusion list, because each Log object is constucted in different files
+    // static exclusion list, because each Log object is constructed in different files
     public static Exclusions: Set<ErrorCode> = new Set<ErrorCode>();
     private _exitCode = 0;
 
