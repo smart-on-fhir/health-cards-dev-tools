@@ -1,13 +1,12 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-//import fhir_schema from '../schema/fhir-schema-full.json';
 import fs from 'fs';
-import JSZip from 'jszip'
-import got from 'got'
+import JSZip from 'jszip';
+import got from 'got';
 
 
-const fullSchemaLink = 'https://hl7.org/fhir/fhir.schema.json.zip'
+const fullSchemaLink = 'https://hl7.org/fhir/R4/fhir.schema.json.zip';
 
 
 //
@@ -20,7 +19,10 @@ async function getFullSchema(): Promise<Schema> {
     const outPath = './schema/fhir-schema-full.json';
     const zipFileName = "fhir.schema.json";
 
-    const zipBuffer = await got(fullSchemaLink).buffer();
+    const zipBuffer = await got(fullSchemaLink).buffer().catch(err => {
+        console.log('Error downloading ' + fullSchemaLink + ' : ' + (err as Error).message);
+        process.exit(1);
+    });
 
     // process the buffer with zip
     const zipArchive = await zip.loadAsync(zipBuffer);
