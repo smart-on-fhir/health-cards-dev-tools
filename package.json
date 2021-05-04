@@ -12,7 +12,8 @@
         "test": "jest --silent --rootDir tests",
         "generate-crypto-test-data": "ts-node --files src/generate-crypto-test-data",
         "update-validator": "git pull && npm install && npm run build",
-        "lint": "eslint --config .eslintrc.json --ext .ts ./src ./tests"
+        "lint": "eslint --config .eslintrc.json --ext .ts ./src ./tests",
+        "prune-fhir-schema": "ts-node --files src/prune-fhir-schema.ts"
     },
     "author": "",
     "license": "MIT",
