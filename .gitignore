@@ -128,3 +128,6 @@ testdata/missing_kid_key.json
 
 # temp files
 tmp/*
+
+# full fhir schema
+schema/fhir-schema-full.json

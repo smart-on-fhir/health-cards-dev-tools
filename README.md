@@ -114,7 +114,7 @@ The tool currently verifies proper encoding of the:
  - FHIR bundle (basic schema validation).
  - Issuer JSON Key Set (schema, algorithm, EC Curve, ID, type, usage)
 
-Validation of the FHIR bundle is currently limited. Extensive tests and conformance to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/) can be performed by the [FHIR validator](https://wiki.hl7.org/Using_the_FHIR_Validator) tool.
+Validation of the FHIR bundle is currently limited. The tool validates a subset of the full FHIR schema; the behavior can be changed by modifying the `srs/prune-fhir-schema.ts` script. Extensive tests and conformance to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/) can be performed by the [FHIR validator](https://wiki.hl7.org/Using_the_FHIR_Validator) tool.
 
 ## Contributing
 
