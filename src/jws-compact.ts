@@ -7,7 +7,7 @@ import jwsCompactSchema from '../schema/jws-schema.json';
 import * as jwsPayload from './jws-payload';
 import * as keys from './keys';
 import pako from 'pako';
-import got from 'got';
+import got, { CancelableRequest } from 'got';
 import jose from 'node-jose';
 import Log from './logger';
 import { ValidationResult } from './validate';
@@ -231,24 +231,36 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.K
 
     const jwkURL = issuerURL + '/.well-known/jwks.json';
     log.info("Retrieving issuer key from " + jwkURL);
-
-    return await got(jwkURL, { timeout: JwsValidationOptions.jwksDownloadTimeOut }).json<keys.KeySet>()
-        .then(async keySet => {
-            log.debug("Downloaded issuer key(s) : ");
-            let result;
-            try {
-                result = (await verifyAndImportHealthCardIssuerKey(keySet, log, issuerURL)).result as (keys.KeySet | undefined)
-            } catch (err) {
-                log.error("Can't parse downloaded issuer JWK set: " + (err as Error).toString(), ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
-                return undefined;
+    const requestedOrigin = 'example.org'; // request bogus origin to test CORS response
+    try {
+        const response = await got(jwkURL, { headers: {Origin: requestedOrigin}, timeout: JwsValidationOptions.jwksDownloadTimeOut });
+        // we expect a CORS response header consistent with the requested origin (either allow all '*' or the specific origin)
+        // TODO: can we easily add a unit test for this?
+        const acaoHeader = response.headers['access-control-allow-origin'];
+        if (!acaoHeader) {
+            log.warn("Issuer key endpoint does not contain a 'access-control-allow-origin' header for Cross-Origin Resource Sharing (CORS)", ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS);
+        } else if (acaoHeader !== '*' &&
+                   // check if server added a scheme prefix
+                   (acaoHeader.startsWith('https://') ? acaoHeader.substring('https://'.length) !== requestedOrigin :
+                   (acaoHeader.startsWith('http://') ? acaoHeader.substring('http://'.length) !== requestedOrigin :
+                   (acaoHeader !== requestedOrigin)))) {
+            log.warn(`Issuer key endpoint's 'access-control-allow-origin' header ${acaoHeader} does not match the requested origin ${requestedOrigin}, for Cross-Origin Resource Sharing (CORS)`, ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS);
+        }
+        try {
+            const keySet = parseJson<keys.KeySet>(response.body);
+            if (!keySet) {
+                throw "Failed to parse JSON KeySet schema";
             }
-            return result;
-        })
-        .catch(err => {
-            log.error("Failed to download issuer JWK set: " + (err as Error).toString(), ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
+            log.debug("Downloaded issuer key(s) : ");
+            return (await verifyAndImportHealthCardIssuerKey(keySet, log, issuerURL)).result as (keys.KeySet | undefined);
+        } catch (err) {
+            log.error("Can't parse downloaded issuer JWK set: " + (err as Error).toString(), ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
             return undefined;
-        });
-
+        }
+    } catch(err) {
+        log.error("Failed to download issuer JWK set: " + (err as Error).toString(), ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
+        return undefined;
+    }
 }
 
 
