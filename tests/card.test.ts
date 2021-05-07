@@ -197,6 +197,10 @@ test("Cards: invalid issuer url (trailing /)",
     testCard(['test-example-00-e-file-issuer_url_with_trailing_slash.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL].concat(OPENSSL_AVAILABLE ? [ErrorCode.INVALID_KEY_X5C] : [])])
 );
 
+test("Cards: invalid JWK set",
+    testCard(['test-example-00-e-file-bad_jwks.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR]])
+);
+
 test("Cards: invalid QR header", 
     testCard(['test-example-00-f-qr-code-numeric-wrong_qr_header.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR_HEADER]])
 );

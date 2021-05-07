@@ -18,6 +18,7 @@ export enum ErrorCode {
     SIGNATURE_FORMAT_ERROR,
     QR_DECODE_ERROR, // fatal
     ISSUER_KEY_DOWNLOAD_ERROR,
+    ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS,
     INVALID_ISSUER_URL,
     INVALID_QR,
     INVALID_NUMERIC_QR,
@@ -68,7 +69,8 @@ export const ExcludableErrors: ExcludableError[] = [
     new ExcludableError('unbalanced-qr-chunks', [ErrorCode.UNBALANCED_QR_CHUNKS]),
     new ExcludableError('jws-too-long', [ErrorCode.JWS_TOO_LONG]),
     new ExcludableError('invalid-file-extension', [ErrorCode.INVALID_FILE_EXTENSION]),
-    new ExcludableError('trailing-characters', [ErrorCode.TRAILING_CHARACTERS])
+    new ExcludableError('trailing-characters', [ErrorCode.TRAILING_CHARACTERS]),
+    new ExcludableError('issuer-wellknown-endpoint-cors', [ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS])
 ]
 
 export function getExcludeErrorCodes(errors: string[]): Set<ErrorCode> {
