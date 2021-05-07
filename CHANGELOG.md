@@ -1,5 +1,10 @@
 # CHANGE LOG
 
+## v1.0.0-0
+ - Followed spec version change to v1.0.0
+ - Scoped FHIR schema parsing to improve valitation time
+ - Check CORS response when fetching issuer keys
+
 ## v0.4.5-3
  - Added wildcard error exclusion
  - Added npm packing and preparation for redistribution
