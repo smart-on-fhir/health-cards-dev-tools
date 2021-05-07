@@ -231,7 +231,7 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.K
 
     const jwkURL = issuerURL + '/.well-known/jwks.json';
     log.info("Retrieving issuer key from " + jwkURL);
-    const requestedOrigin = 'example.org'; // request bogus origin to test CORS response
+    const requestedOrigin = 'https://example.org'; // request bogus origin to test CORS response
     try {
         const response = await got(jwkURL, { headers: {Origin: requestedOrigin}, timeout: JwsValidationOptions.jwksDownloadTimeOut });
         // we expect a CORS response header consistent with the requested origin (either allow all '*' or the specific origin)
@@ -239,11 +239,7 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.K
         const acaoHeader = response.headers['access-control-allow-origin'];
         if (!acaoHeader) {
             log.warn("Issuer key endpoint does not contain a 'access-control-allow-origin' header for Cross-Origin Resource Sharing (CORS)", ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS);
-        } else if (acaoHeader !== '*' &&
-                   // check if server added a scheme prefix
-                   (acaoHeader.startsWith('https://') ? acaoHeader.substring('https://'.length) !== requestedOrigin :
-                   (acaoHeader.startsWith('http://') ? acaoHeader.substring('http://'.length) !== requestedOrigin :
-                   (acaoHeader !== requestedOrigin)))) {
+        } else if (acaoHeader !== '*' && acaoHeader !== requestedOrigin) {
             log.warn(`Issuer key endpoint's 'access-control-allow-origin' header ${acaoHeader} does not match the requested origin ${requestedOrigin}, for Cross-Origin Resource Sharing (CORS)`, ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS);
         }
         try {
