@@ -10,8 +10,14 @@ import Log from './logger';
 import { ValidationResult } from './validate';
 import beautify from 'json-beautify'
 
-export class FhirLogOutput {
-    static Path = '';
+export enum ValidationProfiles {
+    'any',
+    'usa-covid19-immunization'
+}
+
+export class FhirOptions {
+    static LogOutputPath = '';
+    static ValidationProfile:ValidationProfiles = ValidationProfiles.any;
 }
 
 export function validate(fhirBundleText: string): ValidationResult {
@@ -31,8 +37,8 @@ export function validate(fhirBundleText: string): ValidationResult {
         }
     }
 
-    if (FhirLogOutput.Path) {
-        fs.writeFileSync(FhirLogOutput.Path, fhirBundleText); // should we instead print out the output of beautify
+    if (FhirOptions.LogOutputPath) {
+        fs.writeFileSync(FhirOptions.LogOutputPath, fhirBundleText); // should we instead print out the output of beautify
     }
 
     // failures will be recorded in the log
