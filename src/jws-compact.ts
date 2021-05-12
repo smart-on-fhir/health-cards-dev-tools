@@ -23,11 +23,12 @@ export const schema = jwsCompactSchema;
 
 const MAX_JWS_SINGLE_CHUNK_LENGTH = 1195;
 
-export async function validate(jws: JWS): Promise<ValidationResult> {
+export async function validate(jws: JWS, index = ''): Promise<ValidationResult> {
 
     // the jws string is not JSON.  It is base64url.base64url.base64url
 
-    const log = new Log('JWS-compact');
+    // output the index if there the VC includes more than one JWS
+    const log = new Log((index ? '[' + index + '] ' : '') + 'JWS-compact');
 
     if (jws.trim() !== jws) {
         log.warn(`JWS has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
@@ -179,7 +180,7 @@ export async function validate(jws: JWS): Promise<ValidationResult> {
     // try to validate the payload (even if inflation failed)
     const payloadResult = jwsPayload.validate(inflatedPayload || b64DecodedPayloadString || rawPayload);
     const payload = payloadResult.result as JWSPayload;
-    log.child = payloadResult.log;
+    log.child.push(payloadResult.log);
 
 
     // if we did not get a payload back, it failed to be parsed and we cannot extract the key url

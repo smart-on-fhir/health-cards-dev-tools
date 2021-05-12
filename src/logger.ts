@@ -28,7 +28,7 @@ export enum LogLevels {
 
 // eslint-disable-next-line no-var
 export default class Log {
-    public child: Log | undefined;
+    public child: Log[] = [];
     public log: LogItem[] = [];
     // static exclusion list, because each Log object is constructed in different files
     public static Exclusions: Set<ErrorCode> = new Set<ErrorCode>();
@@ -38,17 +38,10 @@ export default class Log {
 
     public get exitCode(): number {
 
-        if (this.child) {
-            const childExitCode = this.child.exitCode;
-
-            // the child should not return a different fatal exitCode
-            if (this._exitCode && (childExitCode === this._exitCode)) {
-                throw new Error("Exit code overwritten. Should only have one fatal error.");
-            }
-
+        this.child.forEach(c => {
             // set this exit code to the child if it's currently 0
-            this._exitCode = this._exitCode || childExitCode;
-        }
+            this._exitCode = this._exitCode || c.exitCode;
+        });
 
         return this._exitCode;
     }
@@ -104,7 +97,7 @@ export default class Log {
     // collects errors from all children into a single collection; specify level to filter >= level
     flatten(level: LogLevels = LogLevels.DEBUG): { title: string, message: string, code: ErrorCode, level: LogLevels }[] {
 
-        const items = this.log
+        let items = this.log
             .filter((item) => {
                 return item.logLevel >= level;
             })
@@ -112,11 +105,13 @@ export default class Log {
                 return { title: this.title, message: e.message, code: e.code, level: e.logLevel };
             });
 
-        return (this.child) ? items.concat(this.child.flatten(level)) : items;
+        this.child.forEach(c => items = items.concat(c.flatten(level)));
+
+        return items;
     }
 
     toString(level: LogLevels = LogLevels.INFO): string {
-        return formatOutput(this, '', level).join('\n');
+        return formatOutput(this, level).join('\n');
     }
 
     toFile(path: string, options: CliOptions, append = true): void {
@@ -126,71 +121,67 @@ export default class Log {
 }
 
 
-function list(title: string, items: LogItem[], indent: string, color: (c: string) => string) {
+function list(title: string, items: LogItem[], color: (c: string) => string) {
 
-    const results: string[] = [];
+    const results: string[] = items.length ? [color(title)] : [];
 
-    if (items.length === 0) return results;
-
-    results.push(indent + "|");
-    results.push([indent, "├─ ", color(title), ' : '].join(''));
-
-    for (let i = 0; i < items.length; i++) {
-        const lines = items[i].message.split('\n');
-        for (let j = 0; j < lines.length; j++) {
-            results.push([indent, '|    ', color(lines[j])].join(''));
-        }
-    }
+    items.forEach(e => {
+        const lines = e.message.split('\n');
+        lines.forEach((l, i) => results.push(color((i === 0 ? '  · ' : '    ') + l)));
+    });
 
     return results;
 }
 
 
-function formatOutput(outputTree: Log, indent: string, level: LogLevels): string[] {
+function formatOutput(outputTree: Log, level: LogLevels): string[] {
 
-    let results: string[] = [];
-
-    results.push(indent + color.bold(outputTree.title));
-    indent = '    ' + indent;
+    let results: string[][] = [];
 
     switch (level) {
 
         case LogLevels.DEBUG:
-            results = results.concat(list("Debug", outputTree.get(LogLevels.DEBUG), indent + ' ', color.gray));
+            results.push(list("Debug", outputTree.get(LogLevels.DEBUG), color.gray));
         // eslint-disable-next-line no-fallthrough
         case LogLevels.INFO:
-            results = results.concat(list("Info", outputTree.get(LogLevels.INFO), indent + ' ', color.white.dim));
+            results.push(list("Info", outputTree.get(LogLevels.INFO), color.white.dim));
         // eslint-disable-next-line no-fallthrough
         case LogLevels.WARNING:
-            results = results.concat(list("Warning", outputTree.get(LogLevels.WARNING), indent + ' ', color.yellow));
+            results.push(list("Warning", outputTree.get(LogLevels.WARNING), color.yellow));
         // eslint-disable-next-line no-fallthrough
         case LogLevels.ERROR:
-            results = results.concat(list("Error", outputTree.get(LogLevels.ERROR), indent + ' ', color.red));
+            results.push(list("Error", outputTree.get(LogLevels.ERROR), color.red));
         // eslint-disable-next-line no-fallthrough
         case LogLevels.FATAL:
-            results = results.concat(list("Fatal", outputTree.get(LogLevels.FATAL), indent + ' ', color.red.inverse));
+            results.push(list("Fatal", outputTree.get(LogLevels.FATAL), color.red.inverse));
     }
 
-    if (outputTree.child) {
-        results.push(indent + ' |');
-        results = results.concat(formatOutput(outputTree.child, indent, level));
-    } else {
-        makeLeaf(results);
-    }
+    // remove empty entries
+    results = results.filter(r => r.length);
 
-    return results;
+    outputTree.child.forEach(c => results.push(formatOutput(c, level)));
+
+    return [color.bold(outputTree.title)].concat(results.map<string[]>((r, i) => {
+        const lastChild = (i === results.length - 1);
+        return [lines[0]].concat(r.map((s, j) => {
+            if (j === 0 && lastChild) { return lines[1] + s; }
+            if (j === 0) { return lines[2] + s; }
+            if (lastChild) { return lines[3] + s; }
+            return lines[0] + s;
+        }));
+    }).flat());
+
 }
 
-// removes the line leading to the next child
-function makeLeaf(items: string[]) {
-    for (let i = items.length - 1; i >= 0; i--) {
-        if (items[i].trim()[0] === '├') {
-            items[i] = items[i].replace('├', '└');
-            break;
-        }
-        items[i] = items[i].replace('|', ' ');
-    }
-}
+
+const indentL = '   ';
+const indentR = '  ';
+const lines = [
+    color.dim(indentL + '│' + indentR),
+    color.dim(indentL + '└─' + indentR.slice(0, indentR.length - 1)),
+    color.dim(indentL + '├─' + indentR.slice(0, indentR.length - 1)),
+    color.dim(indentL + ' ' + indentR)
+];
 
 
 function toFile(log: Log, logPath: string, options: CliOptions, append = true) {
