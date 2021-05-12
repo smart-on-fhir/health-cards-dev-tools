@@ -10,7 +10,7 @@
         "validate-example": "ts-node --files src/shc-validator.ts --path testdata/valid_key.json --type jwkset --loglevel info",
         "pretest": "npm run fetch-examples",
         "test": "jest --silent --rootDir tests",
-        "generate-crypto-test-data": "ts-node --files src/generate-crypto-test-data",
+        "generate-test-data": "ts-node --files src/generate-test-data",
         "update-validator": "git pull && npm install && npm run build",
         "lint": "eslint --config .eslintrc.json --ext .ts ./src ./tests",
         "prune-fhir-schema": "ts-node --files src/prune-fhir-schema.ts"
