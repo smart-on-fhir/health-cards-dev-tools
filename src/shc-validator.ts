@@ -16,6 +16,7 @@ import { FhirOptions, ValidationProfiles } from './fhirBundle';
 import * as versions from './check-for-update';
 import semver from 'semver';
 import { JwsValidationOptions } from './jws-compact';
+import color from 'colors';
 
 /**
  *  Defines the program
@@ -63,7 +64,7 @@ function exit(message: string, exitCode: ErrorCode = 0): void {
  */
 async function processOptions(options: CliOptions) {
 
-    console.log("SMART Health Card Validation SDK v" + npmpackage.version);
+    console.log(color.dim("SMART Health Card Validation SDK v" + npmpackage.version) + '\n');
 
 
     // check the latest SDK and spec version
@@ -210,7 +211,7 @@ async function processOptions(options: CliOptions) {
             console.log(`NOTE: the SDK v${npmpackage.version} is not validating the latest version of the spec: v${v}`);
         }
     })
-    console.log("Validation completed");
+    console.log("\nValidation completed");
 }
 
 

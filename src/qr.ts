@@ -16,7 +16,7 @@ export async function validate(qr: string[]): Promise<{ result: JWS | undefined,
 
     const jwsString: JWS | undefined = shcChunksToJws(qr, log);
 
-    jwsString && (log.child = (await jws.validate(jwsString)).log);
+    jwsString && (log.child.push((await jws.validate(jwsString)).log));
 
     return { result: jwsString, log: log };
 }
