@@ -78,7 +78,7 @@ export function validate(jwsPayloadText: string): ValidationResult {
 
     const fhirBundleText = JSON.stringify(jwsPayload.vc.credentialSubject.fhirBundle);
 
-    log.child = (fhirBundle.validate(fhirBundleText)).log;
+    log.child.push((fhirBundle.validate(fhirBundleText)).log);
 
 
     return { result: jwsPayload, log: log };

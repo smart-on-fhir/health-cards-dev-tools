@@ -31,7 +31,7 @@ export async function validate(images: FileInfo[]): Promise<{ result: JWS | unde
     }
 
 
-    log.child = (await qr.validate(shcStrings)).log;
+    log.child.push((await qr.validate(shcStrings)).log);
 
 
     return { result: JSON.stringify(shcStrings), log: log };
