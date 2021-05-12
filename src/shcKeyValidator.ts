@@ -18,8 +18,8 @@ import { Certificate } from '@fidm/x509'
 // directory where to write cert files for openssl validation
 const tmpDir = 'tmp';
 // PEM and ASN.1 DER constants
-const PEM_CERT_HEADER = '-----BEGIN CERTIFICATE-----\n';
-const PEM_CERT_FOOTER = '\n-----END CERTIFICATE-----';
+const PEM_CERT_HEADER = '-----BEGIN CERTIFICATE-----';
+const PEM_CERT_FOOTER = '-----END CERTIFICATE-----';
 const PEM_CERT_FILE_EXT = '.pem';
 const EC_P256_ASN1_PUBLIC_KEY_HEADER_HEX = "3059301306072a8648ce3d020106082a8648ce3d030107034200";
 const EC_COMPRESSED_KEY_HEX = "04";
@@ -79,7 +79,17 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
             // all other certs in the x5c array are intermediate certs
             caArg += ' -untrusted ' + certFileName;
         }
-        fs.writeFileSync(certFileName, PEM_CERT_HEADER + cert + PEM_CERT_FOOTER);
+
+        // break the base64 string into lines of 64 characters (PEM format)
+        const certLines = cert.match(/(.{1,64})/g);
+        if (!certLines || certLines.length == 0) {
+            throw 'x5c[' + index + '] in issuer JWK set is not properly formatted';
+        }
+        // add the PEM header/footer
+        certLines.unshift(PEM_CERT_HEADER);
+        certLines.push(PEM_CERT_FOOTER);
+        // write the PEM cert to file for openssl validation
+        fs.writeFileSync(certFileName, certLines.join('\n'));
         return certFileName;
     })
     try {
@@ -98,7 +108,7 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
         // extract issuer cert fields
         //
         const logX5CError = (field:string) => log.error(`Can't parse ${field} in the issuer's cert (in x5c JWK value)`, ErrorCode.INVALID_KEY_X5C);
-        const cert = Certificate.fromPEM(Buffer.from(PEM_CERT_HEADER + x5c[0] + PEM_CERT_FOOTER));
+        const cert = Certificate.fromPEM(Buffer.from(PEM_CERT_HEADER + '\n' + x5c[0] + '\n' + PEM_CERT_FOOTER));
         const sanExt = cert.getExtension('subjectAltName');
         let subjectAltName = '';
         // TODO (what if there are more than one SAN? return all of them, make sure the issuer URL is one of them?)
