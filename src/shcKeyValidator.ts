@@ -13,13 +13,13 @@ import fs from 'fs';
 import path from 'path';
 import {v4 as uuidv4} from 'uuid';
 import { isOpensslAvailable } from './utils'
-
+import { Certificate } from '@fidm/x509'
 
 // directory where to write cert files for openssl validation
 const tmpDir = 'tmp';
 // PEM and ASN.1 DER constants
-const PEM_CERT_HEADER = '-----BEGIN CERTIFICATE-----\n';
-const PEM_CERT_FOOTER = '\n-----END CERTIFICATE-----';
+const PEM_CERT_HEADER = '-----BEGIN CERTIFICATE-----';
+const PEM_CERT_FOOTER = '-----END CERTIFICATE-----';
 const PEM_CERT_FILE_EXT = '.pem';
 const EC_P256_ASN1_PUBLIC_KEY_HEADER_HEX = "3059301306072a8648ce3d020106082a8648ce3d030107034200";
 const EC_COMPRESSED_KEY_HEX = "04";
@@ -41,8 +41,8 @@ const PEMtoDER = (pem: string[]) => Buffer.from(pem.slice(1,-2).join(), "base64"
 interface CertFields {
     x: string;
     y: string;
-    notBefore: string;
-    notAfter: string;
+    notBefore: Date | undefined;
+    notAfter: Date | undefined;
     subjectAltName: string;
 }
 
@@ -55,7 +55,6 @@ interface EcPublicJWK extends JWK.Key {
 // validate a JWK certificate chain (x5c value)
 function validateX5c(x5c: string[], log: Log): CertFields | undefined {
     // we use OpenSSL to validate the certificate chain, first check if present
-    // NOTE: the code below only works with OpenSSL 1.1.1, TODO: fix so it also works with 1.0.2 and libressl
     if (!isOpensslAvailable()) {
         log.warn('OpenSSL not available to validate the X.509 certificate chain; skipping validation', ErrorCode.OPENSSL_NOT_AVAILABLE);
         return;
@@ -80,13 +79,22 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
             // all other certs in the x5c array are intermediate certs
             caArg += ' -untrusted ' + certFileName;
         }
-        fs.writeFileSync(certFileName, PEM_CERT_HEADER + cert + PEM_CERT_FOOTER);
+
+        // break the base64 string into lines of 64 characters (PEM format)
+        const certLines = cert.match(/(.{1,64})/g);
+        if (!certLines || certLines.length == 0) {
+            throw 'x5c[' + index + '] in issuer JWK set is not properly formatted';
+        }
+        // add the PEM header/footer
+        certLines.unshift(PEM_CERT_HEADER);
+        certLines.push(PEM_CERT_FOOTER);
+        // write the PEM cert to file for openssl validation
+        fs.writeFileSync(certFileName, certLines.join('\n'));
         return certFileName;
     })
-    let x509OutFile = '';
     try {
         //
-        // validate the chain with OpenSSL
+        // validate the chain with OpenSSL (should work with v1.0.2, v1.1.1, and libressl v3.x)
         //
         const opensslVerifyCommand = "openssl verify " + rootCaArg + caArg + issuerCert;
         log.debug('Calling openssl for x5c validation: ' + opensslVerifyCommand);
@@ -97,58 +105,50 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
         }
 
         //
-        // extract issuer cert fields with OpenSSL
+        // extract issuer cert fields
         //
-        x509OutFile = path.join(tmpDir,tmpFileName + '.txt');
-        const opensslX509Command = 'openssl x509 -in ' + issuerCert + ' -noout -ext subjectAltName -startdate -enddate -pubkey -out ' + x509OutFile;
-        // output will be, for example: 
-        //   X509v3 Subject Alternative Name:
-        //       URI:<issuer URL>
-        //   notBefore=Mar 29 15:42:17 2021 GMT
-        //   notAfter=Mar 28 15:42:17 2026 GMT
-        //   -----BEGIN PUBLIC KEY-----
-        //   <multi-line base64 encoded key>
-        //   -----END PUBLIC KEY-----
-        log.debug('Calling openssl for parsing issuer cert: ' + opensslX509Command);
-        result = execa.commandSync(opensslX509Command);
-        if (result.exitCode != 0) {
-            log.debug(result.stderr);
-            throw 'OpenSSL returned an error: exit code ' + result.exitCode;
-        }
-        
-        //
-        // Validate the issuer cert fields
-        //
-        const x509OutLines = fs.readFileSync(x509OutFile, 'utf-8').split(/\r?\n/);
-        let lineIndex = 0;
+        const logX5CError = (field:string) => log.error(`Can't parse ${field} in the issuer's cert (in x5c JWK value)`, ErrorCode.INVALID_KEY_X5C);
+        const cert = Certificate.fromPEM(Buffer.from(PEM_CERT_HEADER + '\n' + x5c[0] + '\n' + PEM_CERT_FOOTER));
+        const sanExt = cert.getExtension('subjectAltName');
         let subjectAltName = '';
-        if (!x509OutLines) throw 'Error reading OpenSSL x509 command output';
-        if (x509OutLines.length >= 8) {
-            lineIndex = 1;  // skip header line 0
-            subjectAltName = x509OutLines[lineIndex++].trim();
+        // TODO (what if there are more than one SAN? return all of them, make sure the issuer URL is one of them?)
+        if (!sanExt || !sanExt['altNames'] || !sanExt['altNames'][0]) {
+            logX5CError('subject alternative name');
         } else {
-            // are we missing the Subject Alt Name?
-            if (x509OutLines[0].trim().search('X509v3 Subject Alternative Name') <= 0) {
-                log.error("Missing Subject Alternative Name extension in the issuer's cert (in x5c JWK value)", ErrorCode.INVALID_KEY_X5C);
+            const subjectAltNameExt = sanExt['altNames'][0];
+            if (!subjectAltNameExt['uri'] || !subjectAltNameExt['tag']) {
+                logX5CError('subject alternative name');
             } else {
-                // something else is wrong
-                throw 'Too few lines output by OpenSSL x509 command';
+                if (subjectAltNameExt['tag'] != '6') { // URI
+                    const getTagName = (tag:string) => {
+                        // per RFC 5280
+                        switch(tag) {
+                            case '0': return 'otherName';
+                            case '1': return 'rfc822Name';
+                            case '2': return 'dNSName';
+                            case '3': return 'x400Address';
+                            case '4': return 'directoryName';
+                            case '5': return 'ediPartyName';
+                            case '6': return 'uniformResourceIdentifier';
+                            case '7': return 'iPAddress';
+                            case '8': return 'registeredID';
+                            default: return 'unknown';
+                        }
+                    }
+                    log.error(`Invalid subject alternative name prefix. Expected: 6 (URI). Actual: ${subjectAltNameExt['tag']} (${getTagName(subjectAltNameExt['tag'])})`, ErrorCode.INVALID_KEY_X5C);
+                }
+                subjectAltName = subjectAltNameExt['uri'];
             }
         }
-        
-        // 'prefix=Mon DD HH:MM:SS YYYY GMT' => 'Mon DD YYYY'
-        const parseOpenSSLDate = (date: string, prefix: string): string =>
-            date.substring(prefix.length, prefix.length + 7).concat(date.substring(date.length - 8, date.length - 4));
-        const notBefore = parseOpenSSLDate(x509OutLines[lineIndex++].trim(), 'notBefore=');
-        const notAfter = parseOpenSSLDate(x509OutLines[lineIndex++].trim(), 'notAfter=');
-        const derPublicKey = PEMtoDER(x509OutLines.slice(lineIndex));
-        if (derPublicKey.slice(0,26).toString('hex') !== EC_P256_ASN1_PUBLIC_KEY_HEADER_HEX) throw "Invalid EC P-256 ASN.1 public key header";
-        if (derPublicKey.slice(26,27).toString('hex') !== EC_COMPRESSED_KEY_HEX) throw "Invalid EC public key encoding";
+        if (!cert.publicKeyRaw) logX5CError('public key');
+        if (!cert.validFrom) logX5CError('validFrom');
+        if (!cert.validTo) logX5CError('validTo');
+
         return {
-            x: jose.util.base64url.encode(derPublicKey.slice(27,59)),
-            y: jose.util.base64url.encode(derPublicKey.slice(59,91)),
-            notBefore: notBefore,
-            notAfter: notAfter,
+            x: cert.publicKeyRaw ? jose.util.base64url.encode(cert.publicKeyRaw.slice(27,59)) : '',
+            y: cert.publicKeyRaw ? jose.util.base64url.encode(cert.publicKeyRaw.slice(59,91)) : '',
+            notBefore: cert.validFrom ? cert.validFrom : undefined,
+            notAfter: cert.validTo ? cert.validTo : undefined,
             subjectAltName: subjectAltName
         }
     } catch (err) {
@@ -157,7 +157,6 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
         certFiles.map((file) => {
             fs.unlinkSync(file);
         })
-        if (x509OutFile) fs.unlinkSync(x509OutFile);
     }
 }
 
@@ -206,21 +205,15 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
                 checkKeyValue('x');
                 checkKeyValue('y');
 
-                if (certFields.subjectAltName && certFields.subjectAltName.substring(0,4) !== "URI:") {
-                    const idx = certFields.subjectAltName.search(':');
-                    const prefix = idx > 0 ? certFields.subjectAltName.substring(0,idx) : 'no prefix found';
-                    log.error("Wrong prefix in the Subject Alternative Name extension of the issuer's cert (in x5c JWK value).\n" +
-                    `Expected: URI. Actual: ${prefix}`, ErrorCode.INVALID_KEY_X5C);
-                }
-                if (expectedSubjectAltName && certFields.subjectAltName && certFields.subjectAltName.substring(4) !== expectedSubjectAltName) {
+                if (expectedSubjectAltName && certFields.subjectAltName && certFields.subjectAltName !== expectedSubjectAltName) {
                     log.error("Subject Alternative Name extension in the issuer's cert (in x5c JWK value) doesn't match issuer URL.\n" +
                     `Expected: ${expectedSubjectAltName}. Actual: ${certFields.subjectAltName.substring(4)}`, ErrorCode.INVALID_KEY_X5C);
                 }
                 const now = new Date();
-                if (now < new Date(certFields.notBefore)) {
+                if (certFields.notBefore && now < certFields.notBefore) {
                     log.warn('issuer certificate (in x5c JWK value) is not yet valid', ErrorCode.INVALID_KEY_X5C);
                 }
-                if (now > new Date(certFields.notAfter)) {
+                if (certFields.notAfter && now > certFields.notAfter) {
                     log.warn('issuer certificate (in x5c JWK value) is expired', ErrorCode.INVALID_KEY_X5C);
                 }
             }

@@ -18,6 +18,7 @@
     "author": "",
     "license": "MIT",
     "dependencies": {
+        "@fidm/x509": "^1.2.1",
         "ajv": "^8.1.0",
         "bmp-js": "^0.1.0",
         "canvas": "^2.7.0",
