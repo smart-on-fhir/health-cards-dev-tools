@@ -104,10 +104,12 @@ async function processOptions(options: CliOptions) {
         FhirOptions.LogOutputPath = options.fhirout;
     }
 
+    
     // set the validation profile
     if (options.profile) {
         FhirOptions.ValidationProfile = ValidationProfiles[options.profile as keyof typeof ValidationProfiles];
     }
+
 
     // requires both --path and --type properties
     if (options.path.length === 0 || !options.type) {
@@ -185,7 +187,7 @@ async function processOptions(options: CliOptions) {
     if (options.type !== 'jwkset') {
 
         // validate a health card
-        const output = await validator.validateCard(fileData, options.type);
+        const output = await validator.validateCard(fileData, options);
         process.exitCode = output.log.exitCode;
 
         // if a logfile is specified, append to the specified logfile

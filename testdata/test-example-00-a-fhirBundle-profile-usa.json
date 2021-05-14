@@ -8,6 +8,7 @@
         "resourceType": "Patient",
         "name": [
           {
+            "id": "Patient-ID",
             "family": "Anyperson",
             "given": [
               "John",
@@ -20,6 +21,20 @@
     },
     {
       "fullUrl": "resource:1",
+      "resource": {
+        "resourceType": "Patient",
+        "name": [],
+        "birthDate": "1951-01-20"
+      }
+    },
+    {
+      "fullUrl": "resource:2",
+      "resource": {
+        "resourceType": "Medication"
+      }
+    },
+    {
+      "fullUrl": "resource:3",
       "resource": {
         "resourceType": "Immunization",
         "status": "completed",
@@ -41,12 +56,12 @@
             }
           }
         ],
-        "location" : "Safeway Parking Lot",
+        "location": "Safeway Parking Lot",
         "lotNumber": "0000001"
       }
     },
     {
-      "fullUrl": "resource:2",
+      "fullUrl": "resource:4",
       "resource": {
         "resourceType": "Immunization",
         "status": "completed",

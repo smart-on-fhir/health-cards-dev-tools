@@ -7,24 +7,34 @@ import { getFileData } from '../src/file';
 import { ErrorCode } from '../src/error';
 import Log, { LogLevels } from '../src/logger';
 import { isOpensslAvailable } from '../src/utils';
+import { CliOptions } from '../src/shc-validator';
 
 const testdataDir = './testdata/';
 
+
 // wrap testcard with a function that returns a function - now we don't need all 'async ()=> await' for every test case
-function testCard(fileName: string | string[], fileType: ValidationType = 'healthcard', expected: (number | null | undefined | ErrorCode[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null]) {
+function testCard(fileName: string | string[],
+    fileType: ValidationType = 'healthcard',
+    expected: (number | null | undefined | ErrorCode[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
+    options: Partial<CliOptions> = {}) {
+
     return async () => {
-        await _testCard(fileName, fileType, expected);
+        await _testCard(fileName, fileType, expected, options);
     }
 }
 
-async function _testCard(fileName: string | string[], fileType: ValidationType, expected: (number | null | undefined | ErrorCode[])[]): Promise<void> {
+async function _testCard(fileName: string | string[], fileType: ValidationType, expected: (number | null | undefined | ErrorCode[])[], options: Partial<CliOptions>): Promise<void> {
 
     if (typeof fileName === 'string') fileName = [fileName];
     const files = [];
     for (const fn of fileName) {
         files.push(await getFileData(path.join(testdataDir, fn)));
     }
-    const log = (await validateCard(files, fileType)).log.flatten();
+
+    options.type = fileType;
+
+    const log = (await validateCard(files, options as CliOptions)).log.flatten();
+
 
     const errors = [
         log.filter(i => i.level >= LogLevels.ERROR),
@@ -185,8 +195,8 @@ test("Cards: invalid issuer url",
     testCard(['test-example-00-e-file-invalid_issuer_url.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR]])
 );
 
-test("Cards: nbf in miliseconds",
-    testCard(['test-example-00-b-jws-payload-expanded-nbf_miliseconds.json'], 'jwspayload', [[ErrorCode.NOT_YET_VALID]])
+test("Cards: nbf in milliseconds",
+    testCard(['test-example-00-b-jws-payload-expanded-nbf_milliseconds.json'], 'jwspayload', [[ErrorCode.NOT_YET_VALID]])
 );
 
 // the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch
@@ -277,3 +287,7 @@ test("Cards: health card w/ multi-jws and issues",
     testCard(['test-example-00-e-file-multi-jws-issues.smart-health-card'], "healthcard",
         [[ErrorCode.INFLATION_ERROR, ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR], [ErrorCode.JWS_TOO_LONG, ErrorCode.TRAILING_CHARACTERS]])
 );
+
+
+test("Cards: fhir bundle w/ usa-profile errors", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
+    [[ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR]], { profile: 'usa-covid19-immunization' }));
