@@ -106,7 +106,7 @@ async function processOptions(options: CliOptions) {
 
     // set the validation profile
     if (options.profile) {
-        FhirOptions.ValidationProfile = (<any>ValidationProfiles)[options.profile];
+        FhirOptions.ValidationProfile = ValidationProfiles[options.profile as keyof typeof ValidationProfiles];
     }
 
     // requires both --path and --type properties

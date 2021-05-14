@@ -6,6 +6,8 @@ import { validateSchema, objPathToSchema } from './schema';
 import fs from 'fs';
 import { ErrorCode } from './error';
 import fhirSchema from '../schema/fhir-schema.json';
+import immunizationDM from '../schema/immunization-dm.json';
+import patienDM from '../schema/patient-dm.json';
 import Log from './logger';
 import { ValidationResult } from './validate';
 import beautify from 'json-beautify'
@@ -17,7 +19,7 @@ export enum ValidationProfiles {
 
 export class FhirOptions {
     static LogOutputPath = '';
-    static ValidationProfile:ValidationProfiles = ValidationProfiles.any;
+    static ValidationProfile: ValidationProfiles = ValidationProfiles.any;
 }
 
 export function validate(fhirBundleText: string): ValidationResult {
@@ -113,6 +115,10 @@ export function validate(fhirBundleText: string): ValidationResult {
         }
     }
 
+    if (FhirOptions.ValidationProfile === ValidationProfiles['usa-covid19-immunization']) {
+        ValidationProfilesFunctions['usa-covid19-immunization'](fhirBundle.entry, log);
+    }
+
     log.info("FHIR bundle validated");
     log.debug("FHIR Bundle Contents:");
     log.debug(beautify(fhirBundle, null as unknown as Array<string>, 3, 100));
@@ -148,4 +154,77 @@ function walkProperties(obj: Record<string, unknown>, path: string[], callback: 
     }
 
     return;
+}
+
+
+const ValidationProfilesFunctions = {
+
+    "any": function (entries: BundleEntry[]): boolean {
+        return true || entries;
+    },
+
+    "usa-covid19-immunization": function (entries: BundleEntry[], log: Log): boolean {
+
+        const patients = entries.filter(entry => entry.resource.resourceType === 'Patient');
+        if (patients.length !== 1) {
+            log.error("Profile:usa-covid19-immunization requires exactly 1 Patient resource. Actual : " + patients.length.toString(), ErrorCode.PROFILE_ERROR);
+        }
+
+        const immunizations = entries.filter(entry => entry.resource.resourceType === 'Immunization');
+        if (immunizations.length === 0) {
+            log.error("Profile:usa-covid19-immunization requires 1 or more Immunization resources. Actual : " + immunizations.length.toString(), ErrorCode.PROFILE_ERROR);
+        }
+
+        const expectedResources = ["Patient", "Immunization"];
+        entries.forEach((entry, index) => {
+
+            if (!expectedResources.includes(entry.resource.resourceType)) {
+                log.error("Profile:usa-covid19-immunization ResourceType:" + entry.resource.resourceType + " is not allowed.", ErrorCode.PROFILE_ERROR);
+                expectedResources.push(entry.resource.resourceType); // prevent duplicate errors
+                return;
+            }
+
+            if (entry.resource.resourceType === "Immunization") {
+
+                // verify that valid codes are used see : https://www.cdc.gov/vaccines/programs/iis/COVID-19-related-codes.html
+                const code = (entry.resource?.vaccineCode as { coding: { code: string }[] })?.coding[0]?.code;
+                const cvxCodes = ["207", "208", "210", "211", "212"];
+                if (code && !cvxCodes.includes(code)) {
+                    log.error("Profile:usa-covid19-immunization Immunization.vaccineCode.code requires valid COVID-19 code (" + cvxCodes.join(',') + ").", ErrorCode.PROFILE_ERROR);
+                }
+
+                // check for properties that are forbidden by the dm-profiles
+                (immunizationDM as { path: string }[]).forEach(constraint => {
+                    propPath(entry.resource, constraint.path) &&
+                        log.error("Profile:usa-covid19-immunization entry[" + index.toString() + "].resource." + constraint.path + " should not be present.", ErrorCode.PROFILE_ERROR);
+                });
+
+            }
+
+            if (entry.resource.resourceType === "Patient") {
+
+                // check for properties that are forbidden by the dm-profiles
+                (patienDM as { path: string }[]).forEach(constraint => {
+                    propPath(entry.resource, constraint.path) &&
+                        log.error("Profile:usa-covid19-immunization entry[" + index.toString() + "].resource." + constraint.path + " should not be present.", ErrorCode.PROFILE_ERROR);
+                });
+
+            }
+
+
+        });
+
+        return true;
+    }
+}
+
+// get an object property using a string path
+function propPath(object: Record<string, unknown>, path: string): string | undefined {
+    const props = path.split('.');
+    let val = object;
+    for (let i = 1; i < props.length; i++) {
+        val = val[props[i]] as Record<string, Record<string, unknown>>;
+        if (val === undefined) return val;
+    }
+    return val as unknown as string;
 }
