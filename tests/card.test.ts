@@ -153,7 +153,6 @@ test("Cards: health card w/ trailing chars", testCard('test-example-00-e-file-tr
 test("Cards: numeric QR w/ trailing chars", testCard('test-example-00-f-qr-code-numeric-value-0-trailing_chars.txt', 'qrnumeric', [0, [ErrorCode.TRAILING_CHARACTERS]]));
 test("Cards: jws too long", testCard('example-02-d-jws.txt', 'jws', [0, [ErrorCode.JWS_TOO_LONG].concat(SCHEMA_ERROR_ARRAY)]));
 test("Cards: not yet valid", testCard('test-example-00-b-jws-payload-expanded-nbf_not_yet_valid.json', 'jwspayload', [0, [ErrorCode.NOT_YET_VALID]]));
-test("Cards: invalid QR version", testCard('test-example-00-g-qr-code-0-bad_qr_version.png', 'qr', [0, [ErrorCode.INVALID_QR_VERSION]]));
 
 // Error cases
 
@@ -244,7 +243,11 @@ test("Cards: invalid numeric QR with value too big",
 );
 
 test("Cards: single segment QR",
-    testCard('test-example-00-g-qr-code-0-single_qr_segment.png', 'qr', [[ErrorCode.INVALID_QR], [ErrorCode.INVALID_QR_VERSION]])
+    testCard('test-example-00-g-qr-code-0-single_qr_segment.png', 'qr', [[ErrorCode.INVALID_QR,ErrorCode.INVALID_QR_VERSION]])
+);
+
+test("Cards: invalid QR version",
+    testCard('test-example-00-g-qr-code-0-bad_qr_version.png', 'qr', [[ErrorCode.INVALID_QR_VERSION]])
 );
 
 test("Cards: corrupted QR code",
