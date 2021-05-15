@@ -76,6 +76,9 @@ export function objPathToSchema(path: string) : string {
     const properties = path.split('.');
 
     let p = schema.definitions[properties[0]];
+    if(p == null) return 'unknown';
+
+
     let t = properties[0];
 
     for (let i = 1; i < properties.length; i++) {

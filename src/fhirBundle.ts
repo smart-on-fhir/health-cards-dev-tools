@@ -66,7 +66,9 @@ export function validate(fhirBundleText: string): ValidationResult {
         }
     }
 
-
+    //
+    // Validate each resource of .entry[]
+    //
     for (let i = 0; i < fhirBundle.entry.length; i++) {
 
         const entry = fhirBundle.entry[i];
@@ -112,6 +114,14 @@ export function validate(fhirBundleText: string): ValidationResult {
 
             if (propType === 'Reference' && o['reference'] && !/[^:]+:\d+/.test(o['reference'] as string)) {
                 log.warn('fhirBundle.entry[' + i.toString() + ']' + ".resource." + path.join('.') + " (Reference) should be short resource-scheme URIs (e.g., {“patient”: {“reference”: “resource:0”}})", ErrorCode.SCHEMA_ERROR);
+            }
+
+            if (  // warn on empty string, empty object, empty array
+                (o instanceof Array && o.length === 0) ||
+                (typeof o === 'string' && o === '') ||
+                (o instanceof Object && Object.keys(o).length === 0)
+            ) {
+                log.error('fhirBundle.entry[' + i.toString() + ']' + ".resource." + path.join('.') + " is empty. Empty elements are invalid.", ErrorCode.FHIR_SCHEMA_ERROR);
             }
 
         });

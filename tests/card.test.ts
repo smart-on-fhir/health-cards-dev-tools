@@ -291,3 +291,6 @@ test("Cards: health card w/ multi-jws and issues",
 
 test("Cards: fhir bundle w/ usa-profile errors", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
     [[ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR]], { profile: 'usa-covid19-immunization' }));
+
+test("Cards: fhir bundle w/ empty elements", testCard(['test-example-00-a-fhirBundle-empty-values.json'], 'fhirbundle',
+    [[ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR]]));
