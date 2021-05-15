@@ -6,9 +6,14 @@ import { validateSchema, objPathToSchema } from './schema';
 import fs from 'fs';
 import { ErrorCode } from './error';
 import fhirSchema from '../schema/fhir-schema.json';
+import immunizationDM from '../schema/immunization-dm.json';
+import patientDM from '../schema/patient-dm.json';
 import Log from './logger';
 import { ValidationResult } from './validate';
 import beautify from 'json-beautify'
+import { propPath, walkProperties } from './utils';
+import color from 'colors';
+
 
 export enum ValidationProfiles {
     'any',
@@ -17,12 +22,16 @@ export enum ValidationProfiles {
 
 export class FhirOptions {
     static LogOutputPath = '';
-    static ValidationProfile:ValidationProfiles = ValidationProfiles.any;
+    static ValidationProfile: ValidationProfiles = ValidationProfiles.any;
 }
 
 export function validate(fhirBundleText: string): ValidationResult {
 
     const log = new Log('FhirBundle');
+    const profile : ValidationProfiles = FhirOptions.ValidationProfile;
+
+    // reset the default for the next validation
+    FhirOptions.ValidationProfile = ValidationProfiles.any;
 
     if (fhirBundleText.trim() !== fhirBundleText) {
         log.warn(`FHIR bundle has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
@@ -113,6 +122,11 @@ export function validate(fhirBundleText: string): ValidationResult {
         }
     }
 
+    if (profile === ValidationProfiles['usa-covid19-immunization']) {
+        log.info(`applying profile : usa-covid19-immunization`);
+        ValidationProfilesFunctions['usa-covid19-immunization'](fhirBundle.entry, log);
+    }
+
     log.info("FHIR bundle validated");
     log.debug("FHIR Bundle Contents:");
     log.debug(beautify(fhirBundle, null as unknown as Array<string>, 3, 100));
@@ -121,31 +135,66 @@ export function validate(fhirBundleText: string): ValidationResult {
 }
 
 
-// walks through an objects properties calling a callback with a path for each.
-function walkProperties(obj: Record<string, unknown>, path: string[], callback: (o: Record<string, unknown>, p: string[]) => void): void {
 
-    if (obj instanceof Array) {
-        for (let i = 0; i < obj.length; i++) {
-            const element = obj[i] as Record<string, unknown>;
-            if (element instanceof Object) {
-                walkProperties(element, path.slice(0), callback);
+const ValidationProfilesFunctions = {
+
+    "any": function (entries: BundleEntry[]): boolean {
+        return true || entries;
+    },
+
+    "usa-covid19-immunization": function (entries: BundleEntry[], log: Log): boolean {
+
+        const profileName = 'usa-covid19-immunization';
+
+        const patients = entries.filter(entry => entry.resource.resourceType === 'Patient');
+        if (patients.length !== 1) {
+            log.error(`Profile : ${profileName} : requires exactly 1 ${color.bold('Patient')} resource. Actual : ${patients.length.toString()}`, ErrorCode.PROFILE_ERROR);
+        }
+
+        const immunizations = entries.filter(entry => entry.resource.resourceType === 'Immunization');
+        if (immunizations.length === 0) {
+            log.error(`Profile : ${profileName} : requires 1 or more Immunization resources. Actual : ${immunizations.length.toString()}`, ErrorCode.PROFILE_ERROR);
+        }
+
+        const expectedResources = ["Patient", "Immunization"];
+        entries.forEach((entry, index) => {
+
+            if (!expectedResources.includes(entry.resource.resourceType)) {
+                log.error(`Profile : ${profileName} : resourceType: ${color.bold(entry.resource.resourceType)} is not allowed.`, ErrorCode.PROFILE_ERROR);
+                expectedResources.push(entry.resource.resourceType); // prevent duplicate errors
+                return;
             }
-        }
-        return;
+
+            if (entry.resource.resourceType === "Immunization") {
+
+                // verify that valid codes are used see : https://www.cdc.gov/vaccines/programs/iis/COVID-19-related-codes.html
+                const code = (entry.resource?.vaccineCode as { coding: { code: string }[] })?.coding[0]?.code;
+                const cvxCodes = ["207", "208", "210", "211", "212"];
+                if (code && !cvxCodes.includes(code)) {
+                    log.error(`Profile : ${profileName} : Immunization.vaccineCode.code requires valid COVID-19 code (${cvxCodes.join(',')}).`, ErrorCode.PROFILE_ERROR);
+                }
+
+                // check for properties that are forbidden by the dm-profiles
+                (immunizationDM as { path: string }[]).forEach(constraint => {
+                    propPath(entry.resource, constraint.path) &&
+                        log.error(`Profile : ${profileName} : entry[${index.toString()}].resource.${color.bold(constraint.path)} should not be present.`, ErrorCode.PROFILE_ERROR);
+                });
+
+            }
+
+            if (entry.resource.resourceType === "Patient") {
+
+                // check for properties that are forbidden by the dm-profiles
+                (patientDM as { path: string }[]).forEach(constraint => {
+                    propPath(entry.resource, constraint.path) &&
+                        log.error(`Profile : ${profileName} : entry[${index.toString()}].resource.${color.bold(constraint.path)} should not be present.`, ErrorCode.PROFILE_ERROR);
+                });
+
+            }
+
+        });
+
+        return true;
     }
-
-    callback(obj, path);
-
-    if (!(obj instanceof Object)) return;
-
-    for (const propName in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, propName)) {
-            const prop = obj[propName];
-            path.push(propName);
-            walkProperties(prop as Record<string, unknown>, path.slice(0), callback);
-            path.pop();
-        }
-    }
-
-    return;
 }
+

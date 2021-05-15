@@ -16,6 +16,7 @@ import { FhirOptions, ValidationProfiles } from './fhirBundle';
 import * as versions from './check-for-update';
 import semver from 'semver';
 import { JwsValidationOptions } from './jws-compact';
+import color from 'colors';
 
 /**
  *  Defines the program
@@ -63,7 +64,7 @@ function exit(message: string, exitCode: ErrorCode = 0): void {
  */
 async function processOptions(options: CliOptions) {
 
-    console.log("SMART Health Card Validation SDK v" + npmpackage.version);
+    console.log(color.dim("SMART Health Card Validation SDK v" + npmpackage.version) + '\n');
 
 
     // check the latest SDK and spec version
@@ -103,10 +104,12 @@ async function processOptions(options: CliOptions) {
         FhirOptions.LogOutputPath = options.fhirout;
     }
 
+    
     // set the validation profile
     if (options.profile) {
-        FhirOptions.ValidationProfile = (<any>ValidationProfiles)[options.profile];
+        FhirOptions.ValidationProfile = ValidationProfiles[options.profile as keyof typeof ValidationProfiles];
     }
+
 
     // requires both --path and --type properties
     if (options.path.length === 0 || !options.type) {
@@ -184,7 +187,7 @@ async function processOptions(options: CliOptions) {
     if (options.type !== 'jwkset') {
 
         // validate a health card
-        const output = await validator.validateCard(fileData, options.type);
+        const output = await validator.validateCard(fileData, options);
         process.exitCode = output.log.exitCode;
 
         // if a logfile is specified, append to the specified logfile
@@ -210,7 +213,7 @@ async function processOptions(options: CliOptions) {
             console.log(`NOTE: the SDK v${npmpackage.version} is not validating the latest version of the spec: v${v}`);
         }
     })
-    console.log("Validation completed");
+    console.log("\nValidation completed");
 }
 
 

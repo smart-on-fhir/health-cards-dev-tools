@@ -7,24 +7,34 @@ import { getFileData } from '../src/file';
 import { ErrorCode } from '../src/error';
 import Log, { LogLevels } from '../src/logger';
 import { isOpensslAvailable } from '../src/utils';
+import { CliOptions } from '../src/shc-validator';
 
 const testdataDir = './testdata/';
 
+
 // wrap testcard with a function that returns a function - now we don't need all 'async ()=> await' for every test case
-function testCard(fileName: string | string[], fileType: ValidationType = 'healthcard', expected: (number | null | undefined | ErrorCode[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null]) {
-    return async ()=> {
-         await _testCard(fileName, fileType, expected);
+function testCard(fileName: string | string[],
+    fileType: ValidationType = 'healthcard',
+    expected: (number | null | undefined | ErrorCode[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
+    options: Partial<CliOptions> = {}) {
+
+    return async () => {
+        await _testCard(fileName, fileType, expected, options);
     }
 }
 
-async function _testCard(fileName: string | string[], fileType: ValidationType , expected: (number | null | undefined | ErrorCode[])[]): Promise<void> {
-    
+async function _testCard(fileName: string | string[], fileType: ValidationType, expected: (number | null | undefined | ErrorCode[])[], options: Partial<CliOptions>): Promise<void> {
+
     if (typeof fileName === 'string') fileName = [fileName];
     const files = [];
     for (const fn of fileName) {
         files.push(await getFileData(path.join(testdataDir, fn)));
     }
-    const log = (await validateCard(files, fileType)).log.flatten();
+
+    options.type = fileType;
+
+    const log = (await validateCard(files, options as CliOptions)).log.flatten();
+
 
     const errors = [
         log.filter(i => i.level >= LogLevels.ERROR),
@@ -118,11 +128,11 @@ test("Cards: valid 02 health card", testCard(['example-02-e-file.smart-health-ca
 
 test("Cards: valid 00 QR numeric", testCard(['example-00-f-qr-code-numeric-value-0.txt'], "qrnumeric"));
 test("Cards: valid 01 QR numeric", testCard(['example-01-f-qr-code-numeric-value-0.txt'], "qrnumeric"));
-test("Cards: valid 02 QR numeric",  
+test("Cards: valid 02 QR numeric",
     testCard(['example-02-f-qr-code-numeric-value-0.txt',
         'example-02-f-qr-code-numeric-value-1.txt',
         'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
-test("Cards: valid 02 QR numeric (out of order)", 
+test("Cards: valid 02 QR numeric (out of order)",
     testCard(['example-02-f-qr-code-numeric-value-1.txt',
         'example-02-f-qr-code-numeric-value-0.txt',
         'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
@@ -130,17 +140,19 @@ test("Cards: valid 02 QR numeric (out of order)",
 test("Cards: valid 00 QR code", testCard(['example-00-g-qr-code-0.svg'], "qr"));
 test("Cards: valid 01 QR code", testCard(['example-01-g-qr-code-0.svg'], "qr"));
 
-test("Cards: valid 02 QR code", 
+test("Cards: valid 02 QR code",
     testCard(['example-02-g-qr-code-0.svg', 'example-02-g-qr-code-1.svg', 'example-02-g-qr-code-2.svg'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
-test("Cards: valid 02 QR code PNG", 
+test("Cards: valid 02 QR code PNG",
     testCard(['example-02-g-qr-code-0.png', 'example-02-g-qr-code-1.png', 'example-02-g-qr-code-2.png'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
-test("Cards: valid 02 QR code JPG", 
+test("Cards: valid 02 QR code JPG",
     testCard(['example-02-g-qr-code-0.jpg', 'example-02-g-qr-code-1.jpg', 'example-02-g-qr-code-2.jpg'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
 
 test("Cards: valid 02 QR code BMP",
     testCard(['example-02-g-qr-code-0.bmp', 'example-02-g-qr-code-1.bmp', 'example-02-g-qr-code-2.bmp'], "qr", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
+
+test("Cards: valid 00 health card w/ multiple jws", testCard(['test-example-00-e-file-multi-jws.smart-health-card'], "healthcard"));
 
 // Warning cases
 
@@ -155,12 +167,12 @@ test("Cards: invalid QR version", testCard('test-example-00-g-qr-code-0-bad_qr_v
 
 // Error cases
 
-test("Cards: invalid deflate", 
+test("Cards: invalid deflate",
     testCard(['test-example-00-e-file-invalid_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR]])
 );
 
 test("Cards: no deflate",
-    testCard(['test-example-00-e-file-no_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR, ErrorCode.JWS_HEADER_ERROR],[ErrorCode.JWS_TOO_LONG]])
+    testCard(['test-example-00-e-file-no_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR, ErrorCode.JWS_HEADER_ERROR], [ErrorCode.JWS_TOO_LONG]])
 );
 
 test("Cards: no JWS header 'alg'",
@@ -183,17 +195,17 @@ test("Cards: invalid issuer url",
     testCard(['test-example-00-e-file-invalid_issuer_url.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR]])
 );
 
-test("Cards: nbf in miliseconds",
-    testCard(['test-example-00-b-jws-payload-expanded-nbf_miliseconds.json'], 'jwspayload', [[ErrorCode.NOT_YET_VALID]])
+test("Cards: nbf in milliseconds",
+    testCard(['test-example-00-b-jws-payload-expanded-nbf_milliseconds.json'], 'jwspayload', [[ErrorCode.NOT_YET_VALID]])
 );
 
 // the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch
-test("Cards: invalid issuer url (http)", 
+test("Cards: invalid issuer url (http)",
     testCard(['test-example-00-e-file-invalid_issuer_url_http.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL].concat(OPENSSL_AVAILABLE ? [ErrorCode.INVALID_KEY_X5C] : [])])
 );
 
 // the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch
-test("Cards: invalid issuer url (trailing /)", 
+test("Cards: invalid issuer url (trailing /)",
     testCard(['test-example-00-e-file-issuer_url_with_trailing_slash.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL].concat(OPENSSL_AVAILABLE ? [ErrorCode.INVALID_KEY_X5C] : [])])
 );
 
@@ -201,32 +213,32 @@ test("Cards: invalid JWK set",
     testCard(['test-example-00-e-file-bad_jwks.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR]])
 );
 
-test("Cards: invalid QR header", 
+test("Cards: invalid QR header",
     testCard(['test-example-00-f-qr-code-numeric-wrong_qr_header.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR_HEADER]])
 );
 
-test("Cards: wrong file extension", 
+test("Cards: wrong file extension",
     testCard(['test-example-00-e-file.wrong-extension'], 'healthcard', [0, [ErrorCode.INVALID_FILE_EXTENSION]])
 );
 
-test("Cards: invalid signature", 
+test("Cards: invalid signature",
     testCard(['test-example-00-d-jws-invalid-signature.txt'], 'jws', [[ErrorCode.JWS_VERIFICATION_ERROR]])
 );
 
-test("Cards: invalid single chunk QR header", 
+test("Cards: invalid single chunk QR header",
     testCard(['test-example-00-f-qr-code-numeric-value-0-wrong-multi-chunk.txt'], 'qrnumeric', [0, [ErrorCode.INVALID_NUMERIC_QR_HEADER]])
 );
 
-test("Cards: missing QR chunk", 
+test("Cards: missing QR chunk",
     testCard(['example-02-f-qr-code-numeric-value-0.txt', 'example-02-f-qr-code-numeric-value-2.txt'], 'qrnumeric', [[ErrorCode.MISSING_QR_CHUNK]])
 );
 
-test("Cards: duplicated QR chunk index", 
+test("Cards: duplicated QR chunk index",
     testCard(['example-02-f-qr-code-numeric-value-0.txt', 'example-02-f-qr-code-numeric-value-2.txt', 'example-02-f-qr-code-numeric-value-0.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR_HEADER]])
 );
 
 test("Cards: QR chunk index out of range",
-    testCard(['test-example-00-f-qr-code-numeric-value-0-index-out-of-range.txt','example-02-f-qr-code-numeric-value-1.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR_HEADER]])
+    testCard(['test-example-00-f-qr-code-numeric-value-0-index-out-of-range.txt', 'example-02-f-qr-code-numeric-value-1.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR_HEADER]])
 );
 
 test("Cards: QR chunk too big",
@@ -242,7 +254,7 @@ test("Cards: invalid numeric QR with value too big",
 );
 
 test("Cards: single segment QR",
-     testCard('test-example-00-g-qr-code-0-single_qr_segment.png','qr', [[ErrorCode.INVALID_QR],[ErrorCode.INVALID_QR_VERSION]])
+    testCard('test-example-00-g-qr-code-0-single_qr_segment.png', 'qr', [[ErrorCode.INVALID_QR], [ErrorCode.INVALID_QR_VERSION]])
 );
 
 test("Cards: corrupted QR code",
@@ -270,3 +282,12 @@ test("Cards: bad meta with extra key", testCard(['test-example-00-a-fhirBundle-b
 test("Cards: bad meta without security key", testCard(['test-example-00-a-fhirBundle-bad_meta_non_security.json'], 'fhirbundle', [0, [ErrorCode.FHIR_SCHEMA_ERROR]]));
 
 test("Cards: bad meta with wrong security field", testCard(['test-example-00-a-fhirBundle-bad_meta_wrong_security.json'], 'fhirbundle', [[ErrorCode.FHIR_SCHEMA_ERROR]]));
+
+test("Cards: health card w/ multi-jws and issues",
+    testCard(['test-example-00-e-file-multi-jws-issues.smart-health-card'], "healthcard",
+        [[ErrorCode.INFLATION_ERROR, ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR], [ErrorCode.JWS_TOO_LONG, ErrorCode.TRAILING_CHARACTERS]])
+);
+
+
+test("Cards: fhir bundle w/ usa-profile errors", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
+    [[ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR]], { profile: 'usa-covid19-immunization' }));
