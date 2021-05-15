@@ -12,7 +12,7 @@ import { ErrorCode, ExcludableErrors, getExcludeErrorCodes } from './error';
 import * as utils from './utils'
 import npmpackage from '../package.json';
 import { KeySet } from './keys';
-import { FhirLogOutput } from './fhirBundle';
+import { FhirOptions, ValidationProfiles } from './fhirBundle';
 import * as versions from './check-for-update';
 import semver from 'semver';
 import { JwsValidationOptions } from './jws-compact';
@@ -31,6 +31,7 @@ program.requiredOption('-p, --path <path>', 'path of the file(s) to validate. Ca
     (p: string, paths: string[]) => paths.concat([p]), []);
 program.addOption(new Option('-t, --type <type>', 'type of file to validate').choices(artifactTypes));
 program.addOption(new Option('-l, --loglevel <loglevel>', 'set the minimum log level').choices(loglevelChoices).default('warning'));
+program.addOption(new Option('-P, --profile <profile>', 'vaccination profile to validate').choices(Object.keys(ValidationProfiles).filter(x => Number.isNaN(Number(x)))).default('any'));
 program.option('-o, --logout <path>', 'output path for log (if not specified log will be printed on console)');
 program.option('-f, --fhirout <path>', 'output path for the extracted FHIR bundle');
 program.option('-k, --jwkset <key>', 'path to trusted issuer key set');
@@ -45,6 +46,7 @@ export interface CliOptions {
     type: validator.ValidationType;
     jwkset: string;
     loglevel: string;
+    profile: string;
     logout: string;
     fhirout: string;
     exclude: string[];
@@ -99,7 +101,13 @@ async function processOptions(options: CliOptions) {
         if (!fs.existsSync(logDir)) {
             return exit('FHIR output file directory does not exist : ' + logDir, ErrorCode.LOG_PATH_NOT_FOUND);
         }
-        FhirLogOutput.Path = options.fhirout;
+        FhirOptions.LogOutputPath = options.fhirout;
+    }
+
+    
+    // set the validation profile
+    if (options.profile) {
+        FhirOptions.ValidationProfile = ValidationProfiles[options.profile as keyof typeof ValidationProfiles];
     }
 
 
@@ -179,7 +187,7 @@ async function processOptions(options: CliOptions) {
     if (options.type !== 'jwkset') {
 
         // validate a health card
-        const output = await validator.validateCard(fileData, options.type);
+        const output = await validator.validateCard(fileData, options);
         process.exitCode = output.log.exitCode;
 
         // if a logfile is specified, append to the specified logfile

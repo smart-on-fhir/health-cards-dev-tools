@@ -1,0 +1,134 @@
+[
+    {
+        "path": "Immunization.id"
+    },
+    {
+        "path": "Immunization.meta.id"
+    },
+    {
+        "path": "Immunization.meta.extension"
+    },
+    {
+        "path": "Immunization.meta.versionId"
+    },
+    {
+        "path": "Immunization.meta.lastUpdated"
+    },
+    {
+        "path": "Immunization.meta.source"
+    },
+    {
+        "path": "Immunization.meta.profile"
+    },
+    {
+        "path": "Immunization.meta.tag"
+    },
+    {
+        "path": "Immunization.implicitRules"
+    },
+    {
+        "path": "Immunization.language"
+    },
+    {
+        "path": "Immunization.text"
+    },
+    {
+        "path": "Immunization.contained"
+    },
+    {
+        "path": "Immunization.extension"
+    },
+    {
+        "path": "Immunization.modifierExtension"
+    },
+    {
+        "path": "Immunization.identifier"
+    },
+    {
+        "path": "Immunization.statusReason"
+    },
+    {
+        "path": "Immunization.encounter"
+    },
+    {
+        "path": "Immunization.recorded"
+    },
+    {
+        "path": "Immunization.primarySource"
+    },
+    {
+        "path": "Immunization.reportOrigin"
+    },
+    {
+        "path": "Immunization.location"
+    },
+    {
+        "path": "Immunization.manufacturer"
+    },
+    {
+        "path": "Immunization.expirationDate"
+    },
+    {
+        "path": "Immunization.site"
+    },
+    {
+        "path": "Immunization.route"
+    },
+    {
+        "path": "Immunization.doseQuantity"
+    },
+    {
+        "path": "Immunization.performer.id"
+    },
+    {
+        "path": "Immunization.performer.extension"
+    },
+    {
+        "path": "Immunization.performer.modifierExtension"
+    },
+    {
+        "path": "Immunization.performer.function"
+    },
+    {
+        "path": "Immunization.performer.actor.id"
+    },
+    {
+        "path": "Immunization.performer.actor.extension"
+    },
+    {
+        "path": "Immunization.performer.actor.reference"
+    },
+    {
+        "path": "Immunization.performer.actor.type"
+    },
+    {
+        "path": "Immunization.performer.actor.identifier"
+    },
+    {
+        "path": "Immunization.note"
+    },
+    {
+        "path": "Immunization.reasonCode"
+    },
+    {
+        "path": "Immunization.reasonReference"
+    },
+    {
+        "path": "Immunization.subpotentReason"
+    },
+    {
+        "path": "Immunization.education"
+    },
+    {
+        "path": "Immunization.programEligibility"
+    },
+    {
+        "path": "Immunization.fundingSource"
+    },
+    {
+        "path": "Immunization.reaction"
+    },
+    {
+        "path": "Immunization.protocolApplied"
+    }
+]

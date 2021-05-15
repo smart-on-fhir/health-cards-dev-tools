@@ -33,6 +33,7 @@ export enum ErrorCode {
     INVALID_FILE_EXTENSION,
     TRAILING_CHARACTERS,
     NOT_YET_VALID,
+    PROFILE_ERROR,
     
     // key errors
     INVALID_KEY_WRONG_KTY = 200,

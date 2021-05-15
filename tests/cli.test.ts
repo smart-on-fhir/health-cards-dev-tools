@@ -178,3 +178,7 @@ test("Logs: valid 00-e health card bad log path", () => {
 // error exclusion
 test("Cards: fhir bundle w/ trailing chars", () => expect(testCliCommand('node . --path testdata/test-example-00-a-fhirBundle-trailing_chars.json --type fhirbundle --jwkset testdata/issuer.jwks.public.json --exclude trailing-characters')).toBe(0));
 test("Cards: fhir bundle w/ trailing chars", () => expect(testCliCommand('node . --path testdata/test-example-00-a-fhirBundle-trailing_chars.json --type fhirbundle --jwkset testdata/issuer.jwks.public.json --exclude trailing-*')).toBe(0)); // wildcard
+
+
+// profiles
+test("Cards: fhir bundle w/ usa-profile errors", () => expect(testCliCommand('node . --path testdata/example-00-a-fhirBundle.json --type fhirbundle --loglevel info --profile usa-covid19-immunization')).toBe(0));

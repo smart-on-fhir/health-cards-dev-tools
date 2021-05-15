@@ -12,6 +12,8 @@ import * as fhirBundle from './fhirBundle';
 import * as qr from './qr';
 import * as image from './image';
 import { KeySet } from './keys';
+import { FhirOptions, ValidationProfiles } from './fhirBundle';
+import { CliOptions } from './shc-validator';
 
 
 export type ValidationType = "qr" | "qrnumeric" | "healthcard" | "jws" | "jwspayload" | "fhirbundle" | "jwkset";
@@ -32,11 +34,15 @@ export async function validateKey(keySet: KeySet): Promise<ValidationResult> {
 
 
 /** Validates SMART Health Card */
-export async function validateCard(fileData: FileInfo[], type: ValidationType): Promise<ValidationResult> {
+export async function validateCard(fileData: FileInfo[], options : CliOptions): Promise<ValidationResult> {
 
     let result: ValidationResult;
 
-    switch (type.toLocaleLowerCase()) {
+    if(options.profile) {
+        FhirOptions.ValidationProfile = ValidationProfiles[options.profile as keyof typeof ValidationProfiles];
+    }
+
+    switch (options.type.toLocaleLowerCase()) {
 
         case "qr":
             result = await image.validate(fileData);
@@ -61,12 +67,12 @@ export async function validateCard(fileData: FileInfo[], type: ValidationType): 
             result = jwsPayload.validate(fileData[0].buffer.toString());
             break;
 
-        case "fhirbundle":
+        case "fhirbundle": 
             result = fhirBundle.validate(fileData[0].buffer.toString());
             break;
 
         default:
-            return Promise.reject("Invalid type : " + type);
+            return Promise.reject("Invalid type : " + options.type);
     }
 
     return result;

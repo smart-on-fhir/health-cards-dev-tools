@@ -55,6 +55,7 @@ To validate health card artifacts, use the `shc-validator.ts` script, or simply 
                   -p, --path <path>          path of the file(s) to validate. Can be repeated for the qr and qrnumeric types, to provide multiple file chunks (default: [])
                   -t, --type <type>          type of file to validate (choices: "fhirbundle", "jwspayload", "jws", "healthcard", "qrnumeric", "qr", "jwkset")
                   -l, --loglevel <loglevel>  set the minimum log level (choices: "debug", "info", "warning", "error", "fatal", default: "warning")
+                  -P, --profile <profile>    vaccination profile to validate (choices: "any", "usa-covid19-immunization", default: "any")
                   -o, --logout <path>        output path for log (if not specified log will be printed on console)
                   -f, --fhirout <path>       output path for the extracted FHIR bundle
                   -k, --jwkset <key>         path to trusted issuer key set
@@ -62,7 +63,7 @@ To validate health card artifacts, use the `shc-validator.ts` script, or simply 
                                              "invalid-issuer-url", "invalid-key-x5c", "invalid-key-wrong-kty", "invalid-key-wrong-alg",
                                              "invalid-key-wrong-use", "invalid-key-wrong-kid", "invalid-key-schema", "not-yet-valid",
                                              "fhir-schema-error", "issuer-key-download-error", "unbalanced-qr-chunks", "jws-too-long",
-                                             "invalid-file-extension", "trailing-characters" (default: [])
+                                             "invalid-file-extension", "trailing-characters", "issuer-wellknown-endpoint-cors" (default: [])
                   -h, --help                 display help for command
 
 For example, to validate a `data.smart-health-card` file, call:
@@ -76,6 +77,8 @@ To validate a `QR.png` file, call:
 Multiple `path` options can be provided for QR artifacts (`qrnumeric` and `qr` types) split in multiple files , one for each chunk. For example, to validate a numeric QR code split in three chunks `QR1.txt`, `QR2.txt`, `QR3.txt`, call:
 
                  node . --path QR1.txt --path QR2.txt --path QR3.txt --type qrnumeric
+
+Specific FHIR profiles can be validated by using the `--profile` option; only the `usa-covid19-immunization` profile is currently supported.
 
 The log output can be stored into a file using the `--logout` option. The extracted FHIR bundle can be stored into a file using the `--fhirout` option.
 
@@ -114,7 +117,7 @@ The tool currently verifies proper encoding of the:
  - FHIR bundle (basic schema validation).
  - Issuer JSON Key Set (schema, algorithm, EC Curve, ID, type, usage)
 
-Validation of the FHIR bundle is currently limited. The tool validates a subset of the full FHIR schema; the behavior can be changed by modifying the `srs/prune-fhir-schema.ts` script. Extensive tests and conformance to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/) can be performed by the [FHIR validator](https://wiki.hl7.org/Using_the_FHIR_Validator) tool.
+Validation of the FHIR bundle is currently limited. The tool validates a subset of the full FHIR schema; the behavior scoped by using the profile option, or can be changed by modifying the `srs/prune-fhir-schema.ts` script. Extensive tests and conformance to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/) can be performed by the [FHIR validator](https://wiki.hl7.org/Using_the_FHIR_Validator) tool.
 
 ## Contributing
 
