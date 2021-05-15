@@ -1,5 +1,10 @@
 # CHANGE LOG
 
+## v1.0.0-1
+ - Added validation profile option
+ - Added support for multi-JWS cards
+ - Extended x5c validation to platform with libressl and older openssl
+
 ## v1.0.0-0
  - Followed spec version change to v1.0.0
  - Scoped FHIR schema parsing to improve valitation time
