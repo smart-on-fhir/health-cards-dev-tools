@@ -81,12 +81,6 @@
         "path": "Patient.contact"
     },
     {
-        "path": "Patient.contact.address.text"
-    },
-    {
-        "path": "Patient.contact.address.line"
-    },
-    {
         "path": "Patient.communication"
     },
     {

@@ -92,6 +92,7 @@ export function walkProperties(obj: Record<string, unknown>, path: string[], cal
                 walkProperties(element, path.slice(0), callback);
             }
         }
+        if(obj.length === 0) callback(obj, path);
         return;
     }
 

@@ -48,6 +48,15 @@
         "path": "Immunization.statusReason"
     },
     {
+        "path": "Immunization.patient.type"
+    },
+    {
+        "path": "Immunization.patient.identifier"
+    },
+    {
+        "path": "Immunization.patient.display"
+    },
+    {
         "path": "Immunization.encounter"
     },
     {
@@ -63,7 +72,13 @@
         "path": "Immunization.location"
     },
     {
-        "path": "Immunization.manufacturer"
+        "path": "Immunization.manufacturer.reference"
+    },
+    {
+        "path": "Immunization.manufacturer.type"
+    },
+    {
+        "path": "Immunization.manufacturer.display"
     },
     {
         "path": "Immunization.expirationDate"
