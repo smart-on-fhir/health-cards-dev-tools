@@ -113,8 +113,8 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
     // check chunks. Note: jsQR calls chunks and type what the SMART Health Cards spec call segments and mode,
     // we use the later in error messages
     if (!code.chunks || code.chunks.length !== 2) {
-        log.error(`Wrong number of segments in QR code: found ${code.chunks.length}, expected 2`, ErrorCode.INVALID_QR);
-        log.error(`Segments types encountered, in order: ${code.chunks.map(chunk => chunk.type).join("; ")}`, ErrorCode.INVALID_QR);
+        log.error(`Wrong number of segments in QR code: found ${code.chunks.length}, expected 2` + 
+        `\nSegments types encountered, in order: ${code.chunks.map(chunk => chunk.type).join("; ")}`, ErrorCode.INVALID_QR);
     } else {
         if (code.chunks[0].type !== 'byte') {
             // unlikely, since 'shc:/' can only be legally encoded as with byte mode;
