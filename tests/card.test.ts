@@ -256,6 +256,10 @@ test("Cards: single segment QR",
     testCard('test-example-00-g-qr-code-0-single_qr_segment.png', 'qr', [[ErrorCode.INVALID_QR,ErrorCode.INVALID_QR_VERSION]])
 );
 
+test("Cards: too many QR segments",
+    testCard('test-example-00-g-qr-code-0-too_many_qr_segment.png', 'qr', [[ErrorCode.INVALID_QR, ErrorCode.INVALID_NUMERIC_QR]])
+);
+
 test("Cards: invalid QR version",
     testCard('test-example-00-g-qr-code-0-bad_qr_version.png', 'qr', [[ErrorCode.INVALID_QR_VERSION]])
 );
