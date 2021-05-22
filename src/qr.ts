@@ -65,6 +65,10 @@ function shcChunksToJws(shc: string[], log: Log): JWS | undefined {
 
     const jws = jwsChunks.join('');
 
+    if (chunkCount > 1 && jws.length <= MAX_QR_CHUNK_LENGTH) {
+        log.warn(`JWS of size ${jws.length} (<= ${MAX_QR_CHUNK_LENGTH}) didn't need to be split in ${chunkCount} chunks`, ErrorCode.INVALID_QR);
+    }
+
     // check if chunk sizes are balanced
     const expectedChunkSize = Math.floor(jws.length / chunkCount);
     const balancedSizeBuffer = Math.ceil(expectedChunkSize * (0.5 / 100)); // give some leeway to what we call "balanced", 0.5% away from expected size
