@@ -2,6 +2,7 @@ import * as healthCard from './healthCard';
 import * as jws from './jws-compact';
 import * as jwsPayload from './jws-payload';
 import * as fhirBundle from './fhirBundle';
+import { FhirOptions, ValidationProfiles } from './fhirBundle';
 import * as qr from './qr';
 import Log, { LogLevels } from './logger';
 import { ErrorCode } from './error';
@@ -68,5 +69,20 @@ export const validate = {
     "jws": validateJws,
     "jwspayload": validateJwspayload,
     "fhirbundle": validateFhirBundle,
-    "keyset" : validateKeySet
+    "keyset" : validateKeySet,
+    "profile" : ValidationProfiles.any
 }
+
+export {ValidationProfiles};
+
+Object.defineProperty(validate, "profile", {
+    get : function () {
+        return FhirOptions.ValidationProfile;
+    }
+});
+
+Object.defineProperty(validate, "profile", {
+    set : function (value : ValidationProfiles) {
+        FhirOptions.ValidationProfile = value;
+    }
+});
