@@ -34,13 +34,14 @@ export async function validateKey(keySet: KeySet): Promise<ValidationResult> {
 
 
 /** Validates SMART Health Card */
-export async function validateCard(fileData: FileInfo[], options : CliOptions): Promise<ValidationResult> {
+export async function validateCard(fileData: FileInfo[], options: CliOptions): Promise<ValidationResult> {
 
     let result: ValidationResult;
 
-    if(options.profile) {
-        FhirOptions.ValidationProfile = ValidationProfiles[options.profile as keyof typeof ValidationProfiles];
-    }
+    FhirOptions.ValidationProfile =
+        options.profile ?
+            ValidationProfiles[options.profile as keyof typeof ValidationProfiles] :
+            FhirOptions.ValidationProfile = ValidationProfiles['any'];
 
     switch (options.type.toLocaleLowerCase()) {
 
@@ -67,7 +68,7 @@ export async function validateCard(fileData: FileInfo[], options : CliOptions): 
             result = jwsPayload.validate(fileData[0].buffer.toString());
             break;
 
-        case "fhirbundle": 
+        case "fhirbundle":
             result = fhirBundle.validate(fileData[0].buffer.toString());
             break;
 
