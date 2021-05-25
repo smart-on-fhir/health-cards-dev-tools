@@ -72,17 +72,17 @@ export function validate(fhirBundleText: string): ValidationResult {
         const resource = entry.resource;
 
         if (resource == null) {
-            log.error("Schema: entry[" + i.toString() + "].resource missing");
+            log.error(`Schema: entry[${i.toString()}].resource missing`);
             continue;
         }
 
         if(!resource.resourceType) {
-            log.error("Schema: entry[" + i.toString() + "].resource.resourceType missing");
+            log.error(`Schema: entry[${i.toString()}].resource.resourceType missing`);
             continue;
         }
 
         if(!(fhirSchema.definitions as Record<string, unknown>)[resource.resourceType]) {
-            log.error("Schema: entry[" + i.toString() + "].resource.resourceType missing");
+            log.error(`Schema: entry[${i.toString()}].resource.resourceType '${resource.resourceType}' unknown`);
             continue;
         }
 
