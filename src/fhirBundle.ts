@@ -12,7 +12,6 @@ import Log from './logger';
 import { ValidationResult } from './validate';
 import beautify from 'json-beautify'
 import { propPath, walkProperties } from './utils';
-import color from 'colors';
 
 
 export enum ValidationProfiles {
@@ -165,7 +164,7 @@ const ValidationProfilesFunctions = {
 
         const patients = entries.filter(entry => entry.resource.resourceType === 'Patient');
         if (patients.length !== 1) {
-            log.error(`Profile : ${profileName} : requires exactly 1 ${color.bold('Patient')} resource. Actual : ${patients.length.toString()}`, ErrorCode.PROFILE_ERROR);
+            log.error(`Profile : ${profileName} : requires exactly 1 ${'Patient'} resource. Actual : ${patients.length.toString()}`, ErrorCode.PROFILE_ERROR);
         }
 
         const immunizations = entries.filter(entry => entry.resource.resourceType === 'Immunization');
@@ -177,7 +176,7 @@ const ValidationProfilesFunctions = {
         entries.forEach((entry, index) => {
 
             if (!expectedResources.includes(entry.resource.resourceType)) {
-                log.error(`Profile : ${profileName} : resourceType: ${color.bold(entry.resource.resourceType)} is not allowed.`, ErrorCode.PROFILE_ERROR);
+                log.error(`Profile : ${profileName} : resourceType: ${entry.resource.resourceType} is not allowed.`, ErrorCode.PROFILE_ERROR);
                 expectedResources.push(entry.resource.resourceType); // prevent duplicate errors
                 return;
             }
@@ -194,7 +193,7 @@ const ValidationProfilesFunctions = {
                 // check for properties that are forbidden by the dm-profiles
                 (immunizationDM as { path: string }[]).forEach(constraint => {
                     propPath(entry.resource, constraint.path) &&
-                        log.error(`Profile : ${profileName} : entry[${index.toString()}].resource.${color.bold(constraint.path)} should not be present.`, ErrorCode.PROFILE_ERROR);
+                        log.error(`Profile : ${profileName} : entry[${index.toString()}].resource.${constraint.path} should not be present.`, ErrorCode.PROFILE_ERROR);
                 });
 
             }
@@ -204,7 +203,7 @@ const ValidationProfilesFunctions = {
                 // check for properties that are forbidden by the dm-profiles
                 (patientDM as { path: string }[]).forEach(constraint => {
                     propPath(entry.resource, constraint.path) &&
-                        log.error(`Profile : ${profileName} : entry[${index.toString()}].resource.${color.bold(constraint.path)} should not be present.`, ErrorCode.PROFILE_ERROR);
+                        log.error(`Profile : ${profileName} : entry[${index.toString()}].resource.${constraint.path} should not be present.`, ErrorCode.PROFILE_ERROR);
                 });
 
             }
