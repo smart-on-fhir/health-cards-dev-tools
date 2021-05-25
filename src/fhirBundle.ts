@@ -74,12 +74,22 @@ export function validate(fhirBundleText: string): ValidationResult {
         const entry = fhirBundle.entry[i];
         const resource = entry.resource;
 
-        validateSchema({ $ref: 'https://smarthealth.cards/schema/fhir-schema.json#/definitions/' + resource.resourceType }, resource, log, ['', 'entry', i.toString(), resource.resourceType].join('/'));
-
         if (resource == null) {
-            log.error("Bundle.entry[" + i.toString() + "].resource missing");
+            log.error("Schema: entry[" + i.toString() + "].resource missing");
             continue;
         }
+
+        if(!resource.resourceType) {
+            log.error("Schema: entry[" + i.toString() + "].resource.resourceType missing");
+            continue;
+        }
+
+        if(!(fhirSchema.definitions as Record<string, unknown>)[resource.resourceType]) {
+            log.error("Schema: entry[" + i.toString() + "].resource.resourceType missing");
+            continue;
+        }
+
+        validateSchema({ $ref: 'https://smarthealth.cards/schema/fhir-schema.json#/definitions/' + resource.resourceType }, resource, log, ['', 'entry', i.toString(), resource.resourceType].join('/'));
 
         if (resource.id) {
             log.warn("Bundle.entry[" + i.toString() + "].resource[" + resource.resourceType + "] should not include .id elements", ErrorCode.FHIR_SCHEMA_ERROR);

@@ -37,33 +37,58 @@ export function validateSchema(schema: AnySchemaObject, data: FhirBundle | JWS |
 
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         let errors = validate.errors!
-            .map((err) => JSON.stringify(err));
+            .map((err) => {
+
+                // reformat the schema errors into something more readable:
+
+                err.instancePath = pathPrefix + err.instancePath;
+
+                switch (err.keyword) {
+
+                    // · Schema: {"instancePath":"","schemaPath":"#/required","keyword":"required","params":{"missingProperty":"resourceType"},"message":"must have required property 'resourceType'"}
+                    case "required":
+                        return `Schema: ${err.instancePath} requires property ${err.params.missingProperty as string})`;
+
+                    // · Schema: {"instancePath":"","schemaPath":"#/additionalProperties","keyword":"additionalProperties","params":{"additionalProperty":"resourceType1"},"message":"must NOT have additional properties"}
+                    case "additionalProperties":
+                        return `Schema: ${err.instancePath} additional property '${err.params.additionalProperty as string}' not allowed.`;
+
+                    //  Schema: {"instancePath":"/birthDate","schemaPath":"#/definitions/date/pattern","keyword":"pattern",
+                    // "params":{"pattern":"^([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1]))?)?$"},
+                    // "message":"must match pattern \"^([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1]))?)?$\""}
+                    case "pattern":
+                        return `Schema: ${err.instancePath} must match pattern : '${err.params.pattern as string}'.`;
+
+                    // · Schema: {"instancePath":"","schemaPath":"#/oneOf","keyword":"oneOf","params":{"passingSchemas":null},"message":"must match exactly one schema in oneOf"}
+                    case "oneOf":
+                        return `Schema: ${err.instancePath} property must must match exactly one schema in oneOf`;
+
+                    default:
+                        return `Schema: ${err.instancePath} error : ${err.message as string}`;
+                }
+
+            });
 
         // remove the duplicates (can be many if property part of oneOf[])
         errors = errors
             .filter((err, index) => errors.indexOf(err) === index);
 
         errors.forEach(ve => {
-            //"dataPath":"/meta/security/0"
 
-            // prefix 'dataPath' property with passed in pathPrefix
-            // because when validating sub-schemas our paths are relative and it may
-            // not be apparent what the full path is when referring to common properties like 'id'
-            const pathPart = ve.indexOf('"dataPath":"');
+            log.error(ve, isFhirSchema ? ErrorCode.FHIR_SCHEMA_ERROR : ErrorCode.SCHEMA_ERROR);
 
-            if (pathPart > 0 && pathPrefix.length > 0) {
-                const insertIndex = pathPart + '"dataPath":"'.length;
-                ve = ve.slice(0, insertIndex) + pathPrefix + ve.slice(insertIndex);
-            }
-
-            log.error('Schema: ' + ve, isFhirSchema ? ErrorCode.FHIR_SCHEMA_ERROR : ErrorCode.SCHEMA_ERROR);
         });
 
         return false;
 
     } catch (err) {
-        // TODO: get to this catch in test
+        const missingRef = (err as { "missingRef": string }).missingRef;
+        if (missingRef) {
+            const property = (err as { "missingRef": string }).missingRef.split('/').pop() as string;
+            log.error(`Schema: ${pathPrefix + property} additional property '${property}' not allowed.`);
+        } else {
         log.error('Schema: ' + (err as Error).message, isFhirSchema ? ErrorCode.FHIR_SCHEMA_ERROR : ErrorCode.SCHEMA_ERROR);
+        }
         return false;
     }
 }
