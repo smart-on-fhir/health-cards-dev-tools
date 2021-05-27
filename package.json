@@ -1,6 +1,6 @@
 {
     "name": "health-cards-validation-sdk",
-    "version": "1.0.0-1",
+    "version": "1.0.0-2",
     "description": "",
     "main": "js/src/shc-validator.js",
     "scripts": {
