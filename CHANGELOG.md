@@ -1,5 +1,11 @@
 # CHANGE LOG
 
+## v1.0.0-2
+ - Check unnecessary QR split
+ - Debug log QR segments' type and content
+ - Added validation profile to api
+ - Simplified schema error reporting
+
 ## v1.0.0-1
  - Added validation profile option
  - Added support for multi-JWS cards
