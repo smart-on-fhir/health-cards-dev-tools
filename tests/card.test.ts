@@ -33,7 +33,9 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
 
     options.type = fileType;
 
-    const log = (await validateCard(files, options as CliOptions)).log.flatten();
+    const result = await validateCard(files, options as CliOptions);
+
+    const log = result.log.flatten();
 
 
     const errors = [

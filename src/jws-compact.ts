@@ -224,7 +224,7 @@ export async function validate(jws: JWS, index = ''): Promise<ValidationResult> 
         log.info("JWS signature verified");
     }
 
-    return { result: jws, log: log };
+    return { result: payloadResult.result, log: log };
 }
 
 
