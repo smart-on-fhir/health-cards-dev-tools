@@ -46,7 +46,7 @@ async function decode(fileInfo: FileInfo, log: Log): Promise<string | undefined>
 
     switch (fileInfo.fileType) {
 
-        case 'svg':
+        case 'svg': // TODO: move this processing to file.ts, with all others? would require some refactoring to catch and log errors 
             svgBuffer = await svgToImageBuffer(fileInfo.buffer.toString(), log);
             fileInfo.image = PNG.sync.read(svgBuffer);
             fs.writeFileSync(fileInfo.path + '.png', svgBuffer);
