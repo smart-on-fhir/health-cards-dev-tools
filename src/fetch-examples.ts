@@ -11,7 +11,7 @@ import { svgToQRImage } from './image';
 import { Command } from 'commander';
 
 const outPath = 'testdata';
-const baseExampleUrl = 'https://smarthealth.cards/examples/';
+const baseExampleUrl = 'https://spec.smarthealth.cards/examples/';
 const exampleCount = 3;
 const exampleQrChunkCount = [1,1,3]; // number of QR chunks per example
 const examplePrefix = 'example-';
