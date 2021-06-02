@@ -1,5 +1,9 @@
 # CHANGE LOG
 
+## v1.0.0-3
+ - Updated test files after spec location change
+ - Added support for node 16
+
 ## v1.0.0-2
  - Check unnecessary QR split
  - Debug log QR segments' type and content

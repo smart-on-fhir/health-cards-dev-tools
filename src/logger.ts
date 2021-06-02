@@ -57,7 +57,7 @@ export default class Log {
     }
 
     warn(message: string, code: ErrorCode = ErrorCode.ERROR): Log {
-        if (code == null || code === 0) {
+        if (code == null || code <= 0) {
             throw new Error("Non-zero error code required.");
         }
         if (!Log.Exclusions.has(code)) {
@@ -67,7 +67,7 @@ export default class Log {
     }
 
     error(message: string, code: ErrorCode = ErrorCode.ERROR): Log {
-        if (code == null || code === 0) {
+        if (code == null || code <= 0) {
             throw new Error("Non-zero error code required.");
         }
         if (!Log.Exclusions.has(code)) {
@@ -77,7 +77,7 @@ export default class Log {
     }
 
     fatal(message: string, code: ErrorCode = ErrorCode.ERROR): Log {
-        if (code == null || code === 0) {
+        if (code == null || code <= 0) {
             throw new Error("Non-zero error code required.");
         }
         if (this._exitCode !== 0) {
