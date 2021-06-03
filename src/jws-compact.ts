@@ -251,7 +251,8 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.K
                 throw "Failed to parse JSON KeySet schema";
             }
             log.debug("Downloaded issuer key(s) : ");
-            return (await verifyAndImportHealthCardIssuerKey(keySet, log, issuerURL)).keySet;
+            await verifyAndImportHealthCardIssuerKey(keySet, log, issuerURL);
+            return keySet;
         } catch (err) {
             log.error("Can't parse downloaded issuer JWK set: " + (err as Error).toString(), ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
             return undefined;

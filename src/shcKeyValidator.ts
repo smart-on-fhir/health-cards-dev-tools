@@ -159,12 +159,11 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
     }
 }
 
-export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = new Log('Validate Key-Set'), expectedSubjectAltName = ''): Promise<{keySet : KeySet | undefined, log : Log}> {
+export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = new Log('Validate Key-Set'), expectedSubjectAltName = ''): Promise<Log> {
 
     // check that keySet is valid
     if (!(keySet instanceof Object) || !keySet.keys || !(keySet.keys instanceof Array)) {
-        log.fatal("keySet not valid. Expect {keys : JWK.Key[]}", ErrorCode.INVALID_KEY_SCHEMA);
-        return {keySet: undefined, log};
+        return log.fatal("keySet not valid. Expect {keys : JWK.Key[]}", ErrorCode.INVALID_KEY_SCHEMA);
     }
 
     // failures will be recorded in the log. we can continue processing.
@@ -221,8 +220,7 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
         try {
             key = await store.add(key);
         } catch (error) {
-            log.error('Error adding key to keyStore : ' + (error as Error).message, ErrorCode.INVALID_KEY_UNKNOWN);
-            return {keySet: undefined, log};
+            return log.error('Error adding key to keyStore : ' + (error as Error).message, ErrorCode.INVALID_KEY_UNKNOWN);
         }
 
         // check that kid is properly generated
@@ -266,5 +264,5 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
 
     }
 
-    return {keySet, log};
+    return log;
 }

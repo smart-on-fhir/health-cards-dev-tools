@@ -28,8 +28,8 @@ async function validateKeySet(text : string, logLevel: LogLevels = LogLevels.WAR
         return [{message: "Unable to parse as JSON", code : ErrorCode.JSON_PARSE_ERROR, level : LogLevels.ERROR}];
     }
 
-    const result = await verifyAndImportHealthCardIssuerKey(keySet);
-    return formatOutput(result.log, logLevel);
+    const keySetLog = await verifyAndImportHealthCardIssuerKey(keySet);
+    return formatOutput(keySetLog, logLevel);
 }
 
 async function validateQrnumeric(shc: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {

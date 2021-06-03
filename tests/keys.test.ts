@@ -14,10 +14,10 @@ const EXPECTED_SUBJECT_ALT_NAME = 'https://smarthealth.cards/examples/issuer';
 // set contains a key with a x5c value.
 const OPENSSL_AVAILABLE = utils.isOpensslAvailable();
 
-async function testKey(fileName: string, subjectAltName: string = ''): Promise<ErrorCode[]> {
+async function testKey(fileName: string, subjectAltName = ''): Promise<ErrorCode[]> {
     const filePath = path.join(testdataDir, fileName);
     const result = (await verifyAndImportHealthCardIssuerKey(utils.loadJSONFromFile(filePath), undefined ,subjectAltName));
-    return result.log.flatten(LogLevels.WARNING).map(item => item.code);
+    return result.flatten(LogLevels.WARNING).map(item => item.code);
 }
 
 test("Keys: valid", async () => {

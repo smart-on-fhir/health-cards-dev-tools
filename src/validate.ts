@@ -22,7 +22,7 @@ export type ValidationType = "qr" | "qrnumeric" | "healthcard" | "jws" | "jwspay
 
 /** Validate the issuer key */
 export async function validateKey(keySet: KeySet): Promise<Log> {
-    return (await verifyAndImportHealthCardIssuerKey(keySet, new Log('Validate Key-Set'))).log;
+    return (await verifyAndImportHealthCardIssuerKey(keySet, new Log('Validate Key-Set')));
 }
 
 
