@@ -7,7 +7,7 @@ import Log from './logger';
 
 const MAX_QR_CHUNK_LENGTH = 1191;
 
-export async function validate(qr: string[]): Promise<{ result: JWS | undefined, log: Log }> {
+export async function validate(qr: string[]): Promise<Log> {
 
     const log = new Log(
         qr.length > 1 ?
@@ -16,9 +16,9 @@ export async function validate(qr: string[]): Promise<{ result: JWS | undefined,
 
     const jwsString: JWS | undefined = shcChunksToJws(qr, log);
 
-    jwsString && (log.child.push((await jws.validate(jwsString)).log));
+    jwsString && (log.child.push((await jws.validate(jwsString))));
 
-    return { result: jwsString, log: log };
+    return log;
 }
 
 

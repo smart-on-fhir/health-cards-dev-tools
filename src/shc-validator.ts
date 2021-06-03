@@ -158,13 +158,13 @@ async function processOptions(options: CliOptions) {
 
         // validate the key/keyset
         const output = await validator.validateKey(keys);
-        process.exitCode = output.log.exitCode;
+        process.exitCode = output.exitCode;
 
 
         // if a logfile is specified, append to the specified logfile
         options.logout ?
-            output.log.toFile(options.logout, options, true) :
-            console.log(output.log.toString(level));
+            output.toFile(options.logout, options, true) :
+            console.log(output.toString(level));
     }
 
 
@@ -175,12 +175,12 @@ async function processOptions(options: CliOptions) {
 
         // validate the key/keyset
         const output = await validator.validateKey(keys);
-        process.exitCode = output.log.exitCode;
+        process.exitCode = output.exitCode;
 
         // if a logfile is specified, append to the specified logfile
         options.logout ?
-            output.log.toFile(options.logout, options, true) :
-            console.log(output.log.toString(level));
+            output.toFile(options.logout, options, true) :
+            console.log(output.toString(level));
     }
 
 
@@ -189,12 +189,12 @@ async function processOptions(options: CliOptions) {
 
         // validate a health card
         const output = await validator.validateCard(fileData, options);
-        process.exitCode = output.log.exitCode;
+        process.exitCode = output.exitCode;
 
         // if a logfile is specified, append to the specified logfile
         options.logout ?
-            output.log.toFile(options.logout, options, true) :
-            console.log(output.log.toString(level));
+            output.toFile(options.logout, options, true) :
+            console.log(output.toString(level));
     }
 
     // check if we are running the latest version of the SDK

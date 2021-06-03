@@ -7,13 +7,12 @@ import { ErrorCode } from './error';
 import healthCardSchema from '../schema/smart-health-card-schema.json';
 import * as jws from './jws-compact';
 import Log from './logger';
-import { ValidationResult } from './validate';
 
 
 export const schema = healthCardSchema;
 
 
-export async function validate(healthCardText: string): Promise<ValidationResult> {
+export async function validate(healthCardText: string): Promise<Log> {
 
     const log = new Log('SMART Health Card');
 
@@ -24,10 +23,7 @@ export async function validate(healthCardText: string): Promise<ValidationResult
 
     const healthCard = utils.parseJson<HealthCard>(healthCardText);
     if (healthCard == undefined) {
-        return {
-            result: healthCard,
-            log: log.fatal("Failed to parse HealthCard data as JSON.", ErrorCode.JSON_PARSE_ERROR)
-        }
+        return log.fatal("Failed to parse HealthCard data as JSON.", ErrorCode.JSON_PARSE_ERROR);
     }
 
     // failures will be recorded in the log. we can continue processing.
@@ -43,16 +39,13 @@ export async function validate(healthCardText: string): Promise<ValidationResult
         typeof vc[0] !== 'string'
     ) {
         // The schema check above will list the expected properties/type
-        return {
-            result: healthCard,
-            log: log.fatal("HealthCard.verifiableCredential[jws-compact] required to continue.", ErrorCode.CRITICAL_DATA_MISSING)
-        }
+        return log.fatal("HealthCard.verifiableCredential[jws-compact] required to continue.", ErrorCode.CRITICAL_DATA_MISSING);
     }
 
 
     for (let i = 0; i < vc.length; i++) {
-        log.child.push((await jws.validate(vc[i], vc.length> 1 ? i.toString() : '')).log)
+        log.child.push((await jws.validate(vc[i], vc.length> 1 ? i.toString() : '')));
     }
 
-    return { result: healthCard, log: log };
+    return log;
 }

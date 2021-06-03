@@ -7,13 +7,12 @@ import { ErrorCode } from './error';
 import jwsPayloadSchema from '../schema/smart-health-card-vc-schema.json';
 import * as fhirBundle from './fhirBundle';
 import Log from './logger';
-import { ValidationResult } from './validate';
 import beautify from 'json-beautify'
 
 export const schema = jwsPayloadSchema;
 
 
-export function validate(jwsPayloadText: string): ValidationResult {
+export function validate(jwsPayloadText: string): Log {
 
     const log = new Log('JWS.payload');
 
@@ -24,10 +23,7 @@ export function validate(jwsPayloadText: string): ValidationResult {
 
     const jwsPayload = utils.parseJson<JWSPayload>(jwsPayloadText);
     if (!jwsPayload || typeof jwsPayload !== 'object') {
-        return {
-            result: undefined,
-            log: log.fatal("Failed to parse JWS.payload data as JSON.", ErrorCode.JSON_PARSE_ERROR)
-        }
+        return log.fatal("Failed to parse JWS.payload data as JSON.", ErrorCode.JSON_PARSE_ERROR);
     }
     log.debug("JWS Payload Contents:");
     log.debug(beautify(jwsPayload, null as unknown as Array<string>, 3, 100));
@@ -37,16 +33,16 @@ export function validate(jwsPayloadText: string): ValidationResult {
 
     // validate issuance date
     const nbf = new Date();
-    nbf.setTime(jwsPayload.nbf * 1000); // convert seconds to miliseconds
+    nbf.setTime(jwsPayload.nbf * 1000); // convert seconds to milliseconds
     const now = new Date();
     if (nbf > now) {
         if (jwsPayload.nbf > new Date(2021,1,1).getTime()) {
-            // we will assume the nbf was encoded in miliseconds, and we will return an error
-            let dateParsedInMiliseconds = new Date();
-            dateParsedInMiliseconds.setTime(jwsPayload.nbf);
+            // we will assume the nbf was encoded in milliseconds, and we will return an error
+            const dateParsedInMilliseconds = new Date();
+            dateParsedInMilliseconds.setTime(jwsPayload.nbf);
             log.error(`Health card is not yet valid, nbf=${jwsPayload.nbf} (${nbf.toUTCString()}).\n` + 
                 "nbf should be encoded in seconds since 1970-01-01T00:00:00Z UTC.\n" + 
-                `Did you encode the date in miliseconds, which would give the date: ${dateParsedInMiliseconds.toUTCString()}?`,
+                `Did you encode the date in milliseconds, which would give the date: ${dateParsedInMilliseconds.toUTCString()}?`,
                 ErrorCode.NOT_YET_VALID);
         } else {
             log.warn(`Health card is not yet valid, nbf=${jwsPayload.nbf} (${nbf.toUTCString()}).`, ErrorCode.NOT_YET_VALID);
@@ -68,18 +64,15 @@ export function validate(jwsPayloadText: string): ValidationResult {
         !jwsPayload.vc.credentialSubject.fhirBundle
     ) {
         // The schema check above will list the expected properties/type
-        return {
-            result: jwsPayload,
-            log: log.fatal("JWS.payload.vc.credentialSubject.fhirBundle{} required to continue.", ErrorCode.CRITICAL_DATA_MISSING)
-        }
+        return log.fatal("JWS.payload.vc.credentialSubject.fhirBundle{} required to continue.", ErrorCode.CRITICAL_DATA_MISSING);
     }
 
     log.info("JWS Payload validated");
 
     const fhirBundleText = JSON.stringify(jwsPayload.vc.credentialSubject.fhirBundle);
 
-    log.child.push((fhirBundle.validate(fhirBundleText)).log);
+    log.child.push((fhirBundle.validate(fhirBundleText)));
 
 
-    return { result: jwsPayload, log: log };
+    return log;
 }
