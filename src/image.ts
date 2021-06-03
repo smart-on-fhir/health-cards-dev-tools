@@ -13,7 +13,7 @@ import Jimp from 'jimp';
 import { toFile, QRCodeSegment } from 'qrcode';
 import { ByteChunk, Chunk } from 'jsqr/dist/decoder/decodeData';
 
-export async function validate(images: FileInfo[]): Promise<{ result: JWS | undefined, log: Log }> {
+export async function validate(images: FileInfo[]): Promise<Log> {
 
     const log = new Log(
         images.length > 1 ?
@@ -25,17 +25,17 @@ export async function validate(images: FileInfo[]): Promise<{ result: JWS | unde
 
     for (let i = 0; i < images.length; i++) {
         const shc = await decode(images[i], log);
-        if (shc === undefined) return { result: undefined, log: log };
+        if (shc === undefined) return log;
         shcStrings.push(shc);
         log.info(images[i].name + " decoded");
         log.debug(images[i].name + ' = ' + shc);
     }
 
 
-    log.child.push((await qr.validate(shcStrings)).log);
+    log.child.push((await qr.validate(shcStrings)));
 
 
-    return { result: JSON.stringify(shcStrings), log: log };
+    return log;
 }
 
 
@@ -115,7 +115,7 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
     // we use the later in error messages
     code.chunks.forEach((c,i) =>
         {
-            const chunkText = (c as Chunk).text || (c as ByteChunk).bytes || "<can't parse>";
+            const chunkText = (c as Chunk).text || (c as ByteChunk).bytes?.join(',') || "<can't parse>";
             log.debug(`segment ${i+1}: type: ${c.type}, content: ${chunkText}`);
         });
     if (!code.chunks || code.chunks.length !== 2) {

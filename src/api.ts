@@ -33,28 +33,28 @@ async function validateKeySet(text : string, logLevel: LogLevels = LogLevels.WAR
 }
 
 async function validateQrnumeric(shc: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
-    const result = await qr.validate([shc]);
-    return formatOutput(result.log, logLevel);
+    const log = await qr.validate([shc]);
+    return formatOutput(log, logLevel);
 }
 
 async function validateHealthcard(json: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
-    const result = await healthCard.validate(json);
-    return formatOutput(result.log, logLevel);
+    const log = await healthCard.validate(json);
+    return formatOutput(log, logLevel);
 }
 
 async function validateJws(text: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
-    const result = await jws.validate(text);
-    return formatOutput(result.log, logLevel);
+    const log = await jws.validate(text);
+    return formatOutput(log, logLevel);
 }
 
 async function validateJwspayload(payload: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
-    const result = jwsPayload.validate(payload);
-    return Promise.resolve(formatOutput(result.log, logLevel));
+    const log = jwsPayload.validate(payload);
+    return Promise.resolve(formatOutput(log, logLevel));
 }
 
 async function validateFhirBundle(json: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
-    const result = fhirBundle.validate(json);
-    return Promise.resolve(formatOutput(result.log, logLevel));
+    const log = fhirBundle.validate(json);
+    return Promise.resolve(formatOutput(log, logLevel));
 }
 
 export { ErrorCode } from './error';

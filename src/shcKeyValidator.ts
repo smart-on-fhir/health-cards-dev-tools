@@ -4,7 +4,6 @@
 import Log from './logger';
 import jose, { JWK } from 'node-jose';
 import { ErrorCode } from './error';
-import { ValidationResult } from './validate';
 import { validateSchema } from './schema';
 import keySetSchema from '../schema/keyset-schema.json';
 import { KeySet, store } from './keys';
@@ -68,7 +67,7 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
     let caArg = '';
     let issuerCert = '';
     const certFiles = x5c.map((cert, index, certs) => {
-        const certFileName = path.join(tmpDir, tmpFileName + '-' + index + PEM_CERT_FILE_EXT);
+        const certFileName = path.join(tmpDir, tmpFileName + '-' + index.toString() + PEM_CERT_FILE_EXT);
         if (index === 0) {
             // first cert in the x5c array is the leaf, issuer cert
             issuerCert = ' ' + certFileName;
@@ -83,7 +82,7 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
         // break the base64 string into lines of 64 characters (PEM format)
         const certLines = cert.match(/(.{1,64})/g);
         if (!certLines || certLines.length == 0) {
-            throw 'x5c[' + index + '] in issuer JWK set is not properly formatted';
+            throw 'x5c[' + index.toString() + '] in issuer JWK set is not properly formatted';
         }
         // add the PEM header/footer
         certLines.unshift(PEM_CERT_HEADER);
@@ -98,10 +97,10 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
         //
         const opensslVerifyCommand = "openssl verify " + rootCaArg + caArg + issuerCert;
         log.debug('Calling openssl for x5c validation: ' + opensslVerifyCommand);
-        let result = execa.commandSync(opensslVerifyCommand);
+        const result = execa.commandSync(opensslVerifyCommand);
         if (result.exitCode != 0) {
             log.debug(result.stderr);
-            throw 'OpenSSL returned an error: exit code ' + result.exitCode;
+            throw 'OpenSSL returned an error: exit code ' + result.exitCode.toString();
         }
 
         //
@@ -109,7 +108,7 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
         //
         const logX5CError = (field:string) => log.error(`Can't parse ${field} in the issuer's cert (in x5c JWK value)`, ErrorCode.INVALID_KEY_X5C);
         const cert = Certificate.fromPEM(Buffer.from(PEM_CERT_HEADER + '\n' + x5c[0] + '\n' + PEM_CERT_FOOTER));
-        const sanExt = cert.getExtension('subjectAltName');
+        const sanExt = cert.getExtension('subjectAltName') as Record<string, Record<string, string>[]>;
         let subjectAltName = '';
         // TODO (what if there are more than one SAN? return all of them, make sure the issuer URL is one of them?)
         if (!sanExt || !sanExt['altNames'] || !sanExt['altNames'][0]) {
@@ -152,7 +151,7 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
             subjectAltName: subjectAltName
         }
     } catch (err) {
-        log.error('Error validating x5c certificates: ' + err, ErrorCode.INVALID_KEY_X5C);
+        log.error('Error validating x5c certificates: ' + (err as Error).toString(), ErrorCode.INVALID_KEY_X5C);
     } finally {
         certFiles.map((file) => {
             fs.unlinkSync(file);
@@ -160,12 +159,12 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
     }
 }
 
-export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = new Log('Validate Key-Set'), expectedSubjectAltName = ''): Promise<ValidationResult> {
+export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = new Log('Validate Key-Set'), expectedSubjectAltName = ''): Promise<{keySet : KeySet | undefined, log : Log}> {
 
     // check that keySet is valid
     if (!(keySet instanceof Object) || !keySet.keys || !(keySet.keys instanceof Array)) {
         log.fatal("keySet not valid. Expect {keys : JWK.Key[]}", ErrorCode.INVALID_KEY_SCHEMA);
-        return new ValidationResult(undefined, log);
+        return {keySet: undefined, log};
     }
 
     // failures will be recorded in the log. we can continue processing.
@@ -223,7 +222,7 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
             key = await store.add(key);
         } catch (error) {
             log.error('Error adding key to keyStore : ' + (error as Error).message, ErrorCode.INVALID_KEY_UNKNOWN);
-            return new ValidationResult(undefined, log);
+            return {keySet: undefined, log};
         }
 
         // check that kid is properly generated
@@ -267,5 +266,5 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
 
     }
 
-    return new ValidationResult(keySet, log);
+    return {keySet, log};
 }

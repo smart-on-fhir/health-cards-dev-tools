@@ -7,10 +7,9 @@ import jwsCompactSchema from '../schema/jws-schema.json';
 import * as jwsPayload from './jws-payload';
 import * as keys from './keys';
 import pako from 'pako';
-import got, { CancelableRequest } from 'got';
+import got from 'got';
 import jose from 'node-jose';
-import Log from './logger';
-import { ValidationResult } from './validate';
+import Log, { LogLevels } from './logger';
 import { verifyAndImportHealthCardIssuerKey } from './shcKeyValidator';
 import { parseJson } from './utils';
 
@@ -23,7 +22,7 @@ export const schema = jwsCompactSchema;
 
 const MAX_JWS_SINGLE_CHUNK_LENGTH = 1195;
 
-export async function validate(jws: JWS, index = ''): Promise<ValidationResult> {
+export async function validate(jws: JWS, index = ''): Promise<Log> {
 
     // the jws string is not JSON.  It is base64url.base64url.base64url
 
@@ -40,10 +39,7 @@ export async function validate(jws: JWS, index = ''): Promise<ValidationResult> 
     }
 
     if (!/[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+/g.test(jws)) {
-        return new ValidationResult(
-            undefined,
-            log.fatal('Failed to parse JWS-compact data as \'base64url.base64url.base64url\' string.', ErrorCode.JSON_PARSE_ERROR)
-        );
+        return log.fatal('Failed to parse JWS-compact data as \'base64url.base64url.base64url\' string.', ErrorCode.JSON_PARSE_ERROR);
     }
 
     // failures will be recorded in the log. we can continue processing.
@@ -178,17 +174,23 @@ export async function validate(jws: JWS, index = ''): Promise<ValidationResult> 
     }
 
     // try to validate the payload (even if inflation failed)
-    const payloadResult = jwsPayload.validate(inflatedPayload || b64DecodedPayloadString || rawPayload);
-    const payload = payloadResult.result as JWSPayload;
-    log.child.push(payloadResult.log);
+    const payloadLog = jwsPayload.validate(inflatedPayload || b64DecodedPayloadString || rawPayload);
+    log.child.push(payloadLog);
 
+    // if we got a fatal error, quit here
+    if (payloadLog.get(LogLevels.FATAL).length) {
+        return log;
+    }
+
+    // try-parse the JSON even if it failed validation above
+    const payload = parseJson<JWSPayload>(inflatedPayload || b64DecodedPayloadString || rawPayload);
 
     // if we did not get a payload back, it failed to be parsed and we cannot extract the key url
     // so we can stop.
     // the jws-payload child will contain the parse errors.
     // The payload validation may have a Fatal error
     if (!payload) {
-        return { result: payload, log: log };
+        return log;
     }
 
 
@@ -224,7 +226,7 @@ export async function validate(jws: JWS, index = ''): Promise<ValidationResult> 
         log.info("JWS signature verified");
     }
 
-    return { result: jws, log: log };
+    return log;
 }
 
 
@@ -234,7 +236,7 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.K
     log.info("Retrieving issuer key from " + jwkURL);
     const requestedOrigin = 'https://example.org'; // request bogus origin to test CORS response
     try {
-        const response = await got(jwkURL, { headers: {Origin: requestedOrigin}, timeout: JwsValidationOptions.jwksDownloadTimeOut });
+        const response = await got(jwkURL, { headers: { Origin: requestedOrigin }, timeout: JwsValidationOptions.jwksDownloadTimeOut });
         // we expect a CORS response header consistent with the requested origin (either allow all '*' or the specific origin)
         // TODO: can we easily add a unit test for this?
         const acaoHeader = response.headers['access-control-allow-origin'];
@@ -249,12 +251,12 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.K
                 throw "Failed to parse JSON KeySet schema";
             }
             log.debug("Downloaded issuer key(s) : ");
-            return (await verifyAndImportHealthCardIssuerKey(keySet, log, issuerURL)).result as (keys.KeySet | undefined);
+            return (await verifyAndImportHealthCardIssuerKey(keySet, log, issuerURL)).keySet;
         } catch (err) {
             log.error("Can't parse downloaded issuer JWK set: " + (err as Error).toString(), ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
             return undefined;
         }
-    } catch(err) {
+    } catch (err) {
         log.error("Failed to download issuer JWK set: " + (err as Error).toString(), ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);
         return undefined;
     }
