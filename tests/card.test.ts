@@ -164,6 +164,24 @@ test("Cards: numeric QR w/ trailing chars", testCard('test-example-00-f-qr-code-
 test("Cards: jws too long", testCard('example-02-d-jws.txt', 'jws', [0, [ErrorCode.JWS_TOO_LONG].concat(SCHEMA_ERROR_ARRAY)]));
 test("Cards: not yet valid", testCard('test-example-00-b-jws-payload-expanded-nbf_not_yet_valid.json', 'jwspayload', [0, [ErrorCode.NOT_YET_VALID]]));
 test("Cards: unnecessary QR chunks", testCard(['test-example-00-g-qr-code-0-qr_chunk_too_small.png', 'test-example-00-g-qr-code-1-qr_chunk_too_small.png'], 'qr', [0, [ErrorCode.INVALID_QR]]));
+test("Cards: many unnecessary QR chunks", testCard([
+    'test-example-00-f-qr-code-numeric-value-0-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-1-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-2-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-3-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-4-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-5-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-6-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-7-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-8-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-9-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-10-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-11-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-12-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-13-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-14-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-15-qr_chunk_too_small.txt',
+    'test-example-00-f-qr-code-numeric-value-16-qr_chunk_too_small.txt'], 'qrnumeric', [0, [ErrorCode.INVALID_QR, ErrorCode.UNBALANCED_QR_CHUNKS]]));
 
 // Error cases
 
