@@ -53,7 +53,7 @@ To validate health card artifacts, use the `shc-validator.ts` script, or simply 
                 Options:
                   -v, --version              display specification and tool version
                   -p, --path <path>          path of the file(s) to validate. Can be repeated for the qr and qrnumeric types, to provide multiple file chunks (default: [])
-                  -t, --type <type>          type of file to validate (choices: "fhirbundle", "jwspayload", "jws", "healthcard", "qrnumeric", "qr", "jwkset")
+                  -t, --type <type>          type of file to validate (choices: "fhirbundle", "jwspayload", "jws", "healthcard", "fhirhealthcard","qrnumeric", "qr", "jwkset")
                   -l, --loglevel <loglevel>  set the minimum log level (choices: "debug", "info", "warning", "error", "fatal", default: "warning")
                   -P, --profile <profile>    vaccination profile to validate (choices: "any", "usa-covid19-immunization", default: "any")
                   -o, --logout <path>        output path for log (if not specified log will be printed on console)
@@ -87,6 +87,7 @@ The supported file types, as expressed with the `--type` option, are:
  - *jwspayload*: a JSON Web Signature (JWS) payload, encoding a health card
  - *jws*: a (signed) JSON Web Signature (JWS), encoding a health card
  - *healthcard*: a health card file
+ - *fhirhealthcard*: response payload returned from a FHIR $health-cards-issue operation
  - *qrnumeric*: a numeric QR code encoding a health card
  - *qr*: a QR code image encoding a health card
  - *jwkset*: a JSON Web Key (JWK) Set, encoding the issuer public signing key. This superceedes downloading the key from the well-known location.

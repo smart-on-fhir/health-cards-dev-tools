@@ -6,6 +6,7 @@ import { verifyAndImportHealthCardIssuerKey } from './shcKeyValidator';
 import { FileInfo } from './file';
 import { ErrorCode } from './error';
 import * as healthCard from './healthCard';
+import * as fhirHealthCard from './fhirHealthCard';
 import * as jws from './jws-compact';
 import * as jwsPayload from './jws-payload';
 import * as fhirBundle from './fhirBundle';
@@ -16,7 +17,7 @@ import { FhirOptions, ValidationProfiles } from './fhirBundle';
 import { CliOptions } from './shc-validator';
 
 
-export type ValidationType = "qr" | "qrnumeric" | "healthcard" | "jws" | "jwspayload" | "fhirbundle" | "jwkset";
+export type ValidationType = "qr" | "qrnumeric" | "healthcard" | "fhirhealthcard" | "jws" | "jwspayload" | "fhirbundle" | "jwkset";
 
 
 
@@ -51,6 +52,10 @@ export async function validateCard(fileData: FileInfo[], options: CliOptions): P
             if (fileData[0].ext !== '.smart-health-card') {
                 result.warn("Invalid file extension. Should be .smart-health-card.", ErrorCode.INVALID_FILE_EXTENSION);
             }
+            break;
+            
+        case "fhirhealthcard":
+            result = await fhirHealthCard.validate(fileData[0].buffer.toString());
             break;
 
         case "jws":

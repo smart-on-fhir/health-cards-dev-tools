@@ -24,7 +24,7 @@ import color from 'colors';
  *  -h/--help auto-generated
  */
 const loglevelChoices = ['debug', 'info', 'warning', 'error', 'fatal'];
-const artifactTypes = ['fhirbundle', 'jwspayload', 'jws', 'healthcard', 'qrnumeric', 'qr', 'jwkset'];
+const artifactTypes = ['fhirbundle', 'jwspayload', 'jws', 'healthcard', 'fhirhealthcard', 'qrnumeric', 'qr', 'jwkset'];
 const program = new Command();
 program.version(npmpackage.version, '-v, --version', 'display specification and tool version');
 program.requiredOption('-p, --path <path>', 'path of the file(s) to validate. Can be repeated for the qr and qrnumeric types, to provide multiple file chunks',
@@ -184,7 +184,7 @@ async function processOptions(options: CliOptions) {
     }
 
 
-    // validate the specified artifact ('fhirbundle', 'jwspayload', 'jws', 'healthcard', 'qrnumeric', 'qr')
+    // validate the specified artifact ('fhirbundle', 'jwspayload', 'jws', 'healthcard', 'fhirhealthcard', 'qrnumeric', 'qr')
     if (options.type !== 'jwkset') {
 
         // validate a health card
