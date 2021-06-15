@@ -1,4 +1,5 @@
 import * as healthCard from './healthCard';
+import * as fhirHealthCard from './fhirHealthCard';
 import * as jws from './jws-compact';
 import * as jwsPayload from './jws-payload';
 import * as fhirBundle from './fhirBundle';
@@ -42,6 +43,11 @@ async function validateHealthcard(json: string, logLevel: LogLevels = LogLevels.
     return formatOutput(log, logLevel);
 }
 
+async function validateFhirHealthcard(json: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
+    const log = await fhirHealthCard.validate(json);
+    return formatOutput(log, logLevel);
+}
+
 async function validateJws(text: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
     const log = await jws.validate(text);
     return formatOutput(log, logLevel);
@@ -66,6 +72,7 @@ export type ValidationErrors = { message: string, code: ErrorCode, level: LogLev
 export const validate = {
     "qrnumeric": validateQrnumeric,
     "healthcard": validateHealthcard,
+    "fhirhealthcard": validateFhirHealthcard,
     "jws": validateJws,
     "jwspayload": validateJwspayload,
     "fhirbundle": validateFhirBundle,
