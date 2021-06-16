@@ -32,8 +32,8 @@ async function validateKeySet(text : string, logLevel: LogLevels = LogLevels.WAR
     return formatOutput(keySetLog, logLevel);
 }
 
-async function validateQrnumeric(shc: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
-    const log = await qr.validate([shc]);
+async function validateQrnumeric(shc: string[], logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
+    const log = await qr.validate(shc);
     return formatOutput(log, logLevel);
 }
 
