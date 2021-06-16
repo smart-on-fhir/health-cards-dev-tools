@@ -71,9 +71,8 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
         headerJson = parseJson<{ kid: string, alg: string, zip: string }>(headerBytes.toString());
 
         if (headerJson == null) {
-            log.error(["Can't parse JWS header as JSON.",
-                errString].join('\n'),
-                ErrorCode.JWS_HEADER_ERROR);
+            log.error(["Can't parse JWS header as JSON.", errString].join(''), ErrorCode.JWS_HEADER_ERROR);
+            
         } else {
             const headerKeys = Object.keys(headerJson);
             if (!headerKeys.includes('alg')) {

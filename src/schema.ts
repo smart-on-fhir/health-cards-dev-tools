@@ -47,11 +47,11 @@ export function validateSchema(schema: AnySchemaObject, data: FhirBundle | JWS |
 
                     // · Schema: {"instancePath":"","schemaPath":"#/required","keyword":"required","params":{"missingProperty":"resourceType"},"message":"must have required property 'resourceType'"}
                     case "required":
-                        return `Schema: ${err.instancePath} requires property ${err.params.missingProperty as string})`;
+                        return `Schema: ${err.instancePath} requires property ${err.params.missingProperty as string}`;
 
                     // · Schema: {"instancePath":"","schemaPath":"#/additionalProperties","keyword":"additionalProperties","params":{"additionalProperty":"resourceType1"},"message":"must NOT have additional properties"}
                     case "additionalProperties":
-                        return `Schema: ${err.instancePath} additional property '${err.params.additionalProperty as string}' not allowed.`;
+                        return `Schema: ${err.instancePath} additional property '${err.params.additionalProperty as string}' not allowed`;
 
                     //  Schema: {"instancePath":"/birthDate","schemaPath":"#/definitions/date/pattern","keyword":"pattern",
                     // "params":{"pattern":"^([0-9]([0-9]([0-9][1-9]|[1-9]0)|[1-9]00)|[1-9]000)(-(0[1-9]|1[0-2])(-(0[1-9]|[1-2][0-9]|3[0-1]))?)?$"},
@@ -85,7 +85,7 @@ export function validateSchema(schema: AnySchemaObject, data: FhirBundle | JWS |
         const missingRef = (err as { "missingRef": string }).missingRef;
         if (missingRef) {
             const property = (err as { "missingRef": string }).missingRef.split('/').pop() as string;
-            log.error(`Schema: ${pathPrefix + property} additional property '${property}' not allowed.`);
+            log.error(`Schema: ${pathPrefix + property} additional property '${property}' not allowed`);
         } else {
         log.error('Schema: ' + (err as Error).message, isFhirSchema ? ErrorCode.FHIR_SCHEMA_ERROR : ErrorCode.SCHEMA_ERROR);
         }

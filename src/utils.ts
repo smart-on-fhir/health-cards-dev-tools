@@ -111,3 +111,10 @@ export function walkProperties(obj: Record<string, unknown>, path: string[], cal
 
     return;
 }
+
+//
+// verifies a value is a number
+//
+export function isNumeric(n : unknown) : boolean {
+    return !isNaN(parseFloat(n as string)) && isFinite(n as number);
+}
