@@ -22,20 +22,21 @@ export async function validate(fhirHealthCardText: string): Promise<Log> {
         return log.fatal("Failed to parse FHIR Health Card response data as JSON.", ErrorCode.JSON_PARSE_ERROR);
     }
 
-    const vc = fhirHealthCard.parameter;
+    const param = fhirHealthCard.parameter;
     if (
-        !vc ||
-        !(vc instanceof Array) ||
-        vc.length === 0 ||
-        typeof vc[0].valueString !== 'string'
+        !param ||
+        !(param instanceof Array) ||
+        param.length === 0
     ) {
-        // The schema check above will list the expected properties/type
         return log.fatal("fhirHealthCard.parameter array required to continue.", ErrorCode.CRITICAL_DATA_MISSING);
     }
-
-    for (let i = 0; i < vc.length; i++) {
-        log.child.push((await jws.validate(vc[i].valueString, vc.length> 1 ? i.toString() : '')));
-    }
+    await Promise.all(param.filter(p => p.name === 'verifiableCredential').map(async (vc, i, VCs) => {
+        if (!vc.valueString) {
+            log.error(`Missing FHIR Health Card response data verifiableCredential #${i + 1} valueString`, i);
+        } else {
+            log.child.push(await jws.validate(vc.valueString, VCs.length > 1 ? i.toString() : ''));
+        }
+    }));
 
     return log;
 }

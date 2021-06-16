@@ -13,7 +13,7 @@ interface HealthCard {
 // SMART Health Cards response payload format as returned from a FHIR $health-cards-issue request
 interface FhirHealthCardItem {
     "name": string,
-    "valueString": JWS
+    "valueString"?: JWS
 }
 
 interface FhirHealthCard {
