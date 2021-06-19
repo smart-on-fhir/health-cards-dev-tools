@@ -73,12 +73,12 @@ export function validate(jwsPayloadText: string): Log {
     log.child.push((fhirBundle.validate(fhirBundleText)));
 
     // does the FHIR bundle contain an immunization?
-    const hasImmunization = fhirBundleJson?.entry?.filter(entry => entry.resource.resourceType === 'Immunization').length > 0;
+    const hasImmunization = fhirBundleJson?.entry?.some(entry => entry?.resource?.resourceType === 'Immunization');
 
     // does the FHIR bundle contain a covid immunization?
-    const isCovidImmunization = fhirBundleJson?.entry?.filter(entry =>
+    const isCovidImmunization = fhirBundleJson?.entry?.some(entry =>
         entry.resource.resourceType === 'Immunization' &&
-        (cdcCovidCvxCodes.includes((entry.resource?.vaccineCode as { coding: { code: string }[] })?.coding[0]?.code))).length > 0;
+        (cdcCovidCvxCodes.includes((entry?.resource?.vaccineCode as { coding: { code: string }[] })?.coding[0]?.code)));
 
     // check for health card VC types (https://spec.smarthealth.cards/vocabulary/)
     if (hasImmunization && !jwsPayload?.vc?.type?.includes('https://smarthealth.cards#immunization')) {
