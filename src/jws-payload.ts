@@ -8,6 +8,7 @@ import jwsPayloadSchema from '../schema/smart-health-card-vc-schema.json';
 import * as fhirBundle from './fhirBundle';
 import Log from './logger';
 import beautify from 'json-beautify'
+import { cdcCovidCvxCodes } from './fhirBundle';
 
 export const schema = jwsPayloadSchema;
 
@@ -56,7 +57,7 @@ export function validate(jwsPayloadText: string): Log {
     }
 
     if (!jwsPayload?.vc?.type?.includes('https://smarthealth.cards#health-card')) {
-        log.warn("JWS.payload.vc.type should contain 'https://smarthealth.cards#health-card'", ErrorCode.SCHEMA_ERROR);
+        log.error("JWS.payload.vc.type SHALL contain 'https://smarthealth.cards#health-card'", ErrorCode.SCHEMA_ERROR);
     }
 
     // to continue validation, we must have a FHIR bundle string to validate
@@ -67,10 +68,30 @@ export function validate(jwsPayloadText: string): Log {
 
     log.info("JWS Payload validated");
 
-    const fhirBundleText = JSON.stringify(jwsPayload.vc.credentialSubject.fhirBundle);
-
+    const fhirBundleJson = jwsPayload.vc.credentialSubject.fhirBundle;
+    const fhirBundleText = JSON.stringify(fhirBundleJson);
     log.child.push((fhirBundle.validate(fhirBundleText)));
 
+    // does the FHIR bundle contain an immunization?
+    const hasImmunization = fhirBundleJson?.entry?.some(entry => entry?.resource?.resourceType === 'Immunization');
+
+    // does the FHIR bundle contain a covid immunization?
+    const isCovidImmunization = fhirBundleJson?.entry?.some(entry =>
+        entry.resource.resourceType === 'Immunization' &&
+        (cdcCovidCvxCodes.includes((entry?.resource?.vaccineCode as { coding: { code: string }[] })?.coding[0]?.code)));
+
+    // check for health card VC types (https://spec.smarthealth.cards/vocabulary/)
+    if (hasImmunization && !jwsPayload?.vc?.type?.includes('https://smarthealth.cards#immunization')) {
+        log.warn("JWS.payload.vc.type SHOULD contain 'https://smarthealth.cards#immunization'", ErrorCode.SCHEMA_ERROR);
+    }
+    /* TODO: check for laboratory
+    if (hasLaboratory && !jwsPayload?.vc?.type?.includes('https://smarthealth.cards#laboratory')) {
+        log.warn("JWS.payload.vc.type SHOULD contain 'https://smarthealth.cards#laboratory'", ErrorCode.SCHEMA_ERROR);
+    }
+    */
+    if (isCovidImmunization /* TODO: also check for isCovidLaboratory */ && !jwsPayload?.vc?.type?.includes('https://smarthealth.cards#covid19')) {
+        log.warn("JWS.payload.vc.type SHOULD contain 'https://smarthealth.cards#covid19'", ErrorCode.SCHEMA_ERROR);
+    }
 
     return log;
 }

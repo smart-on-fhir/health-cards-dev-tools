@@ -182,6 +182,8 @@ test("Cards: many unnecessary QR chunks", testCard([
     'test-example-00-f-qr-code-numeric-value-14-qr_chunk_too_small.txt',
     'test-example-00-f-qr-code-numeric-value-15-qr_chunk_too_small.txt',
     'test-example-00-f-qr-code-numeric-value-16-qr_chunk_too_small.txt'], 'qrnumeric', [0, [ErrorCode.INVALID_QR, ErrorCode.UNBALANCED_QR_CHUNKS]]));
+test("Cards: missing immunization VC type", testCard('test-example-00-b-jws-payload-expanded-missing-imm-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
+test("Cards: missing covid VC type", testCard('test-example-00-b-jws-payload-expanded-missing-covid-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
 
 // Error cases
 
@@ -319,3 +321,5 @@ test("Cards: fhir bundle w/ usa-profile errors", testCard(['test-example-00-a-fh
 
 test("Cards: fhir bundle w/ empty elements", testCard(['test-example-00-a-fhirBundle-empty-values.json'], 'fhirbundle',
     [[ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR]]));
+
+test("Cards: missing SHC VC type", testCard('test-example-00-b-jws-payload-expanded-missing-shc-vc-type.json', 'jwspayload', [[ErrorCode.SCHEMA_ERROR]]));

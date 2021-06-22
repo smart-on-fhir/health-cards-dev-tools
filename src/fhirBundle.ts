@@ -13,6 +13,9 @@ import beautify from 'json-beautify'
 import { propPath, walkProperties } from './utils';
 
 
+// CDC covid vaccine codes (https://www.cdc.gov/vaccines/programs/iis/COVID-19-related-codes.html)
+export const cdcCovidCvxCodes = ["207", "208", "210", "211", "212"];
+
 export enum ValidationProfiles {
     'any',
     'usa-covid19-immunization'
@@ -143,8 +146,6 @@ export function validate(fhirBundleText: string): Log {
     return log;
 }
 
-
-
 const ValidationProfilesFunctions = {
 
     "any": function (entries: BundleEntry[]): boolean {
@@ -176,11 +177,10 @@ const ValidationProfilesFunctions = {
 
             if (entry.resource.resourceType === "Immunization") {
 
-                // verify that valid codes are used see : https://www.cdc.gov/vaccines/programs/iis/COVID-19-related-codes.html
+                // verify that valid covid vaccine codes are used
                 const code = (entry.resource?.vaccineCode as { coding: { code: string }[] })?.coding[0]?.code;
-                const cvxCodes = ["207", "208", "210", "211", "212"];
-                if (code && !cvxCodes.includes(code)) {
-                    log.error(`Profile : ${profileName} : Immunization.vaccineCode.code requires valid COVID-19 code (${cvxCodes.join(',')}).`, ErrorCode.PROFILE_ERROR);
+                if (code && !cdcCovidCvxCodes.includes(code)) {
+                    log.error(`Profile : ${profileName} : Immunization.vaccineCode.code requires valid COVID-19 code (${cdcCovidCvxCodes.join(',')}).`, ErrorCode.PROFILE_ERROR);
                 }
 
                 // check for properties that are forbidden by the dm-profiles
