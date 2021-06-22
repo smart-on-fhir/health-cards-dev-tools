@@ -36,7 +36,7 @@ export async function validate(healthCardText: string): Promise<Log> {
         !vc ||
         !(vc instanceof Array) ||
         vc.length === 0 ||
-        typeof vc[0] !== 'string'
+        vc.find(e => {typeof e !== 'string'})
     ) {
         // The schema check above will list the expected properties/type
         return log.fatal("HealthCard.verifiableCredential[jws-compact] required to continue.", ErrorCode.CRITICAL_DATA_MISSING);

@@ -10,6 +10,17 @@ interface HealthCard {
     "verifiableCredential": JWS[]
 }
 
+// SMART Health Cards response payload format as returned from a FHIR $health-cards-issue request
+interface FhirHealthCardItem {
+    "name": string,
+    "valueString"?: JWS
+}
+
+interface FhirHealthCard {
+    "resourceType": string,
+    "parameter": FhirHealthCardItem[]
+}
+
 interface JWSPayload {
     "iss": string,
     "nbf": number,

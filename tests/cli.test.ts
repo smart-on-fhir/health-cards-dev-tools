@@ -112,6 +112,8 @@ test("Cards: valid 02 qr-code.png", () => expect(testCliCommand('node . --path t
 test("Cards: valid 02 qr-code.jpg", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.jpg --path testdata/example-02-g-qr-code-1.jpg --path testdata/example-02-g-qr-code-2.jpg --type qr --loglevel info')).toBe(0));
 test("Cards: valid 02 qr-code.bmp", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.bmp --path testdata/example-02-g-qr-code-1.bmp --path testdata/example-02-g-qr-code-2.bmp --type qr --loglevel info')).toBe(0));
 
+test("Cards: valid fhir api health card", () => expect(testCliCommand('node . --path testdata/test-example-00-fhirhealthcard.json --type fhirhealthcard --loglevel info --jwkset testdata/issuer.jwks.public.json')).toBe(0));
+
 // valid key example
 test("Cards: valid key set", () => expect(testCliCommand('node . --path testdata/issuer.jwks.public.json --type jwkset --loglevel info')).toBe(0));
 

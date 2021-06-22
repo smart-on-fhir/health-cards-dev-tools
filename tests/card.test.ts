@@ -154,6 +154,10 @@ test("Cards: valid 02 QR code BMP",
 
 test("Cards: valid 00 health card w/ multiple jws", testCard(['test-example-00-e-file-multi-jws.smart-health-card'], "healthcard"));
 
+test("Cards: valid FHIR api health card", testCard(['test-example-00-fhirhealthcard.json'], "fhirhealthcard"));
+test("Cards: valid FHIR api health card", testCard(['test-example-00-fhirhealthcard-multi-jws.json'], "fhirhealthcard"));
+test("Cards: valid FHIR api health card with optional data", testCard(['test-example-00-fhirhealthcard-with-resource-link.json'], "fhirhealthcard"));
+
 // Warning cases
 
 test("Cards: fhir bundle w/ trailing chars", testCard(['test-example-00-a-fhirBundle-trailing_chars.json'], 'fhirbundle', [0, [ErrorCode.TRAILING_CHARACTERS]]));
