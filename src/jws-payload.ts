@@ -8,7 +8,7 @@ import jwsPayloadSchema from '../schema/smart-health-card-vc-schema.json';
 import * as fhirBundle from './fhirBundle';
 import Log from './logger';
 import beautify from 'json-beautify'
-import { cdcCovidCvxCodes } from './fhirBundle';
+import { cdcCovidCvxCodes, loincCovidTestCodes } from './fhirBundle';
 
 export const schema = jwsPayloadSchema;
 
@@ -76,21 +76,33 @@ export function validate(jwsPayloadText: string): Log {
     const hasImmunization = fhirBundleJson?.entry?.some(entry => entry?.resource?.resourceType === 'Immunization');
 
     // does the FHIR bundle contain a covid immunization?
-    const isCovidImmunization = fhirBundleJson?.entry?.some(entry =>
+    const hasCovidImmunization = fhirBundleJson?.entry?.some(entry =>
         entry.resource.resourceType === 'Immunization' &&
         (cdcCovidCvxCodes.includes((entry?.resource?.vaccineCode as { coding: { code: string }[] })?.coding[0]?.code)));
 
+    // does the FHIR bundle contain a covid lab observation?
+    // TODO: support more general labs
+    // http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/StructureDefinition-covid19-laboratory-result-observation.html
+    const hasCovidObservation = fhirBundleJson?.entry?.some(entry =>
+        entry.resource.resourceType === 'Observation' &&
+        (loincCovidTestCodes.includes((entry?.resource?.code as { coding: { code: string }[] })?.coding[0]?.code)));
+
     // check for health card VC types (https://spec.smarthealth.cards/vocabulary/)
-    if (hasImmunization && !jwsPayload?.vc?.type?.includes('https://smarthealth.cards#immunization')) {
+    const hasImmunizationType = jwsPayload?.vc?.type?.includes('https://smarthealth.cards#immunization'); 
+    const hasLaboratoryType = jwsPayload?.vc?.type?.includes('https://smarthealth.cards#laboratory');
+    const hasCovidType = jwsPayload?.vc?.type?.includes('https://smarthealth.cards#covid19');
+    if (hasImmunization && !hasImmunizationType) {
         log.warn("JWS.payload.vc.type SHOULD contain 'https://smarthealth.cards#immunization'", ErrorCode.SCHEMA_ERROR);
+    } else if (!hasImmunization && hasImmunizationType) {
+        log.warn("JWS.payload.vc.type SHOULD NOT contain 'https://smarthealth.cards#immunization', no immunization resources found", ErrorCode.SCHEMA_ERROR);
     }
-    /* TODO: check for laboratory
-    if (hasLaboratory && !jwsPayload?.vc?.type?.includes('https://smarthealth.cards#laboratory')) {
+    if (hasCovidObservation && !hasLaboratoryType) {
         log.warn("JWS.payload.vc.type SHOULD contain 'https://smarthealth.cards#laboratory'", ErrorCode.SCHEMA_ERROR);
     }
-    */
-    if (isCovidImmunization /* TODO: also check for isCovidLaboratory */ && !jwsPayload?.vc?.type?.includes('https://smarthealth.cards#covid19')) {
+    if ((hasCovidImmunization || hasCovidObservation) && !hasCovidType) {
         log.warn("JWS.payload.vc.type SHOULD contain 'https://smarthealth.cards#covid19'", ErrorCode.SCHEMA_ERROR);
+    } else if (!(hasCovidImmunization || hasCovidObservation) && hasCovidType) {
+        log.warn("JWS.payload.vc.type SHOULD NOT contain 'https://smarthealth.cards#covid19', no covid immunization or observation found", ErrorCode.SCHEMA_ERROR);
     }
 
     return log;

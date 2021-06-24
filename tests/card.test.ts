@@ -188,6 +188,7 @@ test("Cards: many unnecessary QR chunks", testCard([
     'test-example-00-f-qr-code-numeric-value-16-qr_chunk_too_small.txt'], 'qrnumeric', [0, [ErrorCode.INVALID_QR, ErrorCode.UNBALANCED_QR_CHUNKS]]));
 test("Cards: missing immunization VC type", testCard('test-example-00-b-jws-payload-expanded-missing-imm-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
 test("Cards: missing covid VC type", testCard('test-example-00-b-jws-payload-expanded-missing-covid-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
+test("Cards: missing lab VC type", testCard('test-example-covid-lab-jwspayload-missing-lab-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
 
 // Error cases
 
