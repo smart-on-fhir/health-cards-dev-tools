@@ -8,7 +8,7 @@ import jwsPayloadSchema from '../schema/smart-health-card-vc-schema.json';
 import * as fhirBundle from './fhirBundle';
 import Log from './logger';
 import beautify from 'json-beautify'
-import { cdcCovidCvxCodes } from './fhirBundle';
+import { cdcCovidCvxCodes, loincCovidTestCodes } from './fhirBundle';
 
 export const schema = jwsPayloadSchema;
 
@@ -80,16 +80,21 @@ export function validate(jwsPayloadText: string): Log {
         entry.resource.resourceType === 'Immunization' &&
         (cdcCovidCvxCodes.includes((entry?.resource?.vaccineCode as { coding: { code: string }[] })?.coding[0]?.code)));
 
+    // does the FHIR bundle contain a covid lab observation?
+    // TODO: support more general labs
+    // http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/StructureDefinition-covid19-laboratory-result-observation.html
+    const isCovidObservation = fhirBundleJson?.entry?.some(entry =>
+        entry.resource.resourceType === 'Observation' &&
+        (loincCovidTestCodes.includes((entry?.resource?.code as { coding: { code: string }[] })?.coding[0]?.code)));
+
     // check for health card VC types (https://spec.smarthealth.cards/vocabulary/)
     if (hasImmunization && !jwsPayload?.vc?.type?.includes('https://smarthealth.cards#immunization')) {
         log.warn("JWS.payload.vc.type SHOULD contain 'https://smarthealth.cards#immunization'", ErrorCode.SCHEMA_ERROR);
     }
-    /* TODO: check for laboratory
-    if (hasLaboratory && !jwsPayload?.vc?.type?.includes('https://smarthealth.cards#laboratory')) {
+    if (isCovidObservation && !jwsPayload?.vc?.type?.includes('https://smarthealth.cards#laboratory')) {
         log.warn("JWS.payload.vc.type SHOULD contain 'https://smarthealth.cards#laboratory'", ErrorCode.SCHEMA_ERROR);
     }
-    */
-    if (isCovidImmunization /* TODO: also check for isCovidLaboratory */ && !jwsPayload?.vc?.type?.includes('https://smarthealth.cards#covid19')) {
+    if ((isCovidImmunization || isCovidObservation) && !jwsPayload?.vc?.type?.includes('https://smarthealth.cards#covid19')) {
         log.warn("JWS.payload.vc.type SHOULD contain 'https://smarthealth.cards#covid19'", ErrorCode.SCHEMA_ERROR);
     }
 
