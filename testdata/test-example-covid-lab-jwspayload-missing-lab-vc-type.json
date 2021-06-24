@@ -3,7 +3,6 @@
   "nbf": 1624455003.481,
   "vc": {
     "type": [
-      "VerifiableCredential",
       "https://smarthealth.cards#health-card",
       "https://smarthealth.cards#covid19"
     ],
