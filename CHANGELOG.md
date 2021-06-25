@@ -1,5 +1,11 @@
 # CHANGE LOG
 
+## v1.0.0-4
+ - Added checks for health card verifiable credential types
+ - Support for multi-QR scans in API
+ - Added new fhirhealthcard validation type
+ - Misc fixes and refactoring
+
 ## v1.0.0-3
  - Updated test files after spec location change
  - Added support for node 16
