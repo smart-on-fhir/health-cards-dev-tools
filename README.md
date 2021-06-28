@@ -1,8 +1,8 @@
-![Node.js CI](https://github.com/microsoft/health-cards-validation-SDK/actions/workflows/node.js.yml/badge.svg)
+![Node.js CI](https://github.com/smart-on-fhir/health-cards-validation-SDK/actions/workflows/node.js.yml/badge.svg)
 
 # SMART Health Cards Validation SDK
 
-This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `1.0.0-2`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
+This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `1.0.0-4`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
 
 ## Setup
 
@@ -10,7 +10,7 @@ This project provides a tool to help implementers of the [SMART Health Card Fram
 
 2. Get the source, for example using git:
 
-                git clone -b main https://github.com/microsoft/health-cards-validation-SDK.git
+                git clone -b main https://github.com/smart-on-fhir/health-cards-validation-SDK.git
                 cd health-cards-validation-SDK
 
 3. Build the npm package:
@@ -98,7 +98,7 @@ Issuer signing public keys (encoded in a JSON Web Key Set) can be validated befo
 
                 node . --path issuerPublicKeys.json --type jwkset
 
-The tool can be invoked programmatically. First, install the tool in your own project, either from  GitHub via `npm install microsoft/health-cards-validation-SDK`, or from a local .tgz file resulting from `npm pack` as described above. Then import `src/api.js` and call the right `validate.<artifact-type>` method, where `<artifact-type>` can be one of `qrnumeric`, `healthcard`, `fhirhealthcard`, `jws`, `jwspayload`, `fhirbundle`, or `keyset`. The validation results, if any, are returned in Promise-wrapped array. For example you could check a JWS via:
+The tool can be invoked programmatically. First, install the tool in your own project, either from  GitHub via `npm install smart-on-fhir/health-cards-validation-SDK`, or from a local .tgz file resulting from `npm pack` as described above. Then import `src/api.js` and call the right `validate.<artifact-type>` method, where `<artifact-type>` can be one of `qrnumeric`, `healthcard`, `fhirhealthcard`, `jws`, `jwspayload`, `fhirbundle`, or `keyset`. The validation results, if any, are returned in Promise-wrapped array. For example you could check a JWS via:
 
 ```js
 import { validate } from 'health-cards-validation-sdk/js/src/api.js'
@@ -119,25 +119,3 @@ The tool currently verifies proper encoding of the:
  - Issuer JSON Key Set (schema, algorithm, EC Curve, ID, type, usage)
 
 Validation of the FHIR bundle is currently limited. The tool validates a subset of the full FHIR schema; the behavior scoped by using the profile option, or can be changed by modifying the `src/prune-fhir-schema.ts` script. Extensive tests and conformance to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/) can be performed by the [FHIR validator](https://wiki.hl7.org/Using_the_FHIR_Validator) tool.
-
-## Contributing
-
-This project welcomes contributions and suggestions.  Most contributions require you to agree to a
-Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
-
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
-provided by the bot. You will only need to do this once across all repos using our CLA.
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
-For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
-contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
-
-## Trademarks
-
-This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft 
-trademarks or logos is subject to and must follow 
-[Microsoft's Trademark & Brand Guidelines](https://www.microsoft.com/en-us/legal/intellectualproperty/trademarks/usage/general).
-Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship.
-Any use of third-party trademarks or logos are subject to those third-party's policies.
