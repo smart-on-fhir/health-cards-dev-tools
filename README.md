@@ -98,7 +98,7 @@ Issuer signing public keys (encoded in a JSON Web Key Set) can be validated befo
 
                 node . --path issuerPublicKeys.json --type jwkset
 
-The tool can be invoked programmatically. First, install the tool in your own project, either from  GitHub via `npm install smart-on-fhir/health-cards-validation-SDK`, or from a local .tgz file resulting from `npm pack` as described above. Then import `src/api.js` and call the right `validate.<artifact-type>` method, where `<artifact-type>` can be one of `qrnumeric`, `healthcard`, `fhirhealthcard`, `jws`, `jwspayload`, `fhirbundle`, or `keyset`. The validation results, if any, are returned in Promise-wrapped array. For example you could check a JWS via:
+The tool can be invoked programmatically from a Node.js app (*note: browser-based environments are not currently supported*). First, install the tool in your own project, either from  GitHub via `npm install smart-on-fhir/health-cards-validation-SDK`, or from a local .tgz file resulting from `npm pack` as described above. Then import `src/api.js` and call the right `validate.<artifact-type>` method, where `<artifact-type>` can be one of `qrnumeric`, `healthcard`, `fhirhealthcard`, `jws`, `jwspayload`, `fhirbundle`, or `keyset`. The validation results, if any, are returned in Promise-wrapped array. For example you could check a JWS via:
 
 ```js
 import { validate } from 'health-cards-validation-sdk/js/src/api.js'
