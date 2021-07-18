@@ -10,7 +10,7 @@ import * as qr from './qr';
 import { PNG } from 'pngjs';
 import fs from 'fs';
 import Jimp from 'jimp';
-import { toFile, QRCodeSegment } from 'qrcode';
+import { create, toFile, QRCodeSegment } from 'qrcode';
 import { ByteChunk, Chunk } from 'jsqr/dist/decoder/decodeData';
 
 export async function validate(images: FileInfo[]): Promise<Log> {
@@ -129,6 +129,16 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
         }
         if (code.chunks[1].type !== 'numeric') {
             log.error(`Wrong encoding mode for second QR segment: found ${code.chunks[0].type}, expected "numeric"`, ErrorCode.INVALID_QR);
+        }
+
+        // let's make sure the QR code's version is tight
+        try {
+            const qrCode = create(code.data, { errorCorrectionLevel: 'low' });
+            if (qrCode.version < code.version) {
+                log.warn(`QR code has version ${code.version}, but could have been created with version ${qrCode.version} (with low error-correcting level). Make sure the larger version was chosen on purpose (e.g., not hardcoded).`, ErrorCode.INVALID_QR_VERSION);
+            }
+        } catch (err) {
+            log.warn("Can't re-create QR to check optimal version choice: ", err);
         }
     }
 
