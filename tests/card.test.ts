@@ -189,6 +189,7 @@ test("Cards: many unnecessary QR chunks", testCard([
 test("Cards: missing immunization VC type", testCard('test-example-00-b-jws-payload-expanded-missing-imm-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
 test("Cards: missing covid VC type", testCard('test-example-00-b-jws-payload-expanded-missing-covid-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
 test("Cards: missing lab VC type", testCard('test-example-covid-lab-jwspayload-missing-lab-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
+test("Cards: inflated QR code", testCard('test-example-00-g-qr-code-inflated-to-v22.png', 'qr', [0, [ErrorCode.INVALID_QR_VERSION]]));
 
 // Error cases
 
@@ -287,7 +288,7 @@ test("Cards: too many QR segments",
 );
 
 test("Cards: invalid QR version",
-    testCard('test-example-00-g-qr-code-0-bad_qr_version.png', 'qr', [[ErrorCode.INVALID_QR_VERSION]])
+    testCard('test-example-00-g-qr-code-0-bad_qr_version.png', 'qr', [[ErrorCode.INVALID_QR_VERSION],[ErrorCode.INVALID_QR_VERSION]])
 );
 
 test("Cards: corrupted QR code",
