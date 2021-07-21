@@ -189,6 +189,11 @@ test("Cards: many unnecessary QR chunks", testCard([
 test("Cards: missing immunization VC type", testCard('test-example-00-b-jws-payload-expanded-missing-imm-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
 test("Cards: missing covid VC type", testCard('test-example-00-b-jws-payload-expanded-missing-covid-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
 test("Cards: missing lab VC type", testCard('test-example-covid-lab-jwspayload-missing-lab-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
+
+test("Cards: missing coding",
+    testCard('test-example-00-b-jws-payload-expanded-missing-coding.json', 'jwspayload', [[ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR], [ErrorCode.SCHEMA_ERROR]])
+);
+
 test("Cards: inflated QR code", testCard('test-example-00-g-qr-code-inflated-to-v22.png', 'qr', [0, [ErrorCode.INVALID_QR_VERSION]]));
 
 // Error cases
@@ -280,7 +285,7 @@ test("Cards: invalid numeric QR with value too big",
 );
 
 test("Cards: single segment QR",
-    testCard('test-example-00-g-qr-code-0-single_qr_segment.png', 'qr', [[ErrorCode.INVALID_QR,ErrorCode.INVALID_QR_VERSION]])
+    testCard('test-example-00-g-qr-code-0-single_qr_segment.png', 'qr', [[ErrorCode.INVALID_QR, ErrorCode.INVALID_QR_VERSION]])
 );
 
 test("Cards: too many QR segments",
@@ -319,7 +324,7 @@ test("Cards: bad meta with wrong security field", testCard(['test-example-00-a-f
 
 test("Cards: health card w/ multi-jws and issues",
     testCard(['test-example-00-e-file-multi-jws-issues.smart-health-card'], "healthcard",
-    [[ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR],[ErrorCode.TRAILING_CHARACTERS]])
+        [[ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR], [ErrorCode.TRAILING_CHARACTERS]])
 );
 
 test("Cards: fhir bundle w/ usa-profile errors", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
