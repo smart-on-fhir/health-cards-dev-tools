@@ -12,6 +12,7 @@ import jose from 'node-jose';
 import Log, { LogLevels } from './logger';
 import { verifyAndImportHealthCardIssuerKey } from './shcKeyValidator';
 import { parseJson } from './utils';
+import { checkTrustedIssuerDirectory, TrustedIssuerDirectory } from './issuerDirectory';
 
 export const JwsValidationOptions = {
     skipJwksDownload: false,
@@ -44,7 +45,6 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
 
     // failures will be recorded in the log. we can continue processing.
     validateSchema(jwsCompactSchema, jws, log);
-
 
     // split into header[0], payload[1], key[2]
     const parts = jws.split('.');
@@ -212,6 +212,10 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
                 log.info("skipping issuer JWK set download");
             }
 
+            // check if the iss URL is part of a trust framework
+            if (TrustedIssuerDirectory.directoryURL) {
+                checkTrustedIssuerDirectory(payload.iss, log);
+            }
         } else {
             log.error(`JWS payload 'iss' should be a string, not a ${typeof payload.iss}`);
         }
@@ -261,7 +265,6 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.K
         return undefined;
     }
 }
-
 
 async function verifyJws(jws: string, kid: string, log: Log): Promise<boolean> {
 

@@ -7,6 +7,7 @@ import fs from 'fs';
 import { Option, Command, version } from 'commander';
 import * as validator from './validate';
 import Log, { LogLevels } from './logger';
+import got from 'got';
 import { getFileData } from './file';
 import { ErrorCode, ExcludableErrors, getExcludeErrorCodes } from './error';
 import * as utils from './utils'
@@ -17,6 +18,8 @@ import * as versions from './check-for-update';
 import semver from 'semver';
 import { JwsValidationOptions } from './jws-compact';
 import color from 'colors';
+import { KnownIssuerDirectories, TrustedIssuerDirectory, TrustedIssuers } from './issuerDirectory';
+import { parseJson } from './utils';
 
 /**
  *  Defines the program
@@ -32,6 +35,7 @@ program.requiredOption('-p, --path <path>', 'path of the file(s) to validate. Ca
 program.addOption(new Option('-t, --type <type>', 'type of file to validate').choices(artifactTypes));
 program.addOption(new Option('-l, --loglevel <loglevel>', 'set the minimum log level').choices(loglevelChoices).default('warning'));
 program.addOption(new Option('-P, --profile <profile>', 'vaccination profile to validate').choices(Object.keys(ValidationProfiles).filter(x => Number.isNaN(Number(x)))).default('any'));
+program.option('-d, --directory <directory>', 'trusted issuer directory to validate against');
 program.option('-o, --logout <path>', 'output path for log (if not specified log will be printed on console)');
 program.option('-f, --fhirout <path>', 'output path for the extracted FHIR bundle');
 program.option('-k, --jwkset <key>', 'path to trusted issuer key set');
@@ -40,13 +44,13 @@ program.option('-e, --exclude <error>', 'error to exclude, can be repeated, can 
     (e: string, errors: string[]) => errors.concat([e]), []);
 program.parse(process.argv);
 
-
 export interface CliOptions {
     path: string[];
     type: validator.ValidationType;
     jwkset: string;
     loglevel: string;
     profile: string;
+    directory: string;
     logout: string;
     fhirout: string;
     exclude: string[];
@@ -126,6 +130,31 @@ async function processOptions(options: CliOptions) {
         return exit("Only the 'qr' and 'qrnumeric' types can have multiple --path options");
     }
 
+
+    // check the trusted issuer directory
+    if (options.directory) {
+        KnownIssuerDirectories.forEach(d => {
+            if (d.name === options.directory || d.URL === options.directory) {
+                // found a match
+                TrustedIssuerDirectory.directoryName = d.name;
+                TrustedIssuerDirectory.directoryURL = d.URL;
+                console.log(`Using "${d.name}" trusted issuers directory from: ${d.URL}`);
+            }
+        });
+        if (!TrustedIssuerDirectory.directoryName) {
+            // we didn't find a known issuers directory by name, let's assume we were provided with a URL
+            // TODO: validate the URL before hand
+            TrustedIssuerDirectory.directoryName = 'custom';
+            TrustedIssuerDirectory.directoryURL = options.directory;
+        }
+        try {
+            // TODO: run this async and wait for it at first use
+            const response = await got(TrustedIssuerDirectory.directoryURL, { timeout: 5000 });
+            TrustedIssuerDirectory.issuers = parseJson<TrustedIssuers>(response.body);
+        } catch (err) {
+            console.log(`Error downloading the trusted issuer directory: ${err.message as string}`);
+        }
+    }
 
     // read the data file(s) to validate
     const fileData = [];
