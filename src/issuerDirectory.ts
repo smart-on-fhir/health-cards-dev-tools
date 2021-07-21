@@ -54,6 +54,10 @@ export function checkTrustedIssuerDirectory(iss: string, log: Log) {
 
 export async function setTrustedIssuerDirectory(directory: string) {
 
+    if (TrustedIssuerDirectory.directoryName === directory || TrustedIssuerDirectory.directoryURL === directory) {
+        // already set
+        return;
+    }
     KnownIssuerDirectories.forEach(d => {
         if (d.name === directory || d.URL === directory) {
 
@@ -68,7 +72,6 @@ export async function setTrustedIssuerDirectory(directory: string) {
     });
     if (!TrustedIssuerDirectory.directoryName) {
         // we didn't find a known issuers directory by name, let's assume we were provided with a URL
-        // TODO: validate the URL before hand
         TrustedIssuerDirectory.directoryName = 'custom';
         TrustedIssuerDirectory.directoryURL = directory;
     }
@@ -85,4 +88,5 @@ export async function setTrustedIssuerDirectory(directory: string) {
 export function clearTrustedIssuerDirectory() : void {
     TrustedIssuerDirectory.directoryName = '';
     TrustedIssuerDirectory.directoryURL = '';
+    TrustedIssuerDirectory.issuers = undefined;
 }
