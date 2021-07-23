@@ -7,7 +7,6 @@ import fs from 'fs';
 import { Option, Command, version } from 'commander';
 import * as validator from './validate';
 import Log, { LogLevels } from './logger';
-import got from 'got';
 import { getFileData } from './file';
 import { ErrorCode, ExcludableErrors, getExcludeErrorCodes } from './error';
 import * as utils from './utils'
@@ -18,8 +17,7 @@ import * as versions from './check-for-update';
 import semver from 'semver';
 import { JwsValidationOptions } from './jws-compact';
 import color from 'colors';
-import { KnownIssuerDirectories, TrustedIssuerDirectory, TrustedIssuers } from './issuerDirectory';
-import { parseJson } from './utils';
+import { setTrustedIssuerDirectory } from './issuerDirectory';
 
 /**
  *  Defines the program
@@ -108,12 +106,12 @@ async function processOptions(options: CliOptions) {
         FhirOptions.LogOutputPath = options.fhirout;
     }
 
-    
+
     // set the validation profile
     FhirOptions.ValidationProfile =
-    options.profile ?
-        ValidationProfiles[options.profile as keyof typeof ValidationProfiles] :
-        FhirOptions.ValidationProfile = ValidationProfiles['any'];
+        options.profile ?
+            ValidationProfiles[options.profile as keyof typeof ValidationProfiles] :
+            FhirOptions.ValidationProfile = ValidationProfiles['any'];
 
 
     // requires both --path and --type properties
@@ -133,27 +131,7 @@ async function processOptions(options: CliOptions) {
 
     // check the trusted issuer directory
     if (options.directory) {
-        KnownIssuerDirectories.forEach(d => {
-            if (d.name === options.directory || d.URL === options.directory) {
-                // found a match
-                TrustedIssuerDirectory.directoryName = d.name;
-                TrustedIssuerDirectory.directoryURL = d.URL;
-                console.log(`Using "${d.name}" trusted issuers directory from: ${d.URL}`);
-            }
-        });
-        if (!TrustedIssuerDirectory.directoryName) {
-            // we didn't find a known issuers directory by name, let's assume we were provided with a URL
-            // TODO: validate the URL before hand
-            TrustedIssuerDirectory.directoryName = 'custom';
-            TrustedIssuerDirectory.directoryURL = options.directory;
-        }
-        try {
-            // TODO: run this async and wait for it at first use
-            const response = await got(TrustedIssuerDirectory.directoryURL, { timeout: 5000 });
-            TrustedIssuerDirectory.issuers = parseJson<TrustedIssuers>(response.body);
-        } catch (err) {
-            console.log(`Error downloading the trusted issuer directory: ${err.message as string}`);
-        }
+        await setTrustedIssuerDirectory(options.directory);
     }
 
     // read the data file(s) to validate
@@ -230,16 +208,16 @@ async function processOptions(options: CliOptions) {
     await vLatestSDK.then(v => {
         if (!v) {
             console.log("Can't determine the latest SDK version. Make sure you have the latest version.")
-        } else if (semver.gt(v,npmpackage.version)) {
+        } else if (semver.gt(v, npmpackage.version)) {
             console.log(`NOTE: You are not using the latest SDK version. Current: v${npmpackage.version}, latest: v${v}\n` +
-                        "You can update by running 'npm run update-validator'.");
+                "You can update by running 'npm run update-validator'.");
         }
     });
     // check if the SDK is behind the spec
     await vLatestSpec.then(v => {
         if (!v) {
             console.log("Can't determine the latest spec version.");
-        } else if (semver.gt(v,npmpackage.version.substr(0,'x.y.z'.length))) { // ignore prerelease tag
+        } else if (semver.gt(v, npmpackage.version.substr(0, 'x.y.z'.length))) { // ignore prerelease tag
             console.log(`NOTE: the SDK v${npmpackage.version} is not validating the latest version of the spec: v${v}`);
         }
     })
