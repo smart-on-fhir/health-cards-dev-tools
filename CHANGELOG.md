@@ -1,5 +1,12 @@
 # CHANGE LOG
 
+## v1.0.1-0
+ - Followed spec version change to v1.0.1
+ - Promoted CORS response warnings to errors
+ - Added option to validate against a trusted issuers directory
+ - Added check for inflated QR codes
+ - Added API tests and misc fixes
+
 ## v1.0.0-4
  - Added checks for health card verifiable credential types
  - Support for multi-QR scans in API
