@@ -158,6 +158,9 @@ test("Cards: valid FHIR api health card", testCard(['test-example-00-fhirhealthc
 test("Cards: valid FHIR api health card", testCard(['test-example-00-fhirhealthcard-multi-jws.json'], "fhirhealthcard"));
 test("Cards: valid FHIR api health card with optional data", testCard(['test-example-00-fhirhealthcard-with-resource-link.json'], "fhirhealthcard"));
 
+test("Cards: issuer in trusted directory ref by name", testCard(['example-00-d-jws.txt'], 'jws', [0], { directory: 'test' }));
+test("Cards: issuer in trusted directory ref by URL", testCard(['example-00-d-jws.txt'], 'jws', [0], { directory: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-validation-SDK/main/testdata/test-issuers.json' }));
+
 // Warning cases
 
 test("Cards: fhir bundle w/ trailing chars", testCard(['test-example-00-a-fhirBundle-trailing_chars.json'], 'fhirbundle', [0, [ErrorCode.TRAILING_CHARACTERS]]));
@@ -334,3 +337,5 @@ test("Cards: fhir bundle w/ empty elements", testCard(['test-example-00-a-fhirBu
     [[ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR]]));
 
 test("Cards: missing SHC VC type", testCard('test-example-00-b-jws-payload-expanded-missing-shc-vc-type.json', 'jwspayload', [[ErrorCode.SCHEMA_ERROR]]));
+
+test("Cards: issuer not in trusted directory", testCard(['example-00-d-jws.txt'], 'jws', [[ErrorCode.ISSUER_NOT_TRUSTED]], { directory: 'VCI' }));

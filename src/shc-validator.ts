@@ -17,6 +17,7 @@ import * as versions from './check-for-update';
 import semver from 'semver';
 import { JwsValidationOptions } from './jws-compact';
 import color from 'colors';
+import { setTrustedIssuerDirectory } from './issuerDirectory';
 
 /**
  *  Defines the program
@@ -32,6 +33,7 @@ program.requiredOption('-p, --path <path>', 'path of the file(s) to validate. Ca
 program.addOption(new Option('-t, --type <type>', 'type of file to validate').choices(artifactTypes));
 program.addOption(new Option('-l, --loglevel <loglevel>', 'set the minimum log level').choices(loglevelChoices).default('warning'));
 program.addOption(new Option('-P, --profile <profile>', 'vaccination profile to validate').choices(Object.keys(ValidationProfiles).filter(x => Number.isNaN(Number(x)))).default('any'));
+program.option('-d, --directory <directory>', 'trusted issuer directory to validate against');
 program.option('-o, --logout <path>', 'output path for log (if not specified log will be printed on console)');
 program.option('-f, --fhirout <path>', 'output path for the extracted FHIR bundle');
 program.option('-k, --jwkset <key>', 'path to trusted issuer key set');
@@ -40,13 +42,13 @@ program.option('-e, --exclude <error>', 'error to exclude, can be repeated, can 
     (e: string, errors: string[]) => errors.concat([e]), []);
 program.parse(process.argv);
 
-
 export interface CliOptions {
     path: string[];
     type: validator.ValidationType;
     jwkset: string;
     loglevel: string;
     profile: string;
+    directory: string;
     logout: string;
     fhirout: string;
     exclude: string[];
@@ -104,12 +106,12 @@ async function processOptions(options: CliOptions) {
         FhirOptions.LogOutputPath = options.fhirout;
     }
 
-    
+
     // set the validation profile
     FhirOptions.ValidationProfile =
-    options.profile ?
-        ValidationProfiles[options.profile as keyof typeof ValidationProfiles] :
-        FhirOptions.ValidationProfile = ValidationProfiles['any'];
+        options.profile ?
+            ValidationProfiles[options.profile as keyof typeof ValidationProfiles] :
+            FhirOptions.ValidationProfile = ValidationProfiles['any'];
 
 
     // requires both --path and --type properties
@@ -126,6 +128,11 @@ async function processOptions(options: CliOptions) {
         return exit("Only the 'qr' and 'qrnumeric' types can have multiple --path options");
     }
 
+
+    // check the trusted issuer directory
+    if (options.directory) {
+        await setTrustedIssuerDirectory(options.directory);
+    }
 
     // read the data file(s) to validate
     const fileData = [];
@@ -201,16 +208,16 @@ async function processOptions(options: CliOptions) {
     await vLatestSDK.then(v => {
         if (!v) {
             console.log("Can't determine the latest SDK version. Make sure you have the latest version.")
-        } else if (semver.gt(v,npmpackage.version)) {
+        } else if (semver.gt(v, npmpackage.version)) {
             console.log(`NOTE: You are not using the latest SDK version. Current: v${npmpackage.version}, latest: v${v}\n` +
-                        "You can update by running 'npm run update-validator'.");
+                "You can update by running 'npm run update-validator'.");
         }
     });
     // check if the SDK is behind the spec
     await vLatestSpec.then(v => {
         if (!v) {
             console.log("Can't determine the latest spec version.");
-        } else if (semver.gt(v,npmpackage.version.substr(0,'x.y.z'.length))) { // ignore prerelease tag
+        } else if (semver.gt(v, npmpackage.version.substr(0, 'x.y.z'.length))) { // ignore prerelease tag
             console.log(`NOTE: the SDK v${npmpackage.version} is not validating the latest version of the spec: v${v}`);
         }
     })
