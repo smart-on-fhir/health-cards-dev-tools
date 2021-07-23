@@ -240,7 +240,7 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.K
         // TODO: can we easily add a unit test for this?
         const acaoHeader = response.headers['access-control-allow-origin'];
         if (!acaoHeader) {
-            log.warn("Issuer key endpoint does not contain a 'access-control-allow-origin' header for Cross-Origin Resource Sharing (CORS)", ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS);
+            log.error("Issuer key endpoint does not contain a 'access-control-allow-origin' header for Cross-Origin Resource Sharing (CORS)", ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS);
         } else if (acaoHeader !== '*' && acaoHeader !== requestedOrigin) {
             log.warn(`Issuer key endpoint's 'access-control-allow-origin' header ${acaoHeader} does not match the requested origin ${requestedOrigin}, for Cross-Origin Resource Sharing (CORS)`, ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS);
         }
