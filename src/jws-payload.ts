@@ -17,6 +17,14 @@ export function validate(jwsPayloadText: string): Log {
 
     const log = new Log('JWS.payload');
 
+    const supportedTypes = {
+        healthCard: 'https://smarthealth.cards#health-card',
+        immunization: 'https://smarthealth.cards#immunization',
+        laboratory: 'https://smarthealth.cards#laboratory',
+        covid19: 'https://smarthealth.cards#covid19',
+        vc: 'VerifiableCredential'
+    };
+
     if (jwsPayloadText.trim() !== jwsPayloadText) {
         log.warn(`JWS payload has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
         jwsPayloadText = jwsPayloadText.trim();
@@ -56,8 +64,8 @@ export function validate(jwsPayloadText: string): Log {
         log.warn("JWS.payload.vc shouldn't have a @context property", ErrorCode.SCHEMA_ERROR);
     }
 
-    if (!jwsPayload?.vc?.type?.includes('https://smarthealth.cards#health-card')) {
-        log.error("JWS.payload.vc.type SHALL contain 'https://smarthealth.cards#health-card'", ErrorCode.SCHEMA_ERROR);
+    if (!jwsPayload?.vc?.type?.includes(supportedTypes.healthCard)) {
+        log.error(`JWS.payload.vc.type SHALL contain '${supportedTypes.healthCard}'`, ErrorCode.SCHEMA_ERROR);
     }
 
     // to continue validation, we must have a FHIR bundle string to validate
@@ -88,22 +96,36 @@ export function validate(jwsPayloadText: string): Log {
         (loincCovidTestCodes.includes((entry?.resource?.code as { coding: { code: string }[] })?.coding?.[0]?.code)));
 
     // check for health card VC types (https://spec.smarthealth.cards/vocabulary/)
-    const hasImmunizationType = jwsPayload?.vc?.type?.includes('https://smarthealth.cards#immunization'); 
-    const hasLaboratoryType = jwsPayload?.vc?.type?.includes('https://smarthealth.cards#laboratory');
-    const hasCovidType = jwsPayload?.vc?.type?.includes('https://smarthealth.cards#covid19');
+    const hasImmunizationType = jwsPayload?.vc?.type?.includes(supportedTypes.immunization);
+    const hasLaboratoryType = jwsPayload?.vc?.type?.includes(supportedTypes.laboratory);
+    const hasCovidType = jwsPayload?.vc?.type?.includes(supportedTypes.covid19);
+    const hasVerifiableCredential = jwsPayload?.vc?.type?.includes(supportedTypes.vc);
+
     if (hasImmunization && !hasImmunizationType) {
-        log.warn("JWS.payload.vc.type SHOULD contain 'https://smarthealth.cards#immunization'", ErrorCode.SCHEMA_ERROR);
+        log.warn(`JWS.payload.vc.type SHOULD contain '${supportedTypes.immunization}'`, ErrorCode.SCHEMA_ERROR);
     } else if (!hasImmunization && hasImmunizationType) {
-        log.warn("JWS.payload.vc.type SHOULD NOT contain 'https://smarthealth.cards#immunization', no immunization resources found", ErrorCode.SCHEMA_ERROR);
+        log.warn(`JWS.payload.vc.type SHOULD NOT contain '${supportedTypes.immunization}', no immunization resources found`, ErrorCode.SCHEMA_ERROR);
     }
+
     if (hasCovidObservation && !hasLaboratoryType) {
-        log.warn("JWS.payload.vc.type SHOULD contain 'https://smarthealth.cards#laboratory'", ErrorCode.SCHEMA_ERROR);
+        log.warn(`JWS.payload.vc.type SHOULD contain '${supportedTypes.laboratory}'`, ErrorCode.SCHEMA_ERROR);
     }
+
     if ((hasCovidImmunization || hasCovidObservation) && !hasCovidType) {
-        log.warn("JWS.payload.vc.type SHOULD contain 'https://smarthealth.cards#covid19'", ErrorCode.SCHEMA_ERROR);
+        log.warn(`JWS.payload.vc.type SHOULD contain '${supportedTypes.covid19}'`, ErrorCode.SCHEMA_ERROR);
     } else if (!(hasCovidImmunization || hasCovidObservation) && hasCovidType) {
-        log.warn("JWS.payload.vc.type SHOULD NOT contain 'https://smarthealth.cards#covid19', no covid immunization or observation found", ErrorCode.SCHEMA_ERROR);
+        log.warn(`JWS.payload.vc.type SHOULD NOT contain '${supportedTypes.covid19}', no covid immunization or observation found`, ErrorCode.SCHEMA_ERROR);
     }
+
+    if (hasVerifiableCredential) {
+        log.warn(`JWS.payload.vc.type : '${supportedTypes.vc}' is not required and may be omitted to conserve space`, ErrorCode.SCHEMA_ERROR);
+    }
+
+    jwsPayload?.vc?.type && jwsPayload?.vc?.type.forEach(t => {
+        if (!Object.values(supportedTypes).includes(t)) {
+            log.warn(`JWS.payload.vc.type : '${t}' is an unknown Verifiable Credential (VC) type (see: https://spec.smarthealth.cards/vocabulary/)`, ErrorCode.SCHEMA_ERROR);
+        }
+    });
 
     return log;
 }
