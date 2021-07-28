@@ -339,3 +339,7 @@ test("Cards: fhir bundle w/ empty elements", testCard(['test-example-00-a-fhirBu
 test("Cards: missing SHC VC type", testCard('test-example-00-b-jws-payload-expanded-missing-shc-vc-type.json', 'jwspayload', [[ErrorCode.SCHEMA_ERROR]]));
 
 test("Cards: issuer not in trusted directory", testCard(['example-00-d-jws.txt'], 'jws', [[ErrorCode.ISSUER_NOT_TRUSTED]], { directory: 'VCI' }));
+
+test("Cards: un-needed VC type", testCard('test-example-00-b-jws-payload-expanded-optional-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
+
+test("Cards: unknown VC types", testCard('test-example-00-b-jws-payload-expanded-unknown-vc-types.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR, ErrorCode.SCHEMA_ERROR]]));
