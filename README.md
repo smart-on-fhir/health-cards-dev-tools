@@ -85,7 +85,8 @@ Multiple `path` options can be provided for QR artifacts (`qrnumeric` and `qr` t
 
                  node . --path QR1.txt --path QR2.txt --path QR3.txt --type qrnumeric
 
-Specific FHIR profiles can be validated by using the `--profile` option; only the `usa-covid19-immunization` profile is currently supported.
+Specific FHIR profiles can be validated by using the `--profile` option; valid options are:
+ - `usa-covid19-immunization`, checking for vaccine products approved in the USA.
 
 A trusted issuers directory can be used by using the `--directory` option; by passing either a known directory name or by passing a URL pointing to a directory using the same format as the [VCI directory](https://raw.githubusercontent.com/the-commons-project/vci-directory/main/vci-issuers.json). The known directory names are:
  - `VCI`, corresponding to the VCI directory, and
