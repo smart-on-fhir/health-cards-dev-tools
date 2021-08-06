@@ -56,14 +56,12 @@ async function validateFhirHealthcard(json: string, options?: IOptions): Promise
 }
 
 async function validateJws(text: string, options?: IOptions): Promise<ValidationErrors> {
-
-    options?.directory ? await setTrustedIssuerDirectory(options.directory) : clearTrustedIssuerDirectory();
-
     const log = await jws.validate(text);
     return formatOutput(log, options?.logLevel || LogLevels.WARNING);
 }
 
 async function validateJwspayload(payload: string, options?: IOptions): Promise<ValidationErrors> {
+    options?.directory ? await setTrustedIssuerDirectory(options.directory) : clearTrustedIssuerDirectory();
     const log = jwsPayload.validate(payload);
     return Promise.resolve(formatOutput(log, options?.logLevel || LogLevels.WARNING));
 }
