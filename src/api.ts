@@ -10,6 +10,7 @@ import { ErrorCode } from './error';
 import { verifyAndImportHealthCardIssuerKey } from './shcKeyValidator';
 import { parseJson } from './utils'
 import { KeySet } from './keys';
+import { clearTrustedIssuerDirectory, setTrustedIssuerDirectory } from './issuerDirectory';
 
 
 function formatOutput(log: Log, logLevel: LogLevels): ValidationErrors {
@@ -22,45 +23,55 @@ function formatOutput(log: Log, logLevel: LogLevels): ValidationErrors {
         .filter(f => f.level >= logLevel);
 }
 
-async function validateKeySet(text : string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
-    
+interface IOptions {
+    logLevel?: LogLevels,
+    profile?: ValidationProfiles,
+    directory?: string
+}
+
+async function validateKeySet(text: string, options?: IOptions): Promise<ValidationErrors> {
+
     const keySet = parseJson<KeySet>(text);
-    if(keySet == null) {
-        return [{message: "Unable to parse as JSON", code : ErrorCode.JSON_PARSE_ERROR, level : LogLevels.ERROR}];
+    if (keySet == null) {
+        return [{ message: "Unable to parse as JSON", code: ErrorCode.JSON_PARSE_ERROR, level: LogLevels.ERROR }];
     }
 
     const keySetLog = await verifyAndImportHealthCardIssuerKey(keySet);
-    return formatOutput(keySetLog, logLevel);
+    return formatOutput(keySetLog, options?.logLevel || LogLevels.WARNING);
 }
 
-async function validateQrnumeric(shc: string[], logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
+async function validateQrnumeric(shc: string[], options?: IOptions): Promise<ValidationErrors> {
     const log = await qr.validate(shc);
-    return formatOutput(log, logLevel);
+    return formatOutput(log, options?.logLevel || LogLevels.WARNING);
 }
 
-async function validateHealthcard(json: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
+async function validateHealthcard(json: string, options?: IOptions): Promise<ValidationErrors> {
     const log = await healthCard.validate(json);
-    return formatOutput(log, logLevel);
+    return formatOutput(log, options?.logLevel || LogLevels.WARNING);
 }
 
-async function validateFhirHealthcard(json: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
+async function validateFhirHealthcard(json: string, options?: IOptions): Promise<ValidationErrors> {
     const log = await fhirHealthCard.validate(json);
-    return formatOutput(log, logLevel);
+    return formatOutput(log, options?.logLevel || LogLevels.WARNING);
 }
 
-async function validateJws(text: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
+async function validateJws(text: string, options?: IOptions): Promise<ValidationErrors> {
+
+    options?.directory ? await setTrustedIssuerDirectory(options.directory) : clearTrustedIssuerDirectory();
+
     const log = await jws.validate(text);
-    return formatOutput(log, logLevel);
+    return formatOutput(log, options?.logLevel || LogLevels.WARNING);
 }
 
-async function validateJwspayload(payload: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
+async function validateJwspayload(payload: string, options?: IOptions): Promise<ValidationErrors> {
     const log = jwsPayload.validate(payload);
-    return Promise.resolve(formatOutput(log, logLevel));
+    return Promise.resolve(formatOutput(log, options?.logLevel || LogLevels.WARNING));
 }
 
-async function validateFhirBundle(json: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
+async function validateFhirBundle(json: string, options?: IOptions): Promise<ValidationErrors> {
+    FhirOptions.ValidationProfile = options?.profile || ValidationProfiles.any;
     const log = fhirBundle.validate(json);
-    return Promise.resolve(formatOutput(log, logLevel));
+    return Promise.resolve(formatOutput(log, options?.logLevel || LogLevels.WARNING));
 }
 
 export { ErrorCode } from './error';
@@ -76,20 +87,8 @@ export const validate = {
     "jws": validateJws,
     "jwspayload": validateJwspayload,
     "fhirbundle": validateFhirBundle,
-    "keyset" : validateKeySet,
-    "profile" : ValidationProfiles.any
+    "keyset": validateKeySet
 }
 
-export {ValidationProfiles};
+export { ValidationProfiles };
 
-Object.defineProperty(validate, "profile", {
-    get : function () {
-        return FhirOptions.ValidationProfile;
-    }
-});
-
-Object.defineProperty(validate, "profile", {
-    set : function (value : ValidationProfiles) {
-        FhirOptions.ValidationProfile = value;
-    }
-});

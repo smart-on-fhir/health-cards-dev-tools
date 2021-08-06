@@ -5,47 +5,50 @@ import { ErrorCode, LogLevels } from '../src/api';
 
 const testdataDir = './testdata/';
 
+interface IOptions {
+    profile?: api.ValidationProfiles,
+    directory?: string
+}
+
 // wrap testcard with a function that returns a function - now we don't need all 'async ()=> await' for every test case
 function validateApi(
     filePath: string[],
     type: string,
     expected: (number | null | undefined | ErrorCode[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
-    profile?: api.ValidationProfiles) {
+    options?: IOptions) {
 
     return async () => {
-        await _validateApi(filePath, type, expected, profile);
+        await _validateApi(filePath, type, expected, options);
     }
 }
 
-async function _validateApi(filePath: string[], type: string, expected: (number | null | undefined | ErrorCode[])[], profile = api.ValidationProfiles.any): Promise<void> {
+async function _validateApi(filePath: string[], type: string, expected: (number | null | undefined | ErrorCode[])[], options?: IOptions): Promise<void> {
 
     const data: string[] = filePath.map(p => fs.readFileSync(path.join(testdataDir, p)).toString('utf-8'));
     let p: Promise<api.ValidationErrors>;
 
-    api.validate.profile = profile;
-
     switch (type) {
 
         case 'qrnumeric':
-            p = api.validate.qrnumeric(data);
+            p = api.validate.qrnumeric(data, options);
             break;
         case 'healthcard':
-            p = api.validate.healthcard(data[0]);
+            p = api.validate.healthcard(data[0], options);
             break;
         case 'fhirhealthcard':
-            p = api.validate.fhirhealthcard(data[0]);
+            p = api.validate.fhirhealthcard(data[0], options);
             break;
         case 'jws':
-            p = api.validate.jws(data[0]);
+            p = api.validate.jws(data[0], options);
             break;
         case 'jwspayload':
-            p = api.validate.jwspayload(data[0]);
+            p = api.validate.jwspayload(data[0], options);
             break;
         case 'fhirbundle':
-            p = api.validate.fhirbundle(data[0]);
+            p = api.validate.fhirbundle(data[0], options);
             break;
         case 'keyset':
-            p = api.validate.keyset(data[0]);
+            p = api.validate.keyset(data[0], options);
             break;
         default:
             throw new Error(`Unknown validation type: ${type}`);
@@ -118,7 +121,7 @@ test('fhirbundle-with-usa-profile', validateApi(
     ['test-example-00-a-fhirBundle-profile-usa.json'],
     'fhirbundle',
     [[EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR]],
-    api.ValidationProfiles['usa-covid19-immunization']));
+    { profile: api.ValidationProfiles['usa-covid19-immunization'] }));
 
 test('fhirbundle: bad meta with extra key', validateApi(['test-example-00-a-fhirBundle-bad_meta_extra_key.json'], 'fhirbundle', [0, [EC.FHIR_SCHEMA_ERROR]]));
 
@@ -131,7 +134,16 @@ test('jwspayload: valid 02 JWS payload expanded', validateApi(['test-example-00-
 test('jws: no deflate', validateApi(['test-example-00-d-jws-no_deflate.txt'], 'jws', [[EC.INFLATION_ERROR, EC.JWS_HEADER_ERROR], [EC.JWS_TOO_LONG]]));
 
 
-test('qrnumeric: invalid QR header', validateApi(['test-example-00-f-qr-code-numeric-value-0-wrong_qr_header.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR_HEADER]]));
+test('qrnumeric: invalid QR header', validateApi(['test-example-00-f-qr-code-numeric-value-0-wrong_qr_header.txt'], 'qrnumeric', [[EC.INVALID_NUMERIC_QR_HEADER]]));
 
 
-test('healthcard: health card w/ trailing chars', validateApi(['test-example-00-e-file-trailing_chars.smart-health-card'], 'healthcard', [0, [ErrorCode.TRAILING_CHARACTERS]]));
+test('healthcard: health card w/ trailing chars', validateApi(['test-example-00-e-file-trailing_chars.smart-health-card'], 'healthcard', [0, [EC.TRAILING_CHARACTERS]]));
+
+
+test('jws: issuer in trusted directory ref by name', validateApi(['example-00-d-jws.txt'], 'jws', [0], { directory: 'test' }));
+
+
+test('jws: issuer in trusted directory ref by URL', validateApi(['example-00-d-jws.txt'], 'jws', [0], { directory: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-validation-SDK/main/testdata/test-issuers.json' }));
+
+
+test('jws: issuer not in trusted directory', validateApi(['example-00-d-jws.txt'], 'jws', [[EC.ISSUER_NOT_TRUSTED]], { directory: 'VCI' }));
