@@ -1,4 +1,4 @@
-import Log, { LogLevels } from './logger';
+import Log from './logger';
 import got from 'got';
 import { ErrorCode } from './error';
 import { parseJson } from './utils';
@@ -37,7 +37,7 @@ export class TrustedIssuerDirectory {
 }
 
 
-export function checkTrustedIssuerDirectory(iss: string, log: Log) {
+export function checkTrustedIssuerDirectory(iss: string, log: Log): void {
     if (TrustedIssuerDirectory.issuers) {
         // extract the VCI issuer friendly name; we assume there are no duplicated URLs in the list
         const issName = TrustedIssuerDirectory.issuers?.participating_issuers.filter(issuer => issuer.iss === iss).map(issuer => issuer.name)[0];
@@ -52,7 +52,7 @@ export function checkTrustedIssuerDirectory(iss: string, log: Log) {
     }
 }
 
-export async function setTrustedIssuerDirectory(directory: string) {
+export async function setTrustedIssuerDirectory(directory: string) : Promise<void> {
 
     if (TrustedIssuerDirectory.directoryName === directory || TrustedIssuerDirectory.directoryURL === directory) {
         // already set
@@ -61,9 +61,6 @@ export async function setTrustedIssuerDirectory(directory: string) {
     KnownIssuerDirectories.forEach(d => {
         if (d.name === directory || d.URL === directory) {
 
-            if(d.name === 'test') {
-                const a = 123;
-            }
             // found a match
             TrustedIssuerDirectory.directoryName = d.name;
             TrustedIssuerDirectory.directoryURL = d.URL;
@@ -85,7 +82,7 @@ export async function setTrustedIssuerDirectory(directory: string) {
 
 }
 
-export function clearTrustedIssuerDirectory() : void {
+export function clearTrustedIssuerDirectory(): void {
     TrustedIssuerDirectory.directoryName = '';
     TrustedIssuerDirectory.directoryURL = '';
     TrustedIssuerDirectory.issuers = undefined;

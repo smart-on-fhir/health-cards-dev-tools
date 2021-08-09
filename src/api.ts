@@ -10,7 +10,7 @@ import { ErrorCode } from './error';
 import { verifyAndImportHealthCardIssuerKey } from './shcKeyValidator';
 import { parseJson } from './utils'
 import { KeySet } from './keys';
-import { clearTrustedIssuerDirectory, setTrustedIssuerDirectory } from './issuerDirectory';
+import { checkTrustedIssuerDirectory, clearTrustedIssuerDirectory, setTrustedIssuerDirectory } from './issuerDirectory';
 
 
 function formatOutput(log: Log, logLevel: LogLevels): ValidationErrors {
@@ -77,6 +77,13 @@ async function validateFhirBundle(json: string, options?: IOptions): Promise<Val
     return Promise.resolve(formatOutput(log, options?.logLevel || LogLevels.WARNING));
 }
 
+async function checkTrustedDirectory(url: string, options?: IOptions): Promise<ValidationErrors> {
+    options?.directory ? await setTrustedIssuerDirectory(options.directory) : clearTrustedIssuerDirectory();
+    const log = new Log('TrustedDirectory');
+    checkTrustedIssuerDirectory(url, log);
+    return Promise.resolve(formatOutput(log, options?.logLevel || LogLevels.WARNING));
+}
+
 export { ErrorCode } from './error';
 
 export { LogLevels } from './logger';
@@ -90,7 +97,8 @@ export const validate = {
     "jws": validateJws,
     "jwspayload": validateJwspayload,
     "fhirbundle": validateFhirBundle,
-    "keyset": validateKeySet
+    "keyset": validateKeySet,
+    "checkTrustedDirectory": checkTrustedDirectory,
 }
 
 export { ValidationProfiles };
