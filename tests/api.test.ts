@@ -12,7 +12,7 @@ interface IOptions {
 
 // wrap testcard with a function that returns a function - now we don't need all 'async ()=> await' for every test case
 function validateApi(
-    filePath: string[],
+    filePath: string[] | string,
     type: string,
     expected: (number | null | undefined | ErrorCode[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
     options?: IOptions) {
@@ -22,9 +22,17 @@ function validateApi(
     }
 }
 
-async function _validateApi(filePath: string[], type: string, expected: (number | null | undefined | ErrorCode[])[], options?: IOptions): Promise<void> {
+async function _validateApi(filePath: string[] | string, type: string, expected: (number | null | undefined | ErrorCode[])[], options?: IOptions): Promise<void> {
 
-    const data: string[] = filePath.map(p => fs.readFileSync(path.join(testdataDir, p)).toString('utf-8'));
+    let data: string[] = [];
+    let url = '';
+
+    if (typeof filePath === 'string') {
+        url = filePath;
+    } else {
+        data = filePath.map(p => fs.readFileSync(path.join(testdataDir, p)).toString('utf-8'));
+    }
+
     let p: Promise<api.ValidationErrors>;
 
     switch (type) {
@@ -49,6 +57,9 @@ async function _validateApi(filePath: string[], type: string, expected: (number 
             break;
         case 'keyset':
             p = api.validate.keyset(data[0], options);
+            break;
+        case 'trusteddirectory':
+            p = api.validate.checkTrustedDirectory(url, options);
             break;
         default:
             throw new Error(`Unknown validation type: ${type}`);
@@ -147,3 +158,9 @@ test('jws: issuer in trusted directory ref by URL', validateApi(['example-00-d-j
 
 
 test('jws: issuer not in trusted directory', validateApi(['example-00-d-jws.txt'], 'jws', [[EC.ISSUER_NOT_TRUSTED]], { directory: 'VCI' }));
+
+
+test('jws: invalid directory', validateApi('https://spec.smarthealth.cards/examples/issuer', 'trusteddirectory', [[EC.ISSUER_DIRECTORY_NOT_FOUND]], { directory: 'foo' }));
+
+
+test('jws: valid directory', validateApi('https://spec.smarthealth.cards/examples/issuer', 'trusteddirectory', [0], { directory: 'test' }));

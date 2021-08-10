@@ -52,12 +52,15 @@ export function checkTrustedIssuerDirectory(iss: string, log: Log): void {
     }
 }
 
-export async function setTrustedIssuerDirectory(directory: string) : Promise<void> {
+export async function setTrustedIssuerDirectory(directory: string, log?: Log): Promise<void> {
 
     if (TrustedIssuerDirectory.directoryName === directory || TrustedIssuerDirectory.directoryURL === directory) {
         // already set
         return;
     }
+
+    clearTrustedIssuerDirectory();
+
     KnownIssuerDirectories.forEach(d => {
         if (d.name === directory || d.URL === directory) {
 
@@ -67,17 +70,23 @@ export async function setTrustedIssuerDirectory(directory: string) : Promise<voi
             console.log(`Using "${d.name}" trusted issuers directory from: ${d.URL}`);
         }
     });
+
     if (!TrustedIssuerDirectory.directoryName) {
         // we didn't find a known issuers directory by name, let's assume we were provided with a URL
         TrustedIssuerDirectory.directoryName = 'custom';
         TrustedIssuerDirectory.directoryURL = directory;
     }
+
     try {
         // TODO: run this async and wait for it at first use
         const response = await got(TrustedIssuerDirectory.directoryURL, { timeout: 5000 });
         TrustedIssuerDirectory.issuers = parseJson<TrustedIssuers>(response.body);
+
     } catch (err) {
-        console.log(`Error downloading the trusted issuer directory: ${(err as Error).message}`);
+        const msg = `Error downloading the trusted issuer directory: ${(err as Error)?.message}`;
+
+        log && log.error(msg, ErrorCode.ISSUER_DIRECTORY_NOT_FOUND);
+        console.log(msg);
     }
 
 }

@@ -41,46 +41,50 @@ async function validateKeySet(text: string, options?: IOptions): Promise<Validat
 }
 
 async function validateQrnumeric(shc: string[], options?: IOptions): Promise<ValidationErrors> {
-    options?.directory ? await setTrustedIssuerDirectory(options.directory) : clearTrustedIssuerDirectory();
     const log = await qr.validate(shc);
     return formatOutput(log, options?.logLevel || LogLevels.WARNING);
 }
 
 async function validateHealthcard(json: string, options?: IOptions): Promise<ValidationErrors> {
-    options?.directory ? await setTrustedIssuerDirectory(options.directory) : clearTrustedIssuerDirectory();
     const log = await healthCard.validate(json);
     return formatOutput(log, options?.logLevel || LogLevels.WARNING);
 }
 
 async function validateFhirHealthcard(json: string, options?: IOptions): Promise<ValidationErrors> {
-    options?.directory ? await setTrustedIssuerDirectory(options.directory) : clearTrustedIssuerDirectory();
     const log = await fhirHealthCard.validate(json);
     return formatOutput(log, options?.logLevel || LogLevels.WARNING);
 }
 
 async function validateJws(text: string, options?: IOptions): Promise<ValidationErrors> {
-    options?.directory ? await setTrustedIssuerDirectory(options.directory) : clearTrustedIssuerDirectory();
+    options?.directory && await setTrustedIssuerDirectory(options.directory);
     const log = await jws.validate(text);
     return formatOutput(log, options?.logLevel || LogLevels.WARNING);
 }
 
 async function validateJwspayload(payload: string, options?: IOptions): Promise<ValidationErrors> {
-    options?.directory ? await setTrustedIssuerDirectory(options.directory) : clearTrustedIssuerDirectory();
     const log = jwsPayload.validate(payload);
     return Promise.resolve(formatOutput(log, options?.logLevel || LogLevels.WARNING));
 }
 
 async function validateFhirBundle(json: string, options?: IOptions): Promise<ValidationErrors> {
-    options?.directory ? await setTrustedIssuerDirectory(options.directory) : clearTrustedIssuerDirectory();
     FhirOptions.ValidationProfile = options?.profile || ValidationProfiles.any;
     const log = fhirBundle.validate(json);
     return Promise.resolve(formatOutput(log, options?.logLevel || LogLevels.WARNING));
 }
 
 async function checkTrustedDirectory(url: string, options?: IOptions): Promise<ValidationErrors> {
-    options?.directory ? await setTrustedIssuerDirectory(options.directory) : clearTrustedIssuerDirectory();
+
     const log = new Log('TrustedDirectory');
+    const directory = options?.directory;
+
+    directory && await setTrustedIssuerDirectory(directory, log);
+
+    if (log.log.length) {
+        return Promise.resolve(formatOutput(log, options?.logLevel || LogLevels.WARNING));
+    }
+
     checkTrustedIssuerDirectory(url, log);
+
     return Promise.resolve(formatOutput(log, options?.logLevel || LogLevels.WARNING));
 }
 
