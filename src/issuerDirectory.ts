@@ -1,4 +1,4 @@
-import Log, { LogLevels } from './logger';
+import Log from './logger';
 import got from 'got';
 import { ErrorCode } from './error';
 import { parseJson } from './utils';
@@ -37,7 +37,7 @@ export class TrustedIssuerDirectory {
 }
 
 
-export function checkTrustedIssuerDirectory(iss: string, log: Log) {
+export function checkTrustedIssuerDirectory(iss: string, log: Log): void {
     if (TrustedIssuerDirectory.issuers) {
         // extract the VCI issuer friendly name; we assume there are no duplicated URLs in the list
         const issName = TrustedIssuerDirectory.issuers?.participating_issuers.filter(issuer => issuer.iss === iss).map(issuer => issuer.name)[0];
@@ -52,40 +52,46 @@ export function checkTrustedIssuerDirectory(iss: string, log: Log) {
     }
 }
 
-export async function setTrustedIssuerDirectory(directory: string) {
+export async function setTrustedIssuerDirectory(directory: string, log?: Log): Promise<void> {
 
     if (TrustedIssuerDirectory.directoryName === directory || TrustedIssuerDirectory.directoryURL === directory) {
         // already set
         return;
     }
+
+    clearTrustedIssuerDirectory();
+
     KnownIssuerDirectories.forEach(d => {
         if (d.name === directory || d.URL === directory) {
 
-            if(d.name === 'test') {
-                const a = 123;
-            }
             // found a match
             TrustedIssuerDirectory.directoryName = d.name;
             TrustedIssuerDirectory.directoryURL = d.URL;
             console.log(`Using "${d.name}" trusted issuers directory from: ${d.URL}`);
         }
     });
+
     if (!TrustedIssuerDirectory.directoryName) {
         // we didn't find a known issuers directory by name, let's assume we were provided with a URL
         TrustedIssuerDirectory.directoryName = 'custom';
         TrustedIssuerDirectory.directoryURL = directory;
     }
+
     try {
         // TODO: run this async and wait for it at first use
         const response = await got(TrustedIssuerDirectory.directoryURL, { timeout: 5000 });
         TrustedIssuerDirectory.issuers = parseJson<TrustedIssuers>(response.body);
+
     } catch (err) {
-        console.log(`Error downloading the trusted issuer directory: ${(err as Error).message}`);
+        const msg = `Error downloading the trusted issuer directory: ${(err as Error)?.message}`;
+
+        log && log.error(msg, ErrorCode.ISSUER_DIRECTORY_NOT_FOUND);
+        console.log(msg);
     }
 
 }
 
-export function clearTrustedIssuerDirectory() : void {
+export function clearTrustedIssuerDirectory(): void {
     TrustedIssuerDirectory.directoryName = '';
     TrustedIssuerDirectory.directoryURL = '';
     TrustedIssuerDirectory.issuers = undefined;
