@@ -38,12 +38,12 @@ npm install github:smart-on-fhir/health-cards-validation-SDK#v1.0.0-4
 
 ### Validate a `.smart-health-card` file (`data.smart-health-card`)
 ```
-smc-validator --path data.smart-health-card --type healthcard
+shc-validator --path data.smart-health-card --type healthcard
 ```
 
 ### Validate a `QRCode` image file
 ```
-smc-validator --path QR.png --type qr
+shc-validator --path QR.png --type qr
 ```
 
 ### Validate a multipart `QRCode`
@@ -51,7 +51,7 @@ smc-validator --path QR.png --type qr
 (Multiple `--path` options can be provided for QR artifacts (`qrnumeric` and `qr` types) split in multiple files, one for each chunk)
 
 ```
-smc-validator --path QR1.txt --path QR2.txt --path QR3.txt --type qrnumeric
+shc-validator --path QR1.txt --path QR2.txt --path QR3.txt --type qrnumeric
 ```
 
 ### Validate Issuer Public Keys
@@ -59,14 +59,14 @@ smc-validator --path QR1.txt --path QR2.txt --path QR3.txt --type qrnumeric
 Issuer signing public keys (encoded in a JSON Web Key Set) can be validated before being uploaded to their well-known URL.
 
 ```
-smc-validator --path issuerPublicKeys.json --type jwkset
+shc-validator --path issuerPublicKeys.json --type jwkset
 ```
 
 ## Smart Health Card Validator CLI
 
 ### Usage
 ```
-smc-validator [options]
+shc-validator [options]
 ```
 
 (Or, if built from source)
