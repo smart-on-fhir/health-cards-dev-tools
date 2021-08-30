@@ -4,6 +4,8 @@
 
 This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `1.0.1-0`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
 
+**NOTE: The goal of the project is to help implementers validate that their implementations conform to the specification. It optimistically tries to validate as much of the input artefacts as it can, continuing validation after encountering errors in order to give a complete validation report. It is therefore _not_ meant to robustly validate actual SMART Health Cards; applications validating such cards must be thoroughly tested using an adversarial threat model.**
+
 ## Setup
 
 1. Make sure [node.js](https://nodejs.org/) and [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) are installed on your system; the latest Long-Term Support (LTS) version is recommended for both (note that node v16 is not currently supported). [OpenSSL 1.1.1](https://www.openssl.org/) is also needed to validate certificate chains which could be present in issuer JSON Web Keys (`x5c` value); if absent, chain validation is skipped.
