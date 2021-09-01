@@ -26,7 +26,7 @@ export const KnownIssuerDirectories: KnownIssuerDirectory[] = [
     },
     {
         name: 'test',
-        URL: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-validation-SDK/main/testdata/test-issuers.json'
+        URL: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-dev-tools/main/testdata/test-issuers.json'
     }
 ]
 

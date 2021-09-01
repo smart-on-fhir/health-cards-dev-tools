@@ -159,7 +159,7 @@ test("Cards: valid FHIR api health card", testCard(['test-example-00-fhirhealthc
 test("Cards: valid FHIR api health card with optional data", testCard(['test-example-00-fhirhealthcard-with-resource-link.json'], "fhirhealthcard"));
 
 test("Cards: issuer in trusted directory ref by name", testCard(['example-00-d-jws.txt'], 'jws', [0], { directory: 'test' }));
-test("Cards: issuer in trusted directory ref by URL", testCard(['example-00-d-jws.txt'], 'jws', [0], { directory: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-validation-SDK/main/testdata/test-issuers.json' }));
+test("Cards: issuer in trusted directory ref by URL", testCard(['example-00-d-jws.txt'], 'jws', [0], { directory: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-dev-tools/main/testdata/test-issuers.json' }));
 
 // Warning cases
 

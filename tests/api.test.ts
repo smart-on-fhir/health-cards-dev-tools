@@ -154,7 +154,7 @@ test('healthcard: health card w/ trailing chars', validateApi(['test-example-00-
 test('jws: issuer in trusted directory ref by name', validateApi(['example-00-d-jws.txt'], 'jws', [0], { directory: 'test' }));
 
 
-test('jws: issuer in trusted directory ref by URL', validateApi(['example-00-d-jws.txt'], 'jws', [0], { directory: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-validation-SDK/main/testdata/test-issuers.json' }));
+test('jws: issuer in trusted directory ref by URL', validateApi(['example-00-d-jws.txt'], 'jws', [0], { directory: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-dev-tools/main/testdata/test-issuers.json' }));
 
 
 test('jws: issuer not in trusted directory', validateApi(['example-00-d-jws.txt'], 'jws', [[EC.ISSUER_NOT_TRUSTED]], { directory: 'VCI' }));
