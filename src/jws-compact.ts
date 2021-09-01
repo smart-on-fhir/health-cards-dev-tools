@@ -246,7 +246,7 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<KeySet
         if (!acaoHeader) {
             log.error("Issuer key endpoint does not contain a 'access-control-allow-origin' header for Cross-Origin Resource Sharing (CORS)", ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS);
         } else if (acaoHeader !== '*' && acaoHeader !== requestedOrigin) {
-            log.warn(`Issuer key endpoint's 'access-control-allow-origin' header ${acaoHeader} does not match the requested origin ${requestedOrigin}, for Cross-Origin Resource Sharing (CORS)`, ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS);
+            log.error(`Issuer key endpoint's 'access-control-allow-origin' header ${acaoHeader} does not match the requested origin ${requestedOrigin}, for Cross-Origin Resource Sharing (CORS)`, ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS);
         }
         try {
             const keySet = parseJson<KeySet>(response.body);
