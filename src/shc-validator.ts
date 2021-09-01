@@ -52,6 +52,7 @@ export interface CliOptions {
     logout: string;
     fhirout: string;
     exclude: string[];
+    clearKeyStore? : boolean;
 }
 
 

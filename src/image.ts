@@ -138,7 +138,7 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
                 log.warn(`QR code has version ${code.version}, but could have been created with version ${qrCode.version} (with low error-correcting level). Make sure the larger version was chosen on purpose (e.g., not hardcoded).`, ErrorCode.INVALID_QR_VERSION);
             }
         } catch (err) {
-            log.warn("Can't re-create QR to check optimal version choice: ", err);
+            log.warn(`Can't re-create QR to check optimal version choice: ${(err as Error).message})`);
         }
     }
 

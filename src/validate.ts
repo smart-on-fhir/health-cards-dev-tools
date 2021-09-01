@@ -12,7 +12,8 @@ import * as jwsPayload from './jws-payload';
 import * as fhirBundle from './fhirBundle';
 import * as qr from './qr';
 import * as image from './image';
-import { KeySet } from './keys';
+import keys, { KeySet } from './keys';
+import * as utils from './utils';
 import { FhirOptions, ValidationProfiles } from './fhirBundle';
 import { CliOptions } from './shc-validator';
 import { clearTrustedIssuerDirectory, setTrustedIssuerDirectory } from './issuerDirectory';
@@ -21,17 +22,16 @@ import { clearTrustedIssuerDirectory, setTrustedIssuerDirectory } from './issuer
 export type ValidationType = "qr" | "qrnumeric" | "healthcard" | "fhirhealthcard" | "jws" | "jwspayload" | "fhirbundle" | "jwkset";
 
 
+async function processOptions(options: CliOptions) {
 
-/** Validate the issuer key */
-export async function validateKey(keySet: KeySet): Promise<Log> {
-    return (await verifyAndImportHealthCardIssuerKey(keySet, new Log('Validate Key-Set')));
-}
+    if (options.clearKeyStore === true) {
+        keys.clear();
+    }
 
-
-/** Validates SMART Health Card */
-export async function validateCard(fileData: FileInfo[], options: CliOptions): Promise<Log> {
-
-    let result: Log;
+    if (options.jwkset) {
+        const keys = utils.loadJSONFromFile<KeySet>(options.jwkset);
+        await validateKey(keys);
+    }
 
     FhirOptions.ValidationProfile =
         options.profile ?
@@ -43,6 +43,22 @@ export async function validateCard(fileData: FileInfo[], options: CliOptions): P
     } else {
         clearTrustedIssuerDirectory();
     }
+
+}
+
+
+/** Validate the issuer key */
+export async function validateKey(keySet: KeySet, log: Log = new Log('Validate Key-Set')): Promise<Log> {
+    return (await verifyAndImportHealthCardIssuerKey(keySet, log));
+}
+
+
+/** Validates SMART Health Card */
+export async function validateCard(fileData: FileInfo[], options: CliOptions): Promise<Log> {
+
+    let result: Log;
+
+    await processOptions(options);
 
     switch (options.type.toLocaleLowerCase()) {
 
@@ -78,7 +94,7 @@ export async function validateCard(fileData: FileInfo[], options: CliOptions): P
             break;
 
         default:
-            return Promise.reject("Invalid type : " + options.type);
+            return Promise.reject(`Invalid type : ${options.type}`);
     }
 
     return result;

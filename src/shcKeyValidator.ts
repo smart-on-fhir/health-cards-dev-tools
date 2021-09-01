@@ -6,11 +6,11 @@ import jose, { JWK } from 'node-jose';
 import { ErrorCode } from './error';
 import { validateSchema } from './schema';
 import keySetSchema from '../schema/keyset-schema.json';
-import { KeySet, store } from './keys';
+import keys, { KeySet } from './keys';
 import execa from 'execa';
 import fs from 'fs';
 import path from 'path';
-import {v4 as uuidv4} from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import { isOpensslAvailable } from './utils'
 import { Certificate } from '@fidm/x509'
 
@@ -218,7 +218,7 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
         }
         
         try {
-            key = await store.add(key);
+            key = await keys.add(key, expectedSubjectAltName);
         } catch (error) {
             return log.error('Error adding key to keyStore : ' + (error as Error).message, ErrorCode.INVALID_KEY_UNKNOWN);
         }
