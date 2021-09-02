@@ -159,7 +159,7 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
     }
 }
 
-export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = new Log('Validate Key-Set'), expectedSubjectAltName = ''): Promise<Log> {
+export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = new Log('Validate Key-Set'), issuerURL = ''): Promise<Log> {
 
     // check that keySet is valid
     if (!(keySet instanceof Object) || !keySet.keys || !(keySet.keys instanceof Array)) {
@@ -203,9 +203,9 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
                 checkKeyValue('x');
                 checkKeyValue('y');
 
-                if (expectedSubjectAltName && certFields.subjectAltName && certFields.subjectAltName !== expectedSubjectAltName) {
+                if (issuerURL && certFields.subjectAltName && certFields.subjectAltName !== issuerURL) {
                     log.error("Subject Alternative Name extension in the issuer's cert (in x5c JWK value) doesn't match issuer URL.\n" +
-                    `Expected: ${expectedSubjectAltName}. Actual: ${certFields.subjectAltName.substring(4)}`, ErrorCode.INVALID_KEY_X5C);
+                    `Expected: ${issuerURL}. Actual: ${certFields.subjectAltName.substring(4)}`, ErrorCode.INVALID_KEY_X5C);
                 }
                 const now = new Date();
                 if (certFields.notBefore && now < certFields.notBefore) {
@@ -218,7 +218,7 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
         }
         
         try {
-            key = await keys.add(key, expectedSubjectAltName);
+            key = await keys.add(key, issuerURL);
         } catch (error) {
             return log.error('Error adding key to keyStore : ' + (error as Error).message, ErrorCode.INVALID_KEY_UNKNOWN);
         }
