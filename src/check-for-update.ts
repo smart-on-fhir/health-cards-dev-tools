@@ -17,11 +17,11 @@ export async function latestDevToolsVersion(): Promise<string | undefined> {
 
 export async function latestSpecVersion(): Promise<string | undefined> {
     try {
-        const SPEC_PREFIX_LENGHT = '# Changelog\n\n## '.length;
+        const SPEC_PREFIX_LENGTH = '# Changelog\n\n## '.length;
         const VERSION_LENGTH = 'v.v.v'.length;
         const body = await (await got('https://raw.githubusercontent.com/smart-on-fhir/health-cards/main/docs/changelog.md')).body;
         if (!body) return;
-        const v = semver.valid(body.substring(SPEC_PREFIX_LENGHT, SPEC_PREFIX_LENGHT + VERSION_LENGTH));
+        const v = semver.valid(body.substring(SPEC_PREFIX_LENGTH, SPEC_PREFIX_LENGTH + VERSION_LENGTH));
         return v ? v : undefined;
 } catch {
         return;

@@ -2,9 +2,9 @@
 
 # SMART Health Cards Dev Tools
 
-This project provides tools to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `1.0.1-0`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
+This project provides tools to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `1.0.2-0`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
 
-**NOTE: The goal of the project is to help implementers verify that their implementations conform to the specification. It optimistically tries to validate as much of the input artefacts as it can, continuing validation after encountering errors in order to give a complete validation report. It is therefore _not_ meant to robustly validate actual SMART Health Cards; applications validating such cards must be thoroughly tested using an adversarial threat model.**
+**NOTE: The goal of the project is to help implementers verify that their implementations conform to the specification. It optimistically tries to validate as much of the input artifacts as it can, continuing validation after encountering errors in order to give a complete validation report. It is therefore _not_ meant to robustly validate actual SMART Health Cards; applications validating such cards must be thoroughly tested using an adversarial threat model.**
 
 ## Setup
 
@@ -104,7 +104,7 @@ The supported file types, as expressed with the `--type` option, are:
  - *fhirhealthcard*: response payload returned from a FHIR `$health-cards-issue` operation
  - *qrnumeric*: a numeric QR code encoding a health card
  - *qr*: a QR code image encoding a health card
- - *jwkset*: a JSON Web Key (JWK) Set, encoding the issuer public signing key. This superceedes downloading the key from the well-known location.
+ - *jwkset*: a JSON Web Key (JWK) Set, encoding the issuer public signing key. This supersedes downloading the key from the well-known location.
 
 The tool outputs validation information, depending on the verbosity level, in particular, the parsed FHIR bundle is printed at the `info` verbosity log level. The tool tries to continue parsing the artefact even if a warning or error occurred. Certain errors can be suppressed from the output using the `--exclude` option (using the full error name or a * wildcard character).
 
