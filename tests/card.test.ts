@@ -44,6 +44,8 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
         log.filter(i => i.level === LogLevels.FATAL)
     ];
 
+    const errorLevelMap = [LogLevels.ERROR, LogLevels.WARNING, LogLevels.INFO, LogLevels.DEBUG, LogLevels.FATAL];
+
     // if only errors are specified warning will not get a default 0, so we'll set it here.
     if (expected.length === 1) expected[1] = 0;
     expected.length = 5;
@@ -53,6 +55,12 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
         const err = errors[i];
 
         if (Number.isInteger(exp)) {
+            if (err.length !== exp) {
+                console.debug(`Unexpected number of type ${LogLevels[errorLevelMap[i]]}. Expected ${(exp as number).toString()}, returned : ${err.length.toString()}`);
+                err.forEach((e) => {
+                    console.debug(`    ${ErrorCode[e.code]}|${e.code}|${e.message}`);
+                });
+            }
             expect(err.length).toBe(exp);
         }
 
@@ -61,7 +69,11 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
             expect(err).toHaveLength(exp.length);
             for (let j = 0; j < err.length; j++) {
                 // -1 if expected error code not found
-                expect(exp.indexOf(err[j].code)).toBeGreaterThanOrEqual(0);
+                const expectedErrorFound = exp.indexOf(err[j].code) > -1;
+                if (!expectedErrorFound) {
+                    console.debug(`Unexpected error ${ErrorCode[err[j].code]}|${err[j].code}|${err[j].message}`);
+                }
+                expect(expectedErrorFound).toBeTruthy();
             }
         }
     }
@@ -226,7 +238,7 @@ test("Cards: wrong JWS header 'kid'",
 );
 
 test("Cards: invalid issuer url",
-    testCard(['test-example-00-e-file-invalid_issuer_url.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR]])
+    testCard(['test-example-00-e-file-invalid_issuer_url.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]], { clearKeyStore: true })
 );
 
 test("Cards: nbf in milliseconds",
@@ -235,7 +247,8 @@ test("Cards: nbf in milliseconds",
 
 // the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch
 test("Cards: invalid issuer url (http)",
-    testCard(['test-example-00-e-file-invalid_issuer_url_http.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL].concat(OPENSSL_AVAILABLE ? [ErrorCode.INVALID_KEY_X5C] : [])])
+    testCard(['test-example-00-e-file-invalid_issuer_url_http.smart-health-card'], 'healthcard',
+        [[ErrorCode.INVALID_ISSUER_URL].concat(OPENSSL_AVAILABLE ? [ErrorCode.INVALID_KEY_X5C] : [])])
 );
 
 // the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch
@@ -244,7 +257,7 @@ test("Cards: invalid issuer url (trailing /)",
 );
 
 test("Cards: invalid JWK set",
-    testCard(['test-example-00-e-file-bad_jwks.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR]])
+    testCard(['test-example-00-e-file-bad_jwks.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]], { clearKeyStore: true })
 );
 
 test("Cards: invalid QR header",
@@ -296,7 +309,7 @@ test("Cards: too many QR segments",
 );
 
 test("Cards: invalid QR version",
-    testCard('test-example-00-g-qr-code-0-bad_qr_version.png', 'qr', [[ErrorCode.INVALID_QR_VERSION],[ErrorCode.INVALID_QR_VERSION]])
+    testCard('test-example-00-g-qr-code-0-bad_qr_version.png', 'qr', [[ErrorCode.INVALID_QR_VERSION], [ErrorCode.INVALID_QR_VERSION]])
 );
 
 test("Cards: corrupted QR code",
@@ -343,3 +356,6 @@ test("Cards: issuer not in trusted directory", testCard(['example-00-d-jws.txt']
 test("Cards: un-needed VC type", testCard('test-example-00-b-jws-payload-expanded-optional-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
 
 test("Cards: unknown VC types", testCard('test-example-00-b-jws-payload-expanded-unknown-vc-types.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR, ErrorCode.SCHEMA_ERROR]]));
+
+
+test("Cards: mismatch kid/issuer", testCard(['test-example-00-d-jws-issuer-kid-mismatch.txt'], "jws", [[ErrorCode.ISSUER_KID_MISMATCH]], { jwkset : 'testdata/issuer.jwks.public.not.smart.json'}));
