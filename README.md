@@ -1,8 +1,8 @@
-![Node.js CI](https://github.com/smart-on-fhir/health-cards-validation-SDK/actions/workflows/node.js.yml/badge.svg)
+![Node.js CI](https://github.com/smart-on-fhir/health-cards-dev-tools/actions/workflows/node.js.yml/badge.svg)
 
-# SMART Health Cards Validation SDK
+# SMART Health Cards Dev Tools
 
-This project provides a tool to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `1.0.1-0`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
+This project provides tools to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `1.0.1-0`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
 
 **NOTE: The goal of the project is to help implementers verify that their implementations conform to the specification. It optimistically tries to validate as much of the input artefacts as it can, continuing validation after encountering errors in order to give a complete validation report. It is therefore _not_ meant to robustly validate actual SMART Health Cards; applications validating such cards must be thoroughly tested using an adversarial threat model.**
 
@@ -12,8 +12,8 @@ This project provides a tool to help implementers of the [SMART Health Card Fram
 
 2. Get the source, for example using git:
 
-                git clone -b main https://github.com/smart-on-fhir/health-cards-validation-SDK.git
-                cd health-cards-validation-SDK
+                git clone -b main https://github.com/smart-on-fhir/health-cards-dev-tools.git
+                cd health-cards-dev-tools
 
 3. Build the npm package:
 
@@ -112,10 +112,10 @@ Issuer signing public keys (encoded in a JSON Web Key Set) can be validated befo
 
                 node . --path issuerPublicKeys.json --type jwkset
 
-The tool can be invoked programmatically from a Node.js app (*note: browser-based environments are not currently supported*). First, install the tool in your own project, either from  GitHub via `npm install smart-on-fhir/health-cards-validation-SDK`, or from a local .tgz file resulting from `npm pack` as described above. Then import `src/api.js` and call the right `validate.<artifact-type>` method, where `<artifact-type>` can be one of `qrnumeric`, `healthcard`, `fhirhealthcard`, `jws`, `jwspayload`, `fhirbundle`, or `keyset`. The validation results, if any, are returned in Promise-wrapped array. For example you could check a JWS via:
+The tool can be invoked programmatically from a Node.js app (*note: browser-based environments are not currently supported*). First, install the tool in your own project, either from  GitHub via `npm install smart-on-fhir/health-cards-dev-tools`, or from a local .tgz file resulting from `npm pack` as described above. Then import `src/api.js` and call the right `validate.<artifact-type>` method, where `<artifact-type>` can be one of `qrnumeric`, `healthcard`, `fhirhealthcard`, `jws`, `jwspayload`, `fhirbundle`, or `keyset`. The validation results, if any, are returned in Promise-wrapped array. For example you could check a JWS via:
 
 ```js
-import { validate } from 'health-cards-validation-sdk/js/src/api.js'
+import { validate } from 'health-cards-dev-tools/js/src/api.js'
 const jwsString = 'eyJ6aXAiOiJ...';
 const results = validate.jws(jwsString);
 results.then(console.log)
