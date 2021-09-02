@@ -1,14 +1,11 @@
 import * as api from '../src/api';
+import {IOptions} from '../src/api';
 import fs from 'fs';
 import path from 'path';
 import { ErrorCode, LogLevels } from '../src/api';
 
 const testdataDir = './testdata/';
 
-interface IOptions {
-    profile?: api.ValidationProfiles,
-    directory?: string
-}
 
 // wrap testcard with a function that returns a function - now we don't need all 'async ()=> await' for every test case
 function validateApi(
@@ -164,3 +161,7 @@ test('jws: invalid directory', validateApi('https://spec.smarthealth.cards/examp
 
 
 test('jws: valid directory', validateApi('https://spec.smarthealth.cards/examples/issuer', 'trusteddirectory', [0], { directory: 'test' }));
+
+// Without the clearKeyStore option, this test should fail as it will use an existing key store key from a previous test and get
+// the 'kid mismatch' error instead of the expected 'missing key' error
+test('jws: clear key store', validateApi(['test-example-00-d-jws-issuer-not-valid-with-smart-key.txt'], 'jws', [[EC.ISSUER_KEY_DOWNLOAD_ERROR, EC.JWS_VERIFICATION_ERROR]], {clearKeyStore: true}));

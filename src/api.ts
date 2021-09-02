@@ -9,7 +9,7 @@ import Log, { LogLevels } from './logger';
 import { ErrorCode } from './error';
 import { verifyAndImportHealthCardIssuerKey } from './shcKeyValidator';
 import { parseJson } from './utils'
-import { KeySet } from './keys';
+import keys, { KeySet } from './keys';
 import { checkTrustedIssuerDirectory, clearTrustedIssuerDirectory, setTrustedIssuerDirectory } from './issuerDirectory';
 
 
@@ -23,10 +23,11 @@ function formatOutput(log: Log, logLevel: LogLevels): ValidationErrors {
         .filter(f => f.level >= logLevel);
 }
 
-interface IOptions {
+export interface IOptions {
     logLevel?: LogLevels,
     profile?: ValidationProfiles,
-    directory?: string
+    directory?: string,
+    clearKeyStore?: boolean
 }
 
 async function validateKeySet(text: string, options?: IOptions): Promise<ValidationErrors> {
@@ -56,11 +57,12 @@ async function validateFhirHealthcard(json: string, options?: IOptions): Promise
 }
 
 async function validateJws(text: string, options?: IOptions): Promise<ValidationErrors> {
-    options?.directory && await setTrustedIssuerDirectory(options.directory);
+    options?.directory ? await setTrustedIssuerDirectory(options.directory) : clearTrustedIssuerDirectory();
+    options?.clearKeyStore  && keys.clear();
     const log = await jws.validate(text);
     return formatOutput(log, options?.logLevel || LogLevels.WARNING);
 }
-
+ 
 async function validateJwspayload(payload: string, options?: IOptions): Promise<ValidationErrors> {
     const log = jwsPayload.validate(payload);
     return Promise.resolve(formatOutput(log, options?.logLevel || LogLevels.WARNING));
