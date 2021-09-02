@@ -276,7 +276,7 @@ async function verifyJws(jws: string, kid: string, issuer: string, log: Log): Pr
     }
 
     if (kid && !keys.check(kid, issuer)) {
-        log.error(`JWS verification failed: 'kid' = ${kid} is not asscociated with issuer ${issuer}`, ErrorCode.ISSUER_KID_MISMATCH);
+        log.error(`JWS verification failed: 'kid' = ${kid} is not associated with issuer ${issuer}`, ErrorCode.ISSUER_KID_MISMATCH);
     }
 
     try {
