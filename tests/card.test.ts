@@ -237,7 +237,7 @@ test("Cards: wrong JWS header 'kid'",
     testCard(['test-example-00-d-jws-wrong_jws_header_kid.txt'], 'jws', [[ErrorCode.JWS_VERIFICATION_ERROR]])
 );
 
-test("Cards: invalid issuer url.",
+test("Cards: invalid issuer url",
     testCard(['test-example-00-e-file-invalid_issuer_url.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]], { clearKeyStore: true })
 );
 
