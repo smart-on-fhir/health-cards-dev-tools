@@ -6,8 +6,7 @@ import { JWK } from "node-jose";
 
 // 1-to-many mapping of Issuer URL to key-ids (kid)
 // keyMap = { 'https://spec.smarthealth.cards/examples/issuer' : { "ARrigjsh8mTqaVdihxO5cxkaRjpjXUg8ARET6IzhvaQ" : 1, <kid> }) 
-let keyMap: Record<string, Record<string, number>> = {};
-
+let keyMap = Object.create(null) as Record<string, Record<string, number>>;
 
 const keyStore = {
     add: add,
@@ -33,7 +32,7 @@ async function add(key: JWK.Key, issuer?: string): Promise<JWK.Key> {
     const keyOut : JWK.Key = await keyStore.store.add(key);
 
     if (issuer) {
-        keyMap[issuer] = keyMap[issuer] || {};
+        keyMap[issuer] = keyMap[issuer] || Object.create(null) as Record<string, number>;
         keyMap[issuer][key.kid] = keyMap[issuer][key.kid] || 1;
     }
 
@@ -43,7 +42,7 @@ async function add(key: JWK.Key, issuer?: string): Promise<JWK.Key> {
 
 function clear(): void {
     keyStore.store = JWK.createKeyStore();
-    keyMap = {};
+    keyMap = Object.create(null) as Record<string, Record<string, number>>;
     // To Delete the keys out of the store without blowing it away.
     // const p: Promise<JWK.Key>[] = [];
     // internalStore.all().forEach(rawKey => p.push(JWK.asKey(rawKey)));
