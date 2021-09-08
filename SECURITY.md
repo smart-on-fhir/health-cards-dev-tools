@@ -1,0 +1,3 @@
+# Security
+
+Security related to the issuance and validation of SMART Health Cards is very important. Although the developer tools provided by this project are not meant to be used in production environments, some issues could impact the robustness of implementations that used them in development. Such security issues can be disclosed privately by emailing [security@smarthealth.cards](mailto:security@smarthealth.cards) to allow for a responsible disclosure to affected parties.

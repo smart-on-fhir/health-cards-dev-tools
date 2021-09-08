@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
@@ -53,6 +54,7 @@ export interface CliOptions {
     logout: string;
     fhirout: string;
     exclude: string[];
+    clearKeyStore? : boolean;
 }
 
 
@@ -67,11 +69,11 @@ function exit(message: string, exitCode: ErrorCode = 0): void {
  */
 async function processOptions(options: CliOptions) {
 
-    console.log(color.dim("SMART Health Card Validation SDK v" + npmpackage.version) + '\n');
+    console.log(color.dim("SMART Health Card Dev Tools v" + npmpackage.version) + '\n');
 
 
-    // check the latest SDK and spec version
-    const vLatestSDK = versions.latestSdkVersion();
+    // check the latest tools and spec version
+    const vLatestDevTools = versions.latestDevToolsVersion();
     const vLatestSpec = versions.latestSpecVersion();
 
 
@@ -205,21 +207,21 @@ async function processOptions(options: CliOptions) {
             console.log(output.toString(level));
     }
 
-    // check if we are running the latest version of the SDK
-    await vLatestSDK.then(v => {
+    // check if we are running the latest version of the dev tools
+    await vLatestDevTools.then(v => {
         if (!v) {
-            console.log("Can't determine the latest SDK version. Make sure you have the latest version.")
+            console.log("Can't determine the latest dev tools version. Make sure you have the latest version.")
         } else if (semver.gt(v, npmpackage.version)) {
-            console.log(`NOTE: You are not using the latest SDK version. Current: v${npmpackage.version}, latest: v${v}\n` +
+            console.log(`NOTE: You are not using the latest dev tools version. Current: v${npmpackage.version}, latest: v${v}\n` +
                 "You can update by running 'npm run update-validator'.");
         }
     });
-    // check if the SDK is behind the spec
+    // check if the dev tools package is behind the spec
     await vLatestSpec.then(v => {
         if (!v) {
             console.log("Can't determine the latest spec version.");
         } else if (semver.gt(v, npmpackage.version.substr(0, 'x.y.z'.length))) { // ignore prerelease tag
-            console.log(`NOTE: the SDK v${npmpackage.version} is not validating the latest version of the spec: v${v}`);
+            console.log(`NOTE: the dev tools script v${npmpackage.version} is not validating the latest version of the spec: v${v}`);
         }
     })
     console.log("\nValidation completed");

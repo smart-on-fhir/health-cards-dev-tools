@@ -5,7 +5,7 @@ import { validateSchema } from './schema';
 import { ErrorCode } from './error';
 import jwsCompactSchema from '../schema/jws-schema.json';
 import * as jwsPayload from './jws-payload';
-import * as keys from './keys';
+import keys, {KeySet} from './keys';
 import pako from 'pako';
 import got from 'got';
 import jose from 'node-jose';
@@ -225,7 +225,7 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
         log.error("Can't find 'iss' entry in JWS payload", ErrorCode.SCHEMA_ERROR);
     }
 
-    if (headerJson && await verifyJws(jws, headerJson['kid'], log)) {
+    if (headerJson && await verifyJws(jws, headerJson['kid'], payload?.iss, log)) {
         log.info("JWS signature verified");
     }
 
@@ -233,7 +233,7 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
 }
 
 
-async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.KeySet | undefined> {
+async function downloadAndImportKey(issuerURL: string, log: Log): Promise<KeySet | undefined> {
 
     const jwkURL = issuerURL + '/.well-known/jwks.json';
     log.info("Retrieving issuer key from " + jwkURL);
@@ -246,10 +246,10 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.K
         if (!acaoHeader) {
             log.error("Issuer key endpoint does not contain a 'access-control-allow-origin' header for Cross-Origin Resource Sharing (CORS)", ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS);
         } else if (acaoHeader !== '*' && acaoHeader !== requestedOrigin) {
-            log.warn(`Issuer key endpoint's 'access-control-allow-origin' header ${acaoHeader} does not match the requested origin ${requestedOrigin}, for Cross-Origin Resource Sharing (CORS)`, ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS);
+            log.error(`Issuer key endpoint's 'access-control-allow-origin' header ${acaoHeader} does not match the requested origin ${requestedOrigin}, for Cross-Origin Resource Sharing (CORS)`, ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS);
         }
         try {
-            const keySet = parseJson<keys.KeySet>(response.body);
+            const keySet = parseJson<KeySet>(response.body);
             if (!keySet) {
                 throw "Failed to parse JSON KeySet schema";
             }
@@ -266,7 +266,7 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<keys.K
     }
 }
 
-async function verifyJws(jws: string, kid: string, log: Log): Promise<boolean> {
+async function verifyJws(jws: string, kid: string, issuer: string, log: Log): Promise<boolean> {
 
     const verifier: jose.JWS.Verifier = jose.JWS.createVerify(keys.store);
 
@@ -274,6 +274,11 @@ async function verifyJws(jws: string, kid: string, log: Log): Promise<boolean> {
         log.error(`JWS verification failed: can't find key with 'kid' = ${kid} in issuer set`, ErrorCode.JWS_VERIFICATION_ERROR);
         return false;
     }
+
+    if (kid && !keys.check(kid, issuer)) {
+        log.error(`JWS verification failed: 'kid' = ${kid} is not associated with issuer ${issuer}`, ErrorCode.ISSUER_KID_MISMATCH);
+    }
+
     try {
         await verifier.verify(jws);
         return true;

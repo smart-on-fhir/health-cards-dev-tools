@@ -15,4 +15,5 @@ src
 testdata
 tsconfig.json
 !js/src/api.d.ts
+!js/package.json
 *.log

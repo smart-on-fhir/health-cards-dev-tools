@@ -1,5 +1,11 @@
 # CHANGE LOG
 
+## v1.0.2-0
+ - Followed spec version change to v1.0.2
+ - Renamed project to health-cards-dev-tools
+ - Added check to verify issuer `kid` in card matches one in JWKS
+ - Added ability to reset keystore
+
 ## v1.0.1-0
  - Followed spec version change to v1.0.1
  - Promoted CORS response warnings to errors
