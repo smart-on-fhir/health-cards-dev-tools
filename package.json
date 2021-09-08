@@ -16,6 +16,9 @@
         "lint": "eslint --config .eslintrc.json --ext .ts ./src ./tests",
         "prune-fhir-schema": "ts-node --files src/prune-fhir-schema.ts"
     },
+    "bin": {
+        "shc-validator": "js/src/shc-validator.js"
+    },
     "author": "",
     "license": "MIT",
     "dependencies": {
