@@ -26,6 +26,10 @@ Install a specific version by specifying it as a parameter; for example, to obta
 npm install github:smart-on-fhir/health-cards-dev-tools#v1.0.2-0
 ```
 
+  **Note : Performing an npm global install from GitHub _npm install -g github:smart-on-fhir/health-cards-dev-tools_ does not currently work correctly with the latest version of [npm](https://github.com/npm/cli/issues/3692#issue-981406464) (version 7.x).  
+  The combination of using both the `bin` and `prepare` properties in `package.json` is resulting in a failed install (It works correctly with npm 6.x).**  
+
+
 ### Build from source
 
 Alternatively, the package can be built from source following these steps.
