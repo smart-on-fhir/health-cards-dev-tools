@@ -153,11 +153,13 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
     if (b64DecodedPayloadBuffer) {
         try {
             inflatedPayload = pako.inflateRaw(b64DecodedPayloadBuffer, { to: 'string' });
+            if (!inflatedPayload) throw "inflateRaw failed";
             log.info('JWS payload inflated');
         } catch (err) {
             // try normal inflate
             try {
                 inflatedPayload = pako.inflate(b64DecodedPayloadBuffer, { to: 'string' });
+                if (!inflatedPayload) throw "inflate failed";
                 log.error(
                     "Error inflating JWS payload. Compression should use raw DEFLATE (without wrapper header and adler32 crc)",
                     ErrorCode.INFLATION_ERROR);
