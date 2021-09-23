@@ -114,7 +114,7 @@ export function validate(jwsPayloadText: string): Log {
     if ((hasCovidImmunization || hasCovidObservation) && !hasCovidType) {
         log.warn(`JWS.payload.vc.type SHOULD contain '${supportedTypes.covid19}'`, ErrorCode.SCHEMA_ERROR);
     } else if (!(hasCovidImmunization || hasCovidObservation) && hasCovidType) {
-        log.warn(`JWS.payload.vc.type SHOULD NOT contain '${supportedTypes.covid19}', no covid immunization or observation found`, ErrorCode.SCHEMA_ERROR);
+        log.warn(`JWS.payload.vc.type SHOULD NOT contain '${supportedTypes.covid19}', no covid immunization or observation found (only CVX codes are currently recognized by the tool)`, ErrorCode.SCHEMA_ERROR);
     }
 
     if (hasVerifiableCredential) {
