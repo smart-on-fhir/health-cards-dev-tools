@@ -1,5 +1,12 @@
 # CHANGE LOG
 
+## v1.1.0-0
+ - Followed spec version change to v1.1.0
+ - Promoted extra white spaces warnings to errors
+ - Added more covid CVX codes
+ - Added support for direct npm install
+ - Misc fixes and README.md improvment
+
 ## v1.0.2-0
  - Followed spec version change to v1.0.2
  - Renamed project to health-cards-dev-tools
