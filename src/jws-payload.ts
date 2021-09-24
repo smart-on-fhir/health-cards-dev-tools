@@ -26,7 +26,7 @@ export function validate(jwsPayloadText: string): Log {
     };
 
     if (jwsPayloadText.trim() !== jwsPayloadText) {
-        log.warn(`JWS payload has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
+        log.error(`JWS payload has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
         jwsPayloadText = jwsPayloadText.trim();
     }
 

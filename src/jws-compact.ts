@@ -31,7 +31,7 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
     const log = new Log((index ? '[' + index + '] ' : '') + 'JWS-compact');
 
     if (jws.trim() !== jws) {
-        log.warn(`JWS has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
+        log.error(`JWS has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
         jws = jws.trim();
     }
 

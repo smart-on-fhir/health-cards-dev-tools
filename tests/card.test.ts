@@ -175,11 +175,11 @@ test("Cards: issuer in trusted directory ref by URL", testCard(['example-00-d-jw
 
 // Warning cases
 
-test("Cards: fhir bundle w/ trailing chars", testCard(['test-example-00-a-fhirBundle-trailing_chars.json'], 'fhirbundle', [0, [ErrorCode.TRAILING_CHARACTERS]]));
-test("Cards: jws payload w/ trailing chars", testCard('test-example-00-b-jws-payload-expanded-trailing_chars.json', 'jwspayload', [0, [ErrorCode.TRAILING_CHARACTERS]]));
-test("Cards: jws w/ trailing chars", testCard('test-example-00-d-jws-trailing_chars.txt', 'jws', [0, [ErrorCode.TRAILING_CHARACTERS]]));
-test("Cards: health card w/ trailing chars", testCard('test-example-00-e-file-trailing_chars.smart-health-card', 'healthcard', [0, [ErrorCode.TRAILING_CHARACTERS]]));
-test("Cards: numeric QR w/ trailing chars", testCard('test-example-00-f-qr-code-numeric-value-0-trailing_chars.txt', 'qrnumeric', [0, [ErrorCode.TRAILING_CHARACTERS]]));
+test("Cards: fhir bundle w/ trailing chars", testCard(['test-example-00-a-fhirBundle-trailing_chars.json'], 'fhirbundle', [[ErrorCode.TRAILING_CHARACTERS]]));
+test("Cards: jws payload w/ trailing chars", testCard('test-example-00-b-jws-payload-expanded-trailing_chars.json', 'jwspayload', [[ErrorCode.TRAILING_CHARACTERS]]));
+test("Cards: jws w/ trailing chars", testCard('test-example-00-d-jws-trailing_chars.txt', 'jws', [[ErrorCode.TRAILING_CHARACTERS]]));
+test("Cards: health card w/ trailing chars", testCard('test-example-00-e-file-trailing_chars.smart-health-card', 'healthcard', [[ErrorCode.TRAILING_CHARACTERS]]));
+test("Cards: numeric QR w/ trailing chars", testCard('test-example-00-f-qr-code-numeric-value-0-trailing_chars.txt', 'qrnumeric', [[ErrorCode.TRAILING_CHARACTERS]]));
 test("Cards: jws too long", testCard('example-02-d-jws.txt', 'jws', [0, [ErrorCode.JWS_TOO_LONG].concat(SCHEMA_ERROR_ARRAY)]));
 test("Cards: not yet valid", testCard('test-example-00-b-jws-payload-expanded-nbf_not_yet_valid.json', 'jwspayload', [0, [ErrorCode.NOT_YET_VALID]]));
 test("Cards: unnecessary QR chunks", testCard(['test-example-00-g-qr-code-0-qr_chunk_too_small.png', 'test-example-00-g-qr-code-1-qr_chunk_too_small.png'], 'qr', [0, [ErrorCode.INVALID_QR]]));
@@ -340,7 +340,7 @@ test("Cards: bad meta with wrong security field", testCard(['test-example-00-a-f
 
 test("Cards: health card w/ multi-jws and issues",
     testCard(['test-example-00-e-file-multi-jws-issues.smart-health-card'], "healthcard",
-        [[ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR], [ErrorCode.TRAILING_CHARACTERS]])
+        [[ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR, ErrorCode.TRAILING_CHARACTERS]])
 );
 
 test("Cards: fhir bundle w/ usa-profile errors", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
@@ -358,4 +358,4 @@ test("Cards: un-needed VC type", testCard('test-example-00-b-jws-payload-expande
 test("Cards: unknown VC types", testCard('test-example-00-b-jws-payload-expanded-unknown-vc-types.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR, ErrorCode.SCHEMA_ERROR]]));
 
 
-test("Cards: mismatch kid/issuer", testCard(['test-example-00-d-jws-issuer-kid-mismatch.txt'], "jws", [[ErrorCode.ISSUER_KID_MISMATCH]], { jwkset : 'testdata/issuer.jwks.public.not.smart.json'}));
+test("Cards: mismatch kid/issuer", testCard(['test-example-00-d-jws-issuer-kid-mismatch.txt'], "jws", [[ErrorCode.ISSUER_KID_MISMATCH]], { jwkset: 'testdata/issuer.jwks.public.not.smart.json' }));
