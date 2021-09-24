@@ -136,7 +136,7 @@ test('fhirbundle: bad meta with extra key', validateApi(['test-example-00-a-fhir
 test('jws: der encoded signature r-negative', validateApi(['test-example-00-d-jws-der-signature-r-neg.txt'], 'jws', [[EC.SIGNATURE_FORMAT_ERROR]]));
 
 
-test('jwspayload: valid 02 JWS payload expanded', validateApi(['test-example-00-b-jws-payload-expanded-trailing_chars.json'], 'jwspayload', [0, [EC.TRAILING_CHARACTERS]]));
+test('jwspayload: valid 02 JWS payload expanded', validateApi(['test-example-00-b-jws-payload-expanded-trailing_chars.json'], 'jwspayload', [[EC.TRAILING_CHARACTERS]]));
 
 
 test('jws: no deflate', validateApi(['test-example-00-d-jws-no_deflate.txt'], 'jws', [[EC.INFLATION_ERROR, EC.JWS_HEADER_ERROR], [EC.JWS_TOO_LONG]]));
@@ -145,7 +145,7 @@ test('jws: no deflate', validateApi(['test-example-00-d-jws-no_deflate.txt'], 'j
 test('qrnumeric: invalid QR header', validateApi(['test-example-00-f-qr-code-numeric-value-0-wrong_qr_header.txt'], 'qrnumeric', [[EC.INVALID_NUMERIC_QR_HEADER]]));
 
 
-test('healthcard: health card w/ trailing chars', validateApi(['test-example-00-e-file-trailing_chars.smart-health-card'], 'healthcard', [0, [EC.TRAILING_CHARACTERS]]));
+test('healthcard: health card w/ trailing chars', validateApi(['test-example-00-e-file-trailing_chars.smart-health-card'], 'healthcard', [[EC.TRAILING_CHARACTERS]]));
 
 
 test('jws: issuer in trusted directory ref by name', validateApi(['example-00-d-jws.txt'], 'jws', [0], { directory: 'test' }));

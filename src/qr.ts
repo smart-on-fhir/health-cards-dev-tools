@@ -30,7 +30,7 @@ function shcChunksToJws(shc: string[], log: Log): JWS | undefined {
     for (let shcChunk of shc) {
 
         if (shcChunk.trim() !== shcChunk) {
-            log.warn(`Numeric QR has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
+            log.error(`Numeric QR has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
             shcChunk = shcChunk.trim();
         }
 

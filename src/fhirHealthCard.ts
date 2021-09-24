@@ -13,7 +13,7 @@ export async function validate(fhirHealthCardText: string): Promise<Log> {
     const log = new Log('FHIR $health-cards-issue response');
 
     if (fhirHealthCardText.trim() !== fhirHealthCardText) {
-        log.warn(`FHIR Health Card response has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
+        log.error(`FHIR Health Card response has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
         fhirHealthCardText = fhirHealthCardText.trim();
     }
 
