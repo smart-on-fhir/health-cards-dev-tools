@@ -148,6 +148,7 @@ test("Cards: valid 02 QR numeric (out of order)",
     testCard(['example-02-f-qr-code-numeric-value-1.txt',
         'example-02-f-qr-code-numeric-value-0.txt',
         'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [0, SHORT_URL_WARNINGS + JWS_TOO_LONG_WARNING]));
+test("Cards: valid 1195-byte QR numeric", testCard(['test-example-1195-byte-qrnumeric.txt'], "qrnumeric"));
 
 test("Cards: valid 00 QR code", testCard(['example-00-g-qr-code-0.svg'], "qr"));
 test("Cards: valid 01 QR code", testCard(['example-01-g-qr-code-0.svg'], "qr"));

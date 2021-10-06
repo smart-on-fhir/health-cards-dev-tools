@@ -5,6 +5,7 @@ import { ErrorCode } from './error';
 import * as jws from './jws-compact';
 import Log from './logger';
 
+const MAX_SINGLE_QR_LENGTH = 1195;
 const MAX_QR_CHUNK_LENGTH = 1191;
 
 export async function validate(qr: string[]): Promise<Log> {
@@ -39,8 +40,9 @@ function shcChunksToJws(shc: string[], log: Log): JWS | undefined {
         if (!chunkResult) return undefined; // move on to next chunk
 
         const chunkIndex = chunkResult.chunkIndex;
-        if (chunkResult.result.length > MAX_QR_CHUNK_LENGTH) {
-            log.error(`QR chunk ${chunkIndex} is larger than ${MAX_QR_CHUNK_LENGTH} bytes`, ErrorCode.INVALID_NUMERIC_QR);
+        const maxQRLength = chunkCount > 1 ? MAX_QR_CHUNK_LENGTH : MAX_SINGLE_QR_LENGTH;
+        if (chunkResult.result.length > maxQRLength) {
+            log.error(`QR chunk ${chunkIndex} is larger than ${maxQRLength} bytes`, ErrorCode.INVALID_NUMERIC_QR);
         }
 
         if (jwsChunks[chunkIndex - 1]) {
@@ -65,8 +67,8 @@ function shcChunksToJws(shc: string[], log: Log): JWS | undefined {
 
     const jws = jwsChunks.join('');
 
-    if (chunkCount > 1 && jws.length <= MAX_QR_CHUNK_LENGTH) {
-        log.warn(`JWS of size ${jws.length} (<= ${MAX_QR_CHUNK_LENGTH}) didn't need to be split in ${chunkCount} chunks`, ErrorCode.INVALID_QR);
+    if (chunkCount > 1 && jws.length <= MAX_SINGLE_QR_LENGTH) {
+        log.warn(`JWS of size ${jws.length} (<= ${MAX_SINGLE_QR_LENGTH}) didn't need to be split in ${chunkCount} chunks`, ErrorCode.INVALID_QR);
     }
 
     // check if chunk sizes are balanced
