@@ -1,5 +1,9 @@
 # CHANGE LOG
 
+## v1.1.1-0
+ - Followed spec version change to v1.1.1
+ - Fixed non-chunked QR max size check
+
 ## v1.1.0-0
  - Followed spec version change to v1.1.0
  - Promoted extra white spaces warnings to errors
