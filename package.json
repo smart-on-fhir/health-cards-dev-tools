@@ -39,7 +39,7 @@
         "node-jose": "^2.0.0",
         "pako": "^2.0.3",
         "pngjs": "^6.0.0",
-        "qrcode": "git+https://github.com/soldair/node-qrcode.git",
+        "qrcode": "^1.3.2",
         "semver": "^7.3.5",
         "svg2img": "^0.9.1"
     },
