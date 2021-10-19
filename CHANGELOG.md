@@ -1,5 +1,8 @@
 # CHANGE LOG
 
+## v1.1.1-1
+ - Updated package dependencies to remove npm flagged 'high' vulnerabilities
+
 ## v1.1.1-0
  - Followed spec version change to v1.1.1
  - Fixed non-chunked QR max size check
@@ -9,7 +12,7 @@
  - Promoted extra white spaces warnings to errors
  - Added more covid CVX codes
  - Added support for direct npm install
- - Misc fixes and README.md improvment
+ - Misc fixes and README.md improvements
 
 ## v1.0.2-0
  - Followed spec version change to v1.0.2
@@ -47,7 +50,7 @@
 
 ## v1.0.0-0
  - Followed spec version change to v1.0.0
- - Scoped FHIR schema parsing to improve valitation time
+ - Scoped FHIR schema parsing to improve validation time
  - Check CORS response when fetching issuer keys
 
 ## v0.4.5-3
