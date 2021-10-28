@@ -345,7 +345,7 @@ test("Cards: health card w/ multi-jws and issues",
 );
 
 test("Cards: fhir bundle w/ usa-profile errors", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
-    [[ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR]], { profile: 'usa-covid19-immunization' }));
+    [[ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR]], { profile: 'usa-covid19-immunization' }));
 
 test("Cards: fhir bundle w/ empty elements", testCard(['test-example-00-a-fhirBundle-empty-values.json'], 'fhirbundle',
     [[ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR]]));
@@ -358,5 +358,6 @@ test("Cards: un-needed VC type", testCard('test-example-00-b-jws-payload-expande
 
 test("Cards: unknown VC types", testCard('test-example-00-b-jws-payload-expanded-unknown-vc-types.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR, ErrorCode.SCHEMA_ERROR]]));
 
-
 test("Cards: mismatch kid/issuer", testCard(['test-example-00-d-jws-issuer-kid-mismatch.txt'], "jws", [[ErrorCode.ISSUER_KID_MISMATCH]], { jwkset: 'testdata/issuer.jwks.public.not.smart.json' }));
+
+test("Cards: immunization status not 'completed'", testCard('test-example-00-a-fhirBundle-status-not-completed.json', 'fhirbundle', [[ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR]]));

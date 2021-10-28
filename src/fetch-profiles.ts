@@ -7,7 +7,8 @@ interface Profile {
         "element": {
             "min": number,
             "max": string,
-            "path": string
+            "path": string,
+            "patternCode": string
         }[]
     }
 }
@@ -30,12 +31,17 @@ async function fetchProfile(url: string, fileName: string): Promise<void> {
         return;
     }
 
-    // keep just the paths of the 0..0 properties
-    fs.writeFileSync(fileName, JSON.stringify(
-        profileJson.snapshot.element
+    const profile = {
+        mustNotContain: profileJson.snapshot.element
             .filter(e => e.min === 0 && parseInt(e.max) === 0)
-            .map(e => { return { "path": e.path } })
-        , null, 4));
+            .map(e => { return { "path": e.path } }),
+        pattern: profileJson.snapshot.element
+            .filter(e => e.patternCode)
+            .map(e => { return { "path": e.path, "pattern": e.patternCode } }),
+    };
+
+    // keep just the paths of the 0..0 properties
+    fs.writeFileSync(fileName, JSON.stringify(profile, null, 4));
 
     return;
 }
