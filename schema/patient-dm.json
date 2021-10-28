@@ -1,95 +1,98 @@
-[
-    {
-        "path": "Patient.id"
-    },
-    {
-        "path": "Patient.meta.versionId"
-    },
-    {
-        "path": "Patient.meta.lastUpdated"
-    },
-    {
-        "path": "Patient.meta.source"
-    },
-    {
-        "path": "Patient.meta.profile"
-    },
-    {
-        "path": "Patient.meta.tag"
-    },
-    {
-        "path": "Patient.implicitRules"
-    },
-    {
-        "path": "Patient.language"
-    },
-    {
-        "path": "Patient.text"
-    },
-    {
-        "path": "Patient.contained"
-    },
-    {
-        "path": "Patient.extension"
-    },
-    {
-        "path": "Patient.modifierExtension"
-    },
-    {
-        "path": "Patient.identifier"
-    },
-    {
-        "path": "Patient.active"
-    },
-    {
-        "path": "Patient.name.id"
-    },
-    {
-        "path": "Patient.name.extension"
-    },
-    {
-        "path": "Patient.name.use"
-    },
-    {
-        "path": "Patient.telecom"
-    },
-    {
-        "path": "Patient.gender"
-    },
-    {
-        "path": "Patient.deceased[x]"
-    },
-    {
-        "path": "Patient.address"
-    },
-    {
-        "path": "Patient.address.text"
-    },
-    {
-        "path": "Patient.address.line"
-    },
-    {
-        "path": "Patient.maritalStatus"
-    },
-    {
-        "path": "Patient.multipleBirth[x]"
-    },
-    {
-        "path": "Patient.photo"
-    },
-    {
-        "path": "Patient.contact"
-    },
-    {
-        "path": "Patient.communication"
-    },
-    {
-        "path": "Patient.generalPractitioner"
-    },
-    {
-        "path": "Patient.managingOrganization"
-    },
-    {
-        "path": "Patient.link"
-    }
-]
+{
+    "mustNotContain": [
+        {
+            "path": "Patient.id"
+        },
+        {
+            "path": "Patient.meta.versionId"
+        },
+        {
+            "path": "Patient.meta.lastUpdated"
+        },
+        {
+            "path": "Patient.meta.source"
+        },
+        {
+            "path": "Patient.meta.profile"
+        },
+        {
+            "path": "Patient.meta.tag"
+        },
+        {
+            "path": "Patient.implicitRules"
+        },
+        {
+            "path": "Patient.language"
+        },
+        {
+            "path": "Patient.text"
+        },
+        {
+            "path": "Patient.contained"
+        },
+        {
+            "path": "Patient.extension"
+        },
+        {
+            "path": "Patient.modifierExtension"
+        },
+        {
+            "path": "Patient.identifier"
+        },
+        {
+            "path": "Patient.active"
+        },
+        {
+            "path": "Patient.name.id"
+        },
+        {
+            "path": "Patient.name.extension"
+        },
+        {
+            "path": "Patient.name.use"
+        },
+        {
+            "path": "Patient.telecom"
+        },
+        {
+            "path": "Patient.gender"
+        },
+        {
+            "path": "Patient.deceased[x]"
+        },
+        {
+            "path": "Patient.address"
+        },
+        {
+            "path": "Patient.address.text"
+        },
+        {
+            "path": "Patient.address.line"
+        },
+        {
+            "path": "Patient.maritalStatus"
+        },
+        {
+            "path": "Patient.multipleBirth[x]"
+        },
+        {
+            "path": "Patient.photo"
+        },
+        {
+            "path": "Patient.contact"
+        },
+        {
+            "path": "Patient.communication"
+        },
+        {
+            "path": "Patient.generalPractitioner"
+        },
+        {
+            "path": "Patient.managingOrganization"
+        },
+        {
+            "path": "Patient.link"
+        }
+    ],
+    "pattern": []
+}

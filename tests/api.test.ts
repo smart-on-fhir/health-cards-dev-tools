@@ -128,7 +128,7 @@ test('keyset', validateApi(['valid_keys.json'], 'keyset'));
 test('fhirbundle-with-usa-profile', validateApi(
     ['test-example-00-a-fhirBundle-profile-usa.json'],
     'fhirbundle',
-    [[EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR]],
+    [[EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.FHIR_SCHEMA_ERROR, EC.FHIR_SCHEMA_ERROR]],
     { profile: api.ValidationProfiles['usa-covid19-immunization'] }));
 
 test('fhirbundle: bad meta with extra key', validateApi(['test-example-00-a-fhirBundle-bad_meta_extra_key.json'], 'fhirbundle', [0, [EC.FHIR_SCHEMA_ERROR]]));

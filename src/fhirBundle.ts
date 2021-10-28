@@ -86,6 +86,11 @@ export function validate(fhirBundleText: string): Log {
             continue;
         }
 
+        if(resource.resourceType === 'Immunization' && resource.status && resource.status != 'completed') {
+            log.error(`Bundle.entry[${i.toString()}].resource[${resource.resourceType}].status '${resource.status as string}' should be 'completed'`, ErrorCode.FHIR_SCHEMA_ERROR);
+            continue;
+        }
+
         validateSchema({ $ref: 'https://smarthealth.cards/schema/fhir-schema.json#/definitions/' + resource.resourceType }, resource, log, ['', 'entry', i.toString(), resource.resourceType].join('/'));
 
         if (resource.id) {
@@ -189,9 +194,20 @@ const ValidationProfilesFunctions = {
                 }
 
                 // check for properties that are forbidden by the dm-profiles
-                (immunizationDM as { path: string }[]).forEach(constraint => {
+                (immunizationDM as { mustNotContain: {path: string}[]} ).mustNotContain.forEach(constraint => {
                     propPath(entry.resource, constraint.path) &&
                         log.error(`Profile : ${profileName} : entry[${index.toString()}].resource.${constraint.path} should not be present.`, ErrorCode.PROFILE_ERROR);
+                });
+
+                // check the specific property patterns are valid
+                (immunizationDM as { pattern: {path: string, pattern: string}[]} ).pattern.forEach(constraint => {
+
+                    const regex = new RegExp(constraint.pattern);
+
+                    const value = propPath(entry.resource, constraint.path) || '';
+
+                    regex.test(value) ||
+                        log.error(`Profile : ${profileName} : entry[${index.toString()}].resource.${constraint.path} value (${value}) does not match pattern (${constraint.pattern}).`, ErrorCode.PROFILE_ERROR);
                 });
 
             }
@@ -199,7 +215,7 @@ const ValidationProfilesFunctions = {
             if (entry.resource.resourceType === "Patient") {
 
                 // check for properties that are forbidden by the dm-profiles
-                (patientDM as { path: string }[]).forEach(constraint => {
+                (patientDM as {mustNotContain: {path: string}[]}).mustNotContain.forEach(constraint => {
                     propPath(entry.resource, constraint.path) &&
                         log.error(`Profile : ${profileName} : entry[${index.toString()}].resource.${constraint.path} should not be present.`, ErrorCode.PROFILE_ERROR);
                 });
