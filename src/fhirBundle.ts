@@ -86,6 +86,11 @@ export function validate(fhirBundleText: string): Log {
             continue;
         }
 
+        if(resource.resourceType === 'Immunization' && !resource.status) {
+            log.error(`Bundle.entry[${i.toString()}].resource[${resource.resourceType}].status is required`, ErrorCode.FHIR_SCHEMA_ERROR);
+            continue;
+        }
+
         if(resource.resourceType === 'Immunization' && resource.status && resource.status != 'completed') {
             log.error(`Bundle.entry[${i.toString()}].resource[${resource.resourceType}].status '${resource.status as string}' should be 'completed'`, ErrorCode.FHIR_SCHEMA_ERROR);
             continue;
