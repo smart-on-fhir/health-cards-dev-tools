@@ -2,7 +2,7 @@
 
 # SMART Health Cards Dev Tools
 
-This project provides tools to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `1.1.1-1`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
+This project provides tools to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `1.1.1-2`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
 
 **NOTE: The goal of the project is to help implementers verify that their implementations conform to the specification. It optimistically tries to validate as much of the input artifacts as it can, continuing validation after encountering errors in order to give a complete validation report. It is therefore _not_ meant to robustly validate actual SMART Health Cards; applications validating such cards must be thoroughly tested using an adversarial threat model.**
 
