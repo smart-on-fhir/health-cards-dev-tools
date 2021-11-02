@@ -1,5 +1,8 @@
 # CHANGE LOG
 
+## v1.1.1-2
+ - Now require `Immunization.status === 'completed'` within fhirBundle
+
 ## v1.1.1-1
  - Updated package dependencies to remove npm flagged 'high' vulnerabilities
 
