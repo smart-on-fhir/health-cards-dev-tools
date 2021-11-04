@@ -77,7 +77,7 @@
           "coding": [
             {
               "system": "http://hl7.org/fhir/sid/cvx",
-              "code": "217"
+              "code": "xxx-bad-code"
             }
           ]
         },
