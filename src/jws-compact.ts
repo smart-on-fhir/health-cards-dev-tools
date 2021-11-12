@@ -152,8 +152,17 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
     let inflatedPayload;
     if (b64DecodedPayloadBuffer) {
         try {
-            inflatedPayload = pako.inflateRaw(b64DecodedPayloadBuffer, { to: 'string' });
-            if (!inflatedPayload) throw "inflateRaw failed";
+            // extract the utf8 bytes
+            const inflatedPayloadBuf =  pako.inflateRaw(b64DecodedPayloadBuffer);
+            // check if the buffer starts with the byte order mark (BOM), which is not recommended for utf8
+            // (we treat it as white space and log an error)
+            if (inflatedPayloadBuf.length > 3 &&
+                inflatedPayloadBuf[0] == 0xEF && inflatedPayloadBuf[1] == 0xBB && inflatedPayloadBuf[2] == 0xBF) {
+                log.error("UTF8 JWS payload starts with spurious byte order mark (BOM) characters 0xEFBBBF", ErrorCode.TRAILING_CHARACTERS);
+            }
+            if (!inflatedPayloadBuf) throw "inflateRaw failed";
+            inflatedPayload = Buffer.from(inflatedPayloadBuf).toString();
+            if (!inflatedPayload) throw "inflated payload can't be parsed as a string";
             log.info('JWS payload inflated');
         } catch (err) {
             // try normal inflate
