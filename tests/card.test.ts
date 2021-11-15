@@ -238,6 +238,10 @@ test("Cards: wrong JWS header 'kid'",
     testCard(['test-example-00-d-jws-wrong_jws_header_kid.txt'], 'jws', [[ErrorCode.JWS_VERIFICATION_ERROR]])
 );
 
+test("Cards: JWS Payload with BOM UTF-8 prefix",
+    testCard(['test-example-00-d-jws-utf8_bom_prefix.txt'], 'jws', [[ErrorCode.TRAILING_CHARACTERS, ErrorCode.TRAILING_CHARACTERS]])
+);
+
 test("Cards: invalid issuer url",
     testCard(['test-example-00-e-file-invalid_issuer_url.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]], { clearKeyStore: true })
 );
