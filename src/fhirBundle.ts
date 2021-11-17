@@ -71,12 +71,13 @@ export function validate(fhirBundleText: string): Log {
         const entry = fhirBundle.entry[i];
         // with Bundle.entry.fullUrl populated with short resource-scheme URIs (e.g., {"fullUrl": "resource:0})
         if ((typeof entry.fullUrl !== 'string') || !/^resource:\d+/.test(entry.fullUrl)) {
-            log.warn(`fhirBundle.entry[${i.toString()}].fullUrl = "${entry.fullUrl as string}" should be short resource-scheme URIs (e.g., {“fullUrl”: “resource:0}"`, ErrorCode.FHIR_SCHEMA_ERROR);
-        
+            log.error(`fhirBundle.entry[${i.toString()}].fullUrl = "${entry.fullUrl as string}" should be short resource-scheme URIs (e.g., {"fullUrl": "resource:0})"`, ErrorCode.FHIR_SCHEMA_ERROR);
+            entryFullUrls.push(entry.fullUrl as string);
+
         } else {
             const duplicate = entryFullUrls.indexOf(entry.fullUrl);
             if (duplicate >= 0) {
-                log.warn(`fhirBundle.entry[${i.toString()}].fullUrl = "${entry.fullUrl}" duplicate of fhirBundle.entry[${duplicate}].fullUrl`, ErrorCode.FHIR_SCHEMA_ERROR);
+                log.error(`fhirBundle.entry[${i.toString()}].fullUrl = "${entry.fullUrl}" duplicate of fhirBundle.entry[${duplicate}].fullUrl`, ErrorCode.FHIR_SCHEMA_ERROR);
             } else {
                 entryFullUrls.push(entry.fullUrl);
             }
@@ -152,12 +153,12 @@ export function validate(fhirBundleText: string): Log {
 
             // reference must be the following form: reference:#
             if (propType === 'Reference' && o['reference'] && !/^resource:\d+/.test(o['reference'] as string)) {
-                log.warn(`${outputPath} = "${o['reference'] as string}" (Reference) should be short resource-scheme URIs (e.g., {“${path[path.length - 1]}”: {“reference”: “reference”:0”}})`, ErrorCode.SCHEMA_ERROR);
+                log.error(`${outputPath} = "${o['reference'] as string}" (Reference) should be short resource-scheme URIs (e.g., {"${path[path.length - 1]}": {"reference": "resource:0"}})`, ErrorCode.SCHEMA_ERROR);
             }
 
             // the reference must map to one of the Entry.fullUrls collected above
             if (propType === 'Reference' && o['reference'] && !entryFullUrls.includes(o['reference'] as string)) {
-                log.warn(`${outputPath} = "${o['reference'] as string}" (Reference) is not one of the defined .fullUrls [${(entryFullUrls.length > 3 ? entryFullUrls.slice(0, 3).concat(['...']) : entryFullUrls).join(',')}]`, ErrorCode.SCHEMA_ERROR);
+                log.error(`${outputPath} = "${o['reference'] as string}" (Reference) is not defined by an entry.fullUrl [${(entryFullUrls.length > 3 ? entryFullUrls.slice(0, 3).concat(['...']) : entryFullUrls).join(',')}]`, ErrorCode.SCHEMA_ERROR);
             }
 
             if (  // warn on empty string, empty object, empty array
