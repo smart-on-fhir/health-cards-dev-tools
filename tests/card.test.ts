@@ -114,8 +114,8 @@ if (!OPENSSL_AVAILABLE) {
     Log.Exclusions.add(ErrorCode.OPENSSL_NOT_AVAILABLE);
 }
 // for now, we get many not-short-url warnings for every use of example-02'
-const SHORT_URL_WARNINGS = 55;
-const SCHEMA_ERROR_ARRAY = Array.apply(null, Array(SHORT_URL_WARNINGS)).map(() => ErrorCode.SCHEMA_ERROR);
+const SHORT_URL_WARNINGS = 110;
+const SCHEMA_ERROR_ARRAY = (new Array(SHORT_URL_WARNINGS)).fill(ErrorCode.SCHEMA_ERROR as never);
 const JWS_TOO_LONG_WARNING = 1;
 
 test("Cards: valid 00 FHIR bundle", testCard(['example-00-a-fhirBundle.json'], "fhirbundle"));
@@ -327,7 +327,7 @@ test("Cards: invalid JWS payload encoding (double-stringify)",
 
 test("Cards: valid 00 FHIR bundle with non-dm properties", testCard(['test-example-00-a-non-dm-properties.json'], "fhirbundle", [0, 5 /*5x ErrorCode.SCHEMA_ERROR*/]));
 
-test("Cards: valid 00 FHIR bundle with non-short refs", testCard(['test-example-00-a-short-refs.json'], "fhirbundle", [0, 4 /*4x ErrorCode.SCHEMA_ERROR*/]));
+test("Cards: valid 00 FHIR bundle with non-short refs", testCard(['test-example-00-a-short-refs.json'], "fhirbundle", [0, 7 /*7x ErrorCode.SCHEMA_ERROR*/]));
 
 test("Cards: der encoded signature", testCard(['test-example-00-d-jws-der-signature.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));
 

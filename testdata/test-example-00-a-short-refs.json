@@ -60,7 +60,7 @@
           ]
         },
         "patient": {
-          "reference": "resource-0"
+          "reference": "Patient/resource:0"
         },
         "occurrenceDateTime": "2021-01-29",
         "lotNumber": "Lot #0000007",

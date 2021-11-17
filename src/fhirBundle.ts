@@ -63,6 +63,26 @@ export function validate(fhirBundleText: string): Log {
         return log.fatal("FhirBundle.entry[] required to continue.", ErrorCode.CRITICAL_DATA_MISSING);
     }
 
+
+    // loop through all the entries to collect the .fullUrl for each entry and make sure there aren't duplicates
+    // we need to know all the Entry fullUrls up-front so we can verify all the child references later.
+    const entryFullUrls: Array<string> = [];
+    for (let i = 0; i < fhirBundle.entry.length; i++) {
+        const entry = fhirBundle.entry[i];
+        // with Bundle.entry.fullUrl populated with short resource-scheme URIs (e.g., {"fullUrl": "resource:0})
+        if ((typeof entry.fullUrl !== 'string') || !/^resource:\d+/.test(entry.fullUrl)) {
+            log.warn(`fhirBundle.entry[${i.toString()}].fullUrl = "${entry.fullUrl as string}" should be short resource-scheme URIs (e.g., {“fullUrl”: “resource:0}"`, ErrorCode.FHIR_SCHEMA_ERROR);
+        
+        } else {
+            const duplicate = entryFullUrls.indexOf(entry.fullUrl);
+            if (duplicate >= 0) {
+                log.warn(`fhirBundle.entry[${i.toString()}].fullUrl = "${entry.fullUrl}" duplicate of fhirBundle.entry[${duplicate}].fullUrl`, ErrorCode.FHIR_SCHEMA_ERROR);
+            } else {
+                entryFullUrls.push(entry.fullUrl);
+            }
+        }
+    }
+
     //
     // Validate each resource of .entry[]
     //
@@ -120,17 +140,24 @@ export function validate(fhirBundleText: string): Log {
         walkProperties(entry.resource as unknown as Record<string, unknown>, [entry.resource.resourceType], (o: Record<string, unknown>, path: string[]) => {
 
             const propType = objPathToSchema(path.join('.'));
+            const outputPath = `fhirBundle.entry[${i.toString()}].resource${path.join('.')}`;
 
             if (propType === 'CodeableConcept' && o['text']) {
-                log.warn('fhirBundle.entry[' + i.toString() + ']' + ".resource." + path.join('.') + " (CodeableConcept) should not include .text elements", ErrorCode.FHIR_SCHEMA_ERROR);
+                log.warn(`${outputPath} (CodeableConcept) should not include .text elements`, ErrorCode.FHIR_SCHEMA_ERROR);
             }
 
             if (propType === 'Coding' && o['display']) {
-                log.warn('fhirBundle.entry[' + i.toString() + ']' + ".resource." + path.join('.') + " (Coding) should not include .display elements", ErrorCode.FHIR_SCHEMA_ERROR);
+                log.warn(`${outputPath} (Coding) should not include .display elements`, ErrorCode.FHIR_SCHEMA_ERROR);
             }
 
-            if (propType === 'Reference' && o['reference'] && !/[^:]+:\d+/.test(o['reference'] as string)) {
-                log.warn('fhirBundle.entry[' + i.toString() + ']' + ".resource." + path.join('.') + " (Reference) should be short resource-scheme URIs (e.g., {“patient”: {“reference”: “resource:0”}})", ErrorCode.SCHEMA_ERROR);
+            // reference must be the following form: reference:#
+            if (propType === 'Reference' && o['reference'] && !/^resource:\d+/.test(o['reference'] as string)) {
+                log.warn(`${outputPath} = "${o['reference'] as string}" (Reference) should be short resource-scheme URIs (e.g., {“${path[path.length - 1]}”: {“reference”: “reference”:0”}})`, ErrorCode.SCHEMA_ERROR);
+            }
+
+            // the reference must map to one of the Entry.fullUrls collected above
+            if (propType === 'Reference' && o['reference'] && !entryFullUrls.includes(o['reference'] as string)) {
+                log.warn(`${outputPath} = "${o['reference'] as string}" (Reference) is not one of the defined .fullUrls [${(entryFullUrls.length > 3 ? entryFullUrls.slice(0, 3).concat(['...']) : entryFullUrls).join(',')}]`, ErrorCode.SCHEMA_ERROR);
             }
 
             if (  // warn on empty string, empty object, empty array
@@ -138,15 +165,11 @@ export function validate(fhirBundleText: string): Log {
                 (typeof o === 'string' && o === '') ||
                 (o instanceof Object && Object.keys(o).length === 0)
             ) {
-                log.error('fhirBundle.entry[' + i.toString() + ']' + ".resource." + path.join('.') + " is empty. Empty elements are invalid.", ErrorCode.FHIR_SCHEMA_ERROR);
+                log.error(`${outputPath} is empty. Empty elements are invalid.`, ErrorCode.FHIR_SCHEMA_ERROR);
             }
 
         });
 
-        // with Bundle.entry.fullUrl populated with short resource-scheme URIs (e.g., {"fullUrl": "resource:0})
-        if ((typeof entry.fullUrl !== 'string') || !/resource:\d+/.test(entry.fullUrl)) {
-            log.warn('fhirBundle.entry.fullUrl should be short resource-scheme URIs (e.g., {“fullUrl”: “resource:0}"', ErrorCode.FHIR_SCHEMA_ERROR);
-        }
     }
 
     if (profile === ValidationProfiles['usa-covid19-immunization']) {
