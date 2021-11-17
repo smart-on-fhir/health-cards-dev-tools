@@ -51,7 +51,7 @@
             }
           },
           {
-            "fullUrl": "resource:1",
+            "fullUrl": "resource:2",
             "resource": {
               "resourceType": "Observation",
               "meta": {
