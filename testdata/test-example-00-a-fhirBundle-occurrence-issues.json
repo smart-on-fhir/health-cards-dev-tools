@@ -8,7 +8,6 @@
         "resourceType": "Patient",
         "name": [
           {
-            "id": "Patient-ID",
             "family": "Anyperson",
             "given": [
               "John",
@@ -22,41 +21,21 @@
     {
       "fullUrl": "resource:1",
       "resource": {
-        "resourceType": "Patient",
-        "name": [
-          {
-            "family": "Anyperson",
-            "given": [
-              "Joe",
-              "B."
-            ]
-          }
-        ],
-        "birthDate": "1951-01-20"
-      }
-    },
-    {
-      "fullUrl": "resource:2",
-      "resource": {
-        "resourceType": "Medication"
-      }
-    },
-    {
-      "fullUrl": "resource:3",
-      "resource": {
         "resourceType": "Immunization",
-        "status": "Completed",
+        "status": "completed",
         "vaccineCode": {
           "coding": [
             {
-              "system": "http://hl7.org/fhir/sid/cvx"
+              "system": "http://hl7.org/fhir/sid/cvx",
+              "code": "207"
             }
           ]
         },
         "patient": {
           "reference": "resource:0"
         },
-        "occurrenceDateTime": "01-01-2021",
+        "occurrenceDateTime": "2021-01-01",
+        "occurrenceString": "2021-01-01",
         "performer": [
           {
             "actor": {
@@ -64,20 +43,19 @@
             }
           }
         ],
-        "location": "Safeway Parking Lot",
         "lotNumber": "0000001"
       }
     },
     {
-      "fullUrl": "resource:4",
+      "fullUrl": "resource:2",
       "resource": {
         "resourceType": "Immunization",
-        "status": "Partial",
+        "status": "completed",
         "vaccineCode": {
           "coding": [
             {
               "system": "http://hl7.org/fhir/sid/cvx",
-              "code": "xxx-bad-code"
+              "code": "207"
             }
           ]
         },
