@@ -46,7 +46,7 @@
     "devDependencies": {
         "@types/bmp-js": "^0.1.0",
         "@types/gm": "^1.18.9",
-        "@types/jest": "^26.0.22",
+        "@types/jest": "^27.0.3",
         "@types/node-jose": "^1.1.5",
         "@types/pako": "^1.0.1",
         "@types/pngjs": "^6.0.0",
