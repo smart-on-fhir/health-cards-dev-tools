@@ -1,5 +1,13 @@
 # CHANGE LOG
 
+## v1.1.1-3
+ - Add additional Pfizer formulations cvx codes
+ - Check for BOM prefix in UTF8 JWS payload
+ - More strict enforcement of FHIR reference format
+ - Always require occurrence(DateTime|String) properties in Immunization entry
+ - Update package dependencies and removal of unused packages
+ - Update package-lock lockfileVersion to 2
+
 ## v1.1.1-2
  - Now require `Immunization.status === 'completed'` within fhirBundle
 
