@@ -4,7 +4,7 @@
 import path from 'path';
 import { validateCard, ValidationType } from '../src/validate';
 import { getFileData } from '../src/file';
-import { ErrorCode } from '../src/error';
+import { ErrorCode as ec } from '../src/error';
 import Log, { LogLevels } from '../src/logger';
 import { isOpensslAvailable } from '../src/utils';
 import { CliOptions } from '../src/shc-validator';
@@ -15,7 +15,7 @@ const testdataDir = './testdata/';
 // wrap testcard with a function that returns a function - now we don't need all 'async ()=> await' for every test case
 function testCard(fileName: string | string[],
     fileType: ValidationType = 'healthcard',
-    expected: (number | null | undefined | ErrorCode[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
+    expected: (number | null | undefined | ec[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
     options: Partial<CliOptions> = {}) {
 
     return async () => {
@@ -23,7 +23,7 @@ function testCard(fileName: string | string[],
     }
 }
 
-async function _testCard(fileName: string | string[], fileType: ValidationType, expected: (number | null | undefined | ErrorCode[])[], options: Partial<CliOptions>): Promise<void> {
+async function _testCard(fileName: string | string[], fileType: ValidationType, expected: (number | null | undefined | ec[])[], options: Partial<CliOptions>): Promise<void> {
 
     if (typeof fileName === 'string') fileName = [fileName];
     const files = [];
@@ -58,7 +58,7 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
             if (err.length !== exp) {
                 console.debug(`Unexpected number of type ${LogLevels[errorLevelMap[i]]}. Expected ${(exp as number).toString()}, returned : ${err.length.toString()}`);
                 err.forEach((e) => {
-                    console.debug(`    ${ErrorCode[e.code]}|${e.code}|${e.message}`);
+                    console.debug(`    ${ec[e.code]}|${e.code}|${e.message}`);
                 });
             }
             expect(err.length).toBe(exp);
@@ -71,7 +71,7 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
                 // -1 if expected error code not found
                 const expectedErrorFound = exp.indexOf(err[j].code) > -1;
                 if (!expectedErrorFound) {
-                    console.debug(`Unexpected error ${ErrorCode[err[j].code]}|${err[j].code}|${err[j].message}`);
+                    console.debug(`Unexpected error ${ec[err[j].code]}|${err[j].code}|${err[j].message}`);
                 }
                 expect(expectedErrorFound).toBeTruthy();
             }
@@ -111,11 +111,11 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
 // won't add this warning.
 const OPENSSL_AVAILABLE = isOpensslAvailable();
 if (!OPENSSL_AVAILABLE) {
-    Log.Exclusions.add(ErrorCode.OPENSSL_NOT_AVAILABLE);
+    Log.Exclusions.add(ec.OPENSSL_NOT_AVAILABLE);
 }
 // for now, we get many not-short-url warnings for every use of example-02'
 const SHORT_URL_WARNINGS = 110;
-const SCHEMA_ERROR_ARRAY = (new Array(SHORT_URL_WARNINGS)).fill(ErrorCode.SCHEMA_ERROR as never);
+const SCHEMA_ERROR_ARRAY = (new Array(SHORT_URL_WARNINGS)).fill(ec.SCHEMA_ERROR as never);
 const JWS_TOO_LONG_WARNING = 1;
 
 test("Cards: valid 00 FHIR bundle", testCard(['example-00-a-fhirBundle.json'], "fhirbundle"));
@@ -176,14 +176,14 @@ test("Cards: issuer in trusted directory ref by URL", testCard(['example-00-d-jw
 
 // Warning cases
 
-test("Cards: fhir bundle w/ trailing chars", testCard(['test-example-00-a-fhirBundle-trailing_chars.json'], 'fhirbundle', [[ErrorCode.TRAILING_CHARACTERS]]));
-test("Cards: jws payload w/ trailing chars", testCard('test-example-00-b-jws-payload-expanded-trailing_chars.json', 'jwspayload', [[ErrorCode.TRAILING_CHARACTERS]]));
-test("Cards: jws w/ trailing chars", testCard('test-example-00-d-jws-trailing_chars.txt', 'jws', [[ErrorCode.TRAILING_CHARACTERS]]));
-test("Cards: health card w/ trailing chars", testCard('test-example-00-e-file-trailing_chars.smart-health-card', 'healthcard', [[ErrorCode.TRAILING_CHARACTERS]]));
-test("Cards: numeric QR w/ trailing chars", testCard('test-example-00-f-qr-code-numeric-value-0-trailing_chars.txt', 'qrnumeric', [[ErrorCode.TRAILING_CHARACTERS]]));
-test("Cards: jws too long", testCard('example-02-d-jws.txt', 'jws', [SCHEMA_ERROR_ARRAY, [ErrorCode.JWS_TOO_LONG]]));
-test("Cards: not yet valid", testCard('test-example-00-b-jws-payload-expanded-nbf_not_yet_valid.json', 'jwspayload', [0, [ErrorCode.NOT_YET_VALID]]));
-test("Cards: unnecessary QR chunks", testCard(['test-example-00-g-qr-code-0-qr_chunk_too_small.png', 'test-example-00-g-qr-code-1-qr_chunk_too_small.png'], 'qr', [0, [ErrorCode.INVALID_QR]]));
+test("Cards: fhir bundle w/ trailing chars", testCard(['test-example-00-a-fhirBundle-trailing_chars.json'], 'fhirbundle', [[ec.TRAILING_CHARACTERS]]));
+test("Cards: jws payload w/ trailing chars", testCard('test-example-00-b-jws-payload-expanded-trailing_chars.json', 'jwspayload', [[ec.TRAILING_CHARACTERS]]));
+test("Cards: jws w/ trailing chars", testCard('test-example-00-d-jws-trailing_chars.txt', 'jws', [[ec.TRAILING_CHARACTERS]]));
+test("Cards: health card w/ trailing chars", testCard('test-example-00-e-file-trailing_chars.smart-health-card', 'healthcard', [[ec.TRAILING_CHARACTERS]]));
+test("Cards: numeric QR w/ trailing chars", testCard('test-example-00-f-qr-code-numeric-value-0-trailing_chars.txt', 'qrnumeric', [[ec.TRAILING_CHARACTERS]]));
+test("Cards: jws too long", testCard('example-02-d-jws.txt', 'jws', [SCHEMA_ERROR_ARRAY, [ec.JWS_TOO_LONG]]));
+test("Cards: not yet valid", testCard('test-example-00-b-jws-payload-expanded-nbf_not_yet_valid.json', 'jwspayload', [0, [ec.NOT_YET_VALID]]));
+test("Cards: unnecessary QR chunks", testCard(['test-example-00-g-qr-code-0-qr_chunk_too_small.png', 'test-example-00-g-qr-code-1-qr_chunk_too_small.png'], 'qr', [0, [ec.INVALID_QR]]));
 test("Cards: many unnecessary QR chunks", testCard([
     'test-example-00-f-qr-code-numeric-value-0-qr_chunk_too_small.txt',
     'test-example-00-f-qr-code-numeric-value-1-qr_chunk_too_small.txt',
@@ -201,167 +201,169 @@ test("Cards: many unnecessary QR chunks", testCard([
     'test-example-00-f-qr-code-numeric-value-13-qr_chunk_too_small.txt',
     'test-example-00-f-qr-code-numeric-value-14-qr_chunk_too_small.txt',
     'test-example-00-f-qr-code-numeric-value-15-qr_chunk_too_small.txt',
-    'test-example-00-f-qr-code-numeric-value-16-qr_chunk_too_small.txt'], 'qrnumeric', [0, [ErrorCode.INVALID_QR, ErrorCode.UNBALANCED_QR_CHUNKS]]));
-test("Cards: missing immunization VC type", testCard('test-example-00-b-jws-payload-expanded-missing-imm-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
-test("Cards: missing covid VC type", testCard('test-example-00-b-jws-payload-expanded-missing-covid-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
-test("Cards: missing lab VC type", testCard('test-example-covid-lab-jwspayload-missing-lab-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
+    'test-example-00-f-qr-code-numeric-value-16-qr_chunk_too_small.txt'], 'qrnumeric', [0, [ec.INVALID_QR, ec.UNBALANCED_QR_CHUNKS]]));
+test("Cards: missing immunization VC type", testCard('test-example-00-b-jws-payload-expanded-missing-imm-vc-type.json', 'jwspayload', [0, [ec.SCHEMA_ERROR]]));
+test("Cards: missing covid VC type", testCard('test-example-00-b-jws-payload-expanded-missing-covid-vc-type.json', 'jwspayload', [0, [ec.SCHEMA_ERROR]]));
+test("Cards: missing lab VC type", testCard('test-example-covid-lab-jwspayload-missing-lab-vc-type.json', 'jwspayload', [0, [ec.SCHEMA_ERROR]]));
 
 test("Cards: missing coding",
-    testCard('test-example-00-b-jws-payload-expanded-missing-coding.json', 'jwspayload', [[ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR], [ErrorCode.SCHEMA_ERROR]])
+    testCard('test-example-00-b-jws-payload-expanded-missing-coding.json', 'jwspayload', [[ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR], [ec.SCHEMA_ERROR]])
 );
 
-test("Cards: inflated QR code", testCard('test-example-00-g-qr-code-inflated-to-v22.png', 'qr', [0, [ErrorCode.INVALID_QR_VERSION]]));
+test("Cards: inflated QR code", testCard('test-example-00-g-qr-code-inflated-to-v22.png', 'qr', [0, [ec.INVALID_QR_VERSION]]));
 
 // Error cases
 
 test("Cards: invalid deflate",
-    testCard(['test-example-00-e-file-invalid_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR]])
+    testCard(['test-example-00-e-file-invalid_deflate.smart-health-card'], 'healthcard', [[ec.INFLATION_ERROR]])
 );
 
 test("Cards: no deflate",
-    testCard(['test-example-00-e-file-no_deflate.smart-health-card'], 'healthcard', [[ErrorCode.INFLATION_ERROR, ErrorCode.JWS_HEADER_ERROR], [ErrorCode.JWS_TOO_LONG]])
+    testCard(['test-example-00-e-file-no_deflate.smart-health-card'], 'healthcard', [[ec.INFLATION_ERROR, ec.JWS_HEADER_ERROR], [ec.JWS_TOO_LONG]])
 );
 
 test("Cards: no JWS header 'alg'",
-    testCard(['test-example-00-d-jws-no_jws_header_alg.txt'], 'jws', [[ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]])
+    testCard(['test-example-00-d-jws-no_jws_header_alg.txt'], 'jws', [[ec.JWS_HEADER_ERROR, ec.JWS_VERIFICATION_ERROR]])
 );
 
 test("Cards: no JWS header 'kid'",
-    testCard(['test-example-00-d-jws-no_jws_header_kid.txt'], 'jws', [[ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]])
+    testCard(['test-example-00-d-jws-no_jws_header_kid.txt'], 'jws', [[ec.JWS_HEADER_ERROR, ec.JWS_VERIFICATION_ERROR]])
 );
 
 test("Cards: no JWS header 'zip'",
-    testCard(['test-example-00-d-jws-no_jws_header_zip.txt'], 'jws', [[ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]])
+    testCard(['test-example-00-d-jws-no_jws_header_zip.txt'], 'jws', [[ec.JWS_HEADER_ERROR, ec.JWS_VERIFICATION_ERROR]])
 );
 
 test("Cards: wrong JWS header 'kid'",
-    testCard(['test-example-00-d-jws-wrong_jws_header_kid.txt'], 'jws', [[ErrorCode.JWS_VERIFICATION_ERROR]])
+    testCard(['test-example-00-d-jws-wrong_jws_header_kid.txt'], 'jws', [[ec.JWS_VERIFICATION_ERROR]])
 );
 
 test("Cards: JWS Payload with BOM UTF-8 prefix",
-    testCard(['test-example-00-d-jws-utf8_bom_prefix.txt'], 'jws', [[ErrorCode.TRAILING_CHARACTERS, ErrorCode.TRAILING_CHARACTERS]])
+    testCard(['test-example-00-d-jws-utf8_bom_prefix.txt'], 'jws', [[ec.TRAILING_CHARACTERS, ec.TRAILING_CHARACTERS]])
 );
 
 test("Cards: invalid issuer url",
-    testCard(['test-example-00-e-file-invalid_issuer_url.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]], { clearKeyStore: true })
+    testCard(['test-example-00-e-file-invalid_issuer_url.smart-health-card'], 'healthcard', [[ec.ISSUER_KEY_DOWNLOAD_ERROR, ec.JWS_VERIFICATION_ERROR]], { clearKeyStore: true })
 );
 
 test("Cards: nbf in milliseconds",
-    testCard(['test-example-00-b-jws-payload-expanded-nbf_milliseconds.json'], 'jwspayload', [[ErrorCode.NOT_YET_VALID]])
+    testCard(['test-example-00-b-jws-payload-expanded-nbf_milliseconds.json'], 'jwspayload', [[ec.NOT_YET_VALID]])
 );
 
 // the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch
 test("Cards: invalid issuer url (http)",
     testCard(['test-example-00-e-file-invalid_issuer_url_http.smart-health-card'], 'healthcard',
-        [[ErrorCode.INVALID_ISSUER_URL].concat(OPENSSL_AVAILABLE ? [ErrorCode.INVALID_KEY_X5C] : [])])
+        [[ec.INVALID_ISSUER_URL].concat(OPENSSL_AVAILABLE ? [ec.INVALID_KEY_X5C] : [])])
 );
 
 // the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch
 test("Cards: invalid issuer url (trailing /)",
-    testCard(['test-example-00-e-file-issuer_url_with_trailing_slash.smart-health-card'], 'healthcard', [[ErrorCode.INVALID_ISSUER_URL].concat(OPENSSL_AVAILABLE ? [ErrorCode.INVALID_KEY_X5C] : [])])
+    testCard(['test-example-00-e-file-issuer_url_with_trailing_slash.smart-health-card'], 'healthcard', [[ec.INVALID_ISSUER_URL].concat(OPENSSL_AVAILABLE ? [ec.INVALID_KEY_X5C] : [])])
 );
 
 test("Cards: invalid JWK set",
-    testCard(['test-example-00-e-file-bad_jwks.smart-health-card'], 'healthcard', [[ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR, ErrorCode.JWS_VERIFICATION_ERROR]], { clearKeyStore: true })
+    testCard(['test-example-00-e-file-bad_jwks.smart-health-card'], 'healthcard', [[ec.ISSUER_KEY_DOWNLOAD_ERROR, ec.JWS_VERIFICATION_ERROR]], { clearKeyStore: true })
 );
 
 test("Cards: invalid QR header",
-    testCard(['test-example-00-f-qr-code-numeric-value-0-wrong_qr_header.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR_HEADER]])
+    testCard(['test-example-00-f-qr-code-numeric-value-0-wrong_qr_header.txt'], 'qrnumeric', [[ec.INVALID_NUMERIC_QR_HEADER]])
 );
 
 test("Cards: wrong file extension",
-    testCard(['test-example-00-e-file.wrong-extension'], 'healthcard', [0, [ErrorCode.INVALID_FILE_EXTENSION]])
+    testCard(['test-example-00-e-file.wrong-extension'], 'healthcard', [0, [ec.INVALID_FILE_EXTENSION]])
 );
 
 test("Cards: invalid signature",
-    testCard(['test-example-00-d-jws-invalid-signature.txt'], 'jws', [[ErrorCode.JWS_VERIFICATION_ERROR]])
+    testCard(['test-example-00-d-jws-invalid-signature.txt'], 'jws', [[ec.JWS_VERIFICATION_ERROR]])
 );
 
 test("Cards: invalid single chunk QR header",
-    testCard(['test-example-00-f-qr-code-numeric-value-0-wrong-multi-chunk.txt'], 'qrnumeric', [0, [ErrorCode.INVALID_NUMERIC_QR_HEADER]])
+    testCard(['test-example-00-f-qr-code-numeric-value-0-wrong-multi-chunk.txt'], 'qrnumeric', [0, [ec.INVALID_NUMERIC_QR_HEADER]])
 );
 
 test("Cards: missing QR chunk",
-    testCard(['example-02-f-qr-code-numeric-value-0.txt', 'example-02-f-qr-code-numeric-value-2.txt'], 'qrnumeric', [[ErrorCode.MISSING_QR_CHUNK]])
+    testCard(['example-02-f-qr-code-numeric-value-0.txt', 'example-02-f-qr-code-numeric-value-2.txt'], 'qrnumeric', [[ec.MISSING_QR_CHUNK]])
 );
 
 test("Cards: duplicated QR chunk index",
-    testCard(['example-02-f-qr-code-numeric-value-0.txt', 'example-02-f-qr-code-numeric-value-2.txt', 'example-02-f-qr-code-numeric-value-0.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR_HEADER]])
+    testCard(['example-02-f-qr-code-numeric-value-0.txt', 'example-02-f-qr-code-numeric-value-2.txt', 'example-02-f-qr-code-numeric-value-0.txt'], 'qrnumeric', [[ec.INVALID_NUMERIC_QR_HEADER]])
 );
 
 test("Cards: QR chunk index out of range",
-    testCard(['test-example-00-f-qr-code-numeric-value-0-index-out-of-range.txt', 'example-02-f-qr-code-numeric-value-1.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR_HEADER]])
+    testCard(['test-example-00-f-qr-code-numeric-value-0-index-out-of-range.txt', 'example-02-f-qr-code-numeric-value-1.txt'], 'qrnumeric', [[ec.INVALID_NUMERIC_QR_HEADER]])
 );
 
 test("Cards: QR chunk too big",
-    testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric', [SCHEMA_ERROR_ARRAY.concat([ErrorCode.INVALID_NUMERIC_QR, ErrorCode.INVALID_NUMERIC_QR]), JWS_TOO_LONG_WARNING])
+    testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric', [SCHEMA_ERROR_ARRAY.concat([ec.INVALID_NUMERIC_QR, ec.INVALID_NUMERIC_QR]), JWS_TOO_LONG_WARNING])
 );
 
 test("Cards: invalid numeric QR with odd count",
-    testCard(['test-example-00-f-qr-code-numeric-value-0-odd-count.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR]])
+    testCard(['test-example-00-f-qr-code-numeric-value-0-odd-count.txt'], 'qrnumeric', [[ec.INVALID_NUMERIC_QR]])
 );
 
 test("Cards: invalid numeric QR with value too big",
-    testCard(['test-example-00-f-qr-code-numeric-value-0-number-too-big.txt'], 'qrnumeric', [[ErrorCode.INVALID_NUMERIC_QR]])
+    testCard(['test-example-00-f-qr-code-numeric-value-0-number-too-big.txt'], 'qrnumeric', [[ec.INVALID_NUMERIC_QR]])
 );
 
 test("Cards: single segment QR",
-    testCard('test-example-00-g-qr-code-0-single_qr_segment.png', 'qr', [[ErrorCode.INVALID_QR, ErrorCode.INVALID_QR_VERSION]])
+    testCard('test-example-00-g-qr-code-0-single_qr_segment.png', 'qr', [[ec.INVALID_QR, ec.INVALID_QR_VERSION]])
 );
 
 test("Cards: too many QR segments",
-    testCard('test-example-00-g-qr-code-0-too_many_qr_segment.png', 'qr', [[ErrorCode.INVALID_QR, ErrorCode.INVALID_NUMERIC_QR]])
+    testCard('test-example-00-g-qr-code-0-too_many_qr_segment.png', 'qr', [[ec.INVALID_QR, ec.INVALID_NUMERIC_QR]])
 );
 
 test("Cards: invalid QR version",
-    testCard('test-example-00-g-qr-code-0-bad_qr_version.png', 'qr', [[ErrorCode.INVALID_QR_VERSION], [ErrorCode.INVALID_QR_VERSION]])
+    testCard('test-example-00-g-qr-code-0-bad_qr_version.png', 'qr', [[ec.INVALID_QR_VERSION], [ec.INVALID_QR_VERSION]])
 );
 
 test("Cards: corrupted QR code",
-    testCard(['test-example-00-g-qr-code-0-corrupted.png'], 'qr', [[ErrorCode.QR_DECODE_ERROR]])
+    testCard(['test-example-00-g-qr-code-0-corrupted.png'], 'qr', [[ec.QR_DECODE_ERROR]])
 );
 
 test("Cards: invalid JWS payload encoding (double-stringify)",
-    testCard(['test-invalid-jws-payload.png'], 'qr', [[ErrorCode.JSON_PARSE_ERROR]])
+    testCard(['test-invalid-jws-payload.png'], 'qr', [[ec.JSON_PARSE_ERROR]])
 );
 
 test("Cards: valid 00 FHIR bundle with non-dm properties", testCard(['test-example-00-a-non-dm-properties.json'], "fhirbundle", [0, 5 /*5x ErrorCode.SCHEMA_ERROR*/]));
 
 test("Cards: valid 00 FHIR bundle with non-short refs", testCard(['test-example-00-a-short-refs.json'], "fhirbundle", [7 /*7x ErrorCode.SCHEMA_ERROR*/]));
 
-test("Cards: der encoded signature", testCard(['test-example-00-d-jws-der-signature.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));
+test("Cards: der encoded signature", testCard(['test-example-00-d-jws-der-signature.txt'], 'jws', [[ec.SIGNATURE_FORMAT_ERROR]]));
 
-test("Cards: der encoded signature s-negative", testCard(['test-example-00-d-jws-der-signature-s-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));
+test("Cards: der encoded signature s-negative", testCard(['test-example-00-d-jws-der-signature-s-neg.txt'], 'jws', [[ec.SIGNATURE_FORMAT_ERROR]]));
 
-test("Cards: der encoded signature r-negative", testCard(['test-example-00-d-jws-der-signature-r-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));
+test("Cards: der encoded signature r-negative", testCard(['test-example-00-d-jws-der-signature-r-neg.txt'], 'jws', [[ec.SIGNATURE_FORMAT_ERROR]]));
 
-test("Cards: der encoded signature r&s negative", testCard(['test-example-00-d-jws-der-signature-rs-neg.txt'], 'jws', [[ErrorCode.SIGNATURE_FORMAT_ERROR]]));
+test("Cards: der encoded signature r&s negative", testCard(['test-example-00-d-jws-der-signature-rs-neg.txt'], 'jws', [[ec.SIGNATURE_FORMAT_ERROR]]));
 
-test("Cards: bad meta with extra key", testCard(['test-example-00-a-fhirBundle-bad_meta_extra_key.json'], 'fhirbundle', [0, [ErrorCode.FHIR_SCHEMA_ERROR]]));
+test("Cards: bad meta with extra key", testCard(['test-example-00-a-fhirBundle-bad_meta_extra_key.json'], 'fhirbundle', [0, [ec.FHIR_SCHEMA_ERROR]]));
 
-test("Cards: bad meta without security key", testCard(['test-example-00-a-fhirBundle-bad_meta_non_security.json'], 'fhirbundle', [0, [ErrorCode.FHIR_SCHEMA_ERROR]]));
+test("Cards: bad meta without security key", testCard(['test-example-00-a-fhirBundle-bad_meta_non_security.json'], 'fhirbundle', [0, [ec.FHIR_SCHEMA_ERROR]]));
 
-test("Cards: bad meta with wrong security field", testCard(['test-example-00-a-fhirBundle-bad_meta_wrong_security.json'], 'fhirbundle', [[ErrorCode.FHIR_SCHEMA_ERROR]]));
+test("Cards: bad meta with wrong security field", testCard(['test-example-00-a-fhirBundle-bad_meta_wrong_security.json'], 'fhirbundle', [[ec.FHIR_SCHEMA_ERROR]]));
 
 test("Cards: health card w/ multi-jws and issues",
     testCard(['test-example-00-e-file-multi-jws-issues.smart-health-card'], "healthcard",
-        [[ErrorCode.JWS_HEADER_ERROR, ErrorCode.JWS_VERIFICATION_ERROR, ErrorCode.TRAILING_CHARACTERS]])
+        [[ec.JWS_HEADER_ERROR, ec.JWS_VERIFICATION_ERROR, ec.TRAILING_CHARACTERS]])
 );
 
 test("Cards: fhir bundle w/ usa-profile errors", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
-    [[ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.PROFILE_ERROR, ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR]], { profile: 'usa-covid19-immunization' }));
+    [[ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR]], { profile: 'usa-covid19-immunization' }));
 
 test("Cards: fhir bundle w/ empty elements", testCard(['test-example-00-a-fhirBundle-empty-values.json'], 'fhirbundle',
-    [[ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR]]));
+    [[ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR]]));
 
-test("Cards: missing SHC VC type", testCard('test-example-00-b-jws-payload-expanded-missing-shc-vc-type.json', 'jwspayload', [[ErrorCode.SCHEMA_ERROR]]));
+test("Cards: fhir bundle w/ missing occurrence & extra occurrence", testCard(['test-example-00-a-fhirBundle-occurrence-issues.json'], 'fhirbundle', [[ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR]]));
 
-test("Cards: issuer not in trusted directory", testCard(['example-00-d-jws.txt'], 'jws', [[ErrorCode.ISSUER_NOT_TRUSTED]], { directory: 'VCI' }));
+test("Cards: missing SHC VC type", testCard('test-example-00-b-jws-payload-expanded-missing-shc-vc-type.json', 'jwspayload', [[ec.SCHEMA_ERROR]]));
 
-test("Cards: un-needed VC type", testCard('test-example-00-b-jws-payload-expanded-optional-vc-type.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR]]));
+test("Cards: issuer not in trusted directory", testCard(['example-00-d-jws.txt'], 'jws', [[ec.ISSUER_NOT_TRUSTED]], { directory: 'VCI' }));
 
-test("Cards: unknown VC types", testCard('test-example-00-b-jws-payload-expanded-unknown-vc-types.json', 'jwspayload', [0, [ErrorCode.SCHEMA_ERROR, ErrorCode.SCHEMA_ERROR]]));
+test("Cards: un-needed VC type", testCard('test-example-00-b-jws-payload-expanded-optional-vc-type.json', 'jwspayload', [0, [ec.SCHEMA_ERROR]]));
 
-test("Cards: mismatch kid/issuer", testCard(['test-example-00-d-jws-issuer-kid-mismatch.txt'], "jws", [[ErrorCode.ISSUER_KID_MISMATCH]], { jwkset: 'testdata/issuer.jwks.public.not.smart.json' }));
+test("Cards: unknown VC types", testCard('test-example-00-b-jws-payload-expanded-unknown-vc-types.json', 'jwspayload', [0, [ec.SCHEMA_ERROR, ec.SCHEMA_ERROR]]));
 
-test("Cards: immunization status not 'completed'", testCard('test-example-00-a-fhirBundle-status-not-completed.json', 'fhirbundle', [[ErrorCode.FHIR_SCHEMA_ERROR, ErrorCode.FHIR_SCHEMA_ERROR]]));
+test("Cards: mismatch kid/issuer", testCard(['test-example-00-d-jws-issuer-kid-mismatch.txt'], "jws", [[ec.ISSUER_KID_MISMATCH]], { jwkset: 'testdata/issuer.jwks.public.not.smart.json' }));
+
+test("Cards: immunization status not 'completed'", testCard('test-example-00-a-fhirBundle-status-not-completed.json', 'fhirbundle', [[ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR]]));

@@ -2,7 +2,7 @@ import * as api from '../src/api';
 import {IOptions} from '../src/api';
 import fs from 'fs';
 import path from 'path';
-import { ErrorCode, LogLevels } from '../src/api';
+import { ErrorCode as ec, LogLevels } from '../src/api';
 
 const testdataDir = './testdata/';
 
@@ -11,7 +11,7 @@ const testdataDir = './testdata/';
 function validateApi(
     filePath: string[] | string,
     type: string,
-    expected: (number | null | undefined | ErrorCode[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
+    expected: (number | null | undefined | ec[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
     options?: IOptions) {
 
     return async () => {
@@ -19,7 +19,7 @@ function validateApi(
     }
 }
 
-async function _validateApi(filePath: string[] | string, type: string, expected: (number | null | undefined | ErrorCode[])[], options?: IOptions): Promise<void> {
+async function _validateApi(filePath: string[] | string, type: string, expected: (number | null | undefined | ec[])[], options?: IOptions): Promise<void> {
 
     let data: string[] = [];
     let url = '';
@@ -108,8 +108,6 @@ async function _validateApi(filePath: string[] | string, type: string, expected:
 // the surrounding health-card. The jws content would need to be validated with an additional call.
 //
 
-const EC = ErrorCode;
-
 test('fhirbundle', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle'));
 
 test('jwspayload', validateApi(['example-00-b-jws-payload-expanded.json'], 'jwspayload'));
@@ -128,24 +126,24 @@ test('keyset', validateApi(['valid_keys.json'], 'keyset'));
 test('fhirbundle-with-usa-profile', validateApi(
     ['test-example-00-a-fhirBundle-profile-usa.json'],
     'fhirbundle',
-    [[EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.PROFILE_ERROR, EC.FHIR_SCHEMA_ERROR, EC.FHIR_SCHEMA_ERROR]],
+    [[ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR]],
     { profile: api.ValidationProfiles['usa-covid19-immunization'] }));
 
-test('fhirbundle: bad meta with extra key', validateApi(['test-example-00-a-fhirBundle-bad_meta_extra_key.json'], 'fhirbundle', [0, [EC.FHIR_SCHEMA_ERROR]]));
+test('fhirbundle: bad meta with extra key', validateApi(['test-example-00-a-fhirBundle-bad_meta_extra_key.json'], 'fhirbundle', [0, [ec.FHIR_SCHEMA_ERROR]]));
 
-test('jws: der encoded signature r-negative', validateApi(['test-example-00-d-jws-der-signature-r-neg.txt'], 'jws', [[EC.SIGNATURE_FORMAT_ERROR]]));
-
-
-test('jwspayload: valid 02 JWS payload expanded', validateApi(['test-example-00-b-jws-payload-expanded-trailing_chars.json'], 'jwspayload', [[EC.TRAILING_CHARACTERS]]));
+test('jws: der encoded signature r-negative', validateApi(['test-example-00-d-jws-der-signature-r-neg.txt'], 'jws', [[ec.SIGNATURE_FORMAT_ERROR]]));
 
 
-test('jws: no deflate', validateApi(['test-example-00-d-jws-no_deflate.txt'], 'jws', [[EC.INFLATION_ERROR, EC.JWS_HEADER_ERROR], [EC.JWS_TOO_LONG]]));
+test('jwspayload: valid 02 JWS payload expanded', validateApi(['test-example-00-b-jws-payload-expanded-trailing_chars.json'], 'jwspayload', [[ec.TRAILING_CHARACTERS]]));
 
 
-test('qrnumeric: invalid QR header', validateApi(['test-example-00-f-qr-code-numeric-value-0-wrong_qr_header.txt'], 'qrnumeric', [[EC.INVALID_NUMERIC_QR_HEADER]]));
+test('jws: no deflate', validateApi(['test-example-00-d-jws-no_deflate.txt'], 'jws', [[ec.INFLATION_ERROR, ec.JWS_HEADER_ERROR], [ec.JWS_TOO_LONG]]));
 
 
-test('healthcard: health card w/ trailing chars', validateApi(['test-example-00-e-file-trailing_chars.smart-health-card'], 'healthcard', [[EC.TRAILING_CHARACTERS]]));
+test('qrnumeric: invalid QR header', validateApi(['test-example-00-f-qr-code-numeric-value-0-wrong_qr_header.txt'], 'qrnumeric', [[ec.INVALID_NUMERIC_QR_HEADER]]));
+
+
+test('healthcard: health card w/ trailing chars', validateApi(['test-example-00-e-file-trailing_chars.smart-health-card'], 'healthcard', [[ec.TRAILING_CHARACTERS]]));
 
 
 test('jws: issuer in trusted directory ref by name', validateApi(['example-00-d-jws.txt'], 'jws', [0], { directory: 'test' }));
@@ -154,14 +152,14 @@ test('jws: issuer in trusted directory ref by name', validateApi(['example-00-d-
 test('jws: issuer in trusted directory ref by URL', validateApi(['example-00-d-jws.txt'], 'jws', [0], { directory: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-dev-tools/main/testdata/test-issuers.json' }));
 
 
-test('jws: issuer not in trusted directory', validateApi(['example-00-d-jws.txt'], 'jws', [[EC.ISSUER_NOT_TRUSTED]], { directory: 'VCI' }));
+test('jws: issuer not in trusted directory', validateApi(['example-00-d-jws.txt'], 'jws', [[ec.ISSUER_NOT_TRUSTED]], { directory: 'VCI' }));
 
 
-test('jws: invalid directory', validateApi('https://spec.smarthealth.cards/examples/issuer', 'trusteddirectory', [[EC.ISSUER_DIRECTORY_NOT_FOUND]], { directory: 'foo' }));
+test('jws: invalid directory', validateApi('https://spec.smarthealth.cards/examples/issuer', 'trusteddirectory', [[ec.ISSUER_DIRECTORY_NOT_FOUND]], { directory: 'foo' }));
 
 
 test('jws: valid directory', validateApi('https://spec.smarthealth.cards/examples/issuer', 'trusteddirectory', [0], { directory: 'test' }));
 
 // Without the clearKeyStore option, this test should fail as it will use an existing key store key from a previous test and get
 // the 'kid mismatch' error instead of the expected 'missing key' error
-test('jws: clear key store', validateApi(['test-example-00-d-jws-issuer-not-valid-with-smart-key.txt'], 'jws', [[EC.ISSUER_KEY_DOWNLOAD_ERROR, EC.JWS_VERIFICATION_ERROR]], {clearKeyStore: true}));
+test('jws: clear key store', validateApi(['test-example-00-d-jws-issuer-not-valid-with-smart-key.txt'], 'jws', [[ec.ISSUER_KEY_DOWNLOAD_ERROR, ec.JWS_VERIFICATION_ERROR]], {clearKeyStore: true}));

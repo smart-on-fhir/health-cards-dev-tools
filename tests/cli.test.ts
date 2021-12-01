@@ -3,7 +3,7 @@
 
 import execa from 'execa';
 import fs from 'fs';
-import { ErrorCode } from '../src/error';
+import { ErrorCode as ec } from '../src/error';
 import { LogItem } from '../src/logger';
 import { CliOptions } from '../src/shc-validator';
 import { isOpensslAvailable } from '../src/utils';
@@ -118,12 +118,12 @@ test("Cards: valid fhir api health card", () => expect(testCliCommand('node . --
 test("Cards: valid key set", () => expect(testCliCommand('node . --path testdata/issuer.jwks.public.json --type jwkset --loglevel info')).toBe(0));
 
 // Bad paths to data files
-test("Cards: missing healthcard", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type healthcard --loglevel info')).toBe(ErrorCode.DATA_FILE_NOT_FOUND));
-test("Cards: missing jws", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type jws --loglevel info')).toBe(ErrorCode.DATA_FILE_NOT_FOUND));
-test("Cards: missing jwspayload", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type jwspayload --loglevel info')).toBe(ErrorCode.DATA_FILE_NOT_FOUND));
-test("Cards: missing fhirbundle", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type fhirbundle --loglevel info')).toBe(ErrorCode.DATA_FILE_NOT_FOUND));
-test("Cards: missing qrnumeric", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type qrnumeric --loglevel info')).toBe(ErrorCode.DATA_FILE_NOT_FOUND));
-test("Cards: missing qr", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type qr --loglevel info')).toBe(ErrorCode.DATA_FILE_NOT_FOUND));
+test("Cards: missing healthcard", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type healthcard --loglevel info')).toBe(ec.DATA_FILE_NOT_FOUND));
+test("Cards: missing jws", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type jws --loglevel info')).toBe(ec.DATA_FILE_NOT_FOUND));
+test("Cards: missing jwspayload", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type jwspayload --loglevel info')).toBe(ec.DATA_FILE_NOT_FOUND));
+test("Cards: missing fhirbundle", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type fhirbundle --loglevel info')).toBe(ec.DATA_FILE_NOT_FOUND));
+test("Cards: missing qrnumeric", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type qrnumeric --loglevel info')).toBe(ec.DATA_FILE_NOT_FOUND));
+test("Cards: missing qr", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type qr --loglevel info')).toBe(ec.DATA_FILE_NOT_FOUND));
 
 // Log file
 test("Logs: valid 00-e health card single log file", () => {
@@ -161,7 +161,7 @@ test("Logs: valid 00-e health card append log file", () => {
 test("Logs: valid 00-e health card bad log path", () => {
     const logFile = '../foo/log.txt';
     const commandResult = runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
-    expect(commandResult.exitCode).toBe(ErrorCode.LOG_PATH_NOT_FOUND);
+    expect(commandResult.exitCode).toBe(ec.LOG_PATH_NOT_FOUND);
 });
 
 test("Logs: valid 00-e health card fhir bundle log file", () => {
@@ -174,7 +174,7 @@ test("Logs: valid 00-e health card fhir bundle log file", () => {
 test("Logs: valid 00-e health card bad log path", () => {
     const logFile = '../foo/log.txt';
     const commandResult = runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --fhirout ' + logFile);
-    expect(commandResult.exitCode).toBe(ErrorCode.LOG_PATH_NOT_FOUND);
+    expect(commandResult.exitCode).toBe(ec.LOG_PATH_NOT_FOUND);
 });
 
 // error exclusion
