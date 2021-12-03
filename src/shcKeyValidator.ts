@@ -11,8 +11,9 @@ import execa from 'execa';
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { isOpensslAvailable } from './utils'
+import { isOpensslAvailable, parseJson } from './utils'
 import { Certificate } from '@fidm/x509'
+import { downloadAndValidateCRL } from './crl-validator';
 
 // directory where to write cert files for openssl validation
 const tmpDir = 'tmp';
@@ -217,6 +218,25 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
             }
         }
         
+        // check for revocation file, we do this before parsing the key because the code below recasts the key to a
+        // JWK object overwritting the crlVersion field
+        const keyWithCrl = key as unknown as {crlVersion: any};
+        if (keyWithCrl && keyWithCrl.crlVersion) {
+            const crlVersion = keyWithCrl.crlVersion;
+            if (typeof crlVersion !== 'number' || crlVersion < 1.0 || (Math.floor(crlVersion) !== crlVersion) || crlVersion === Infinity) {
+                log.error(keyName + ': ' + "crlVersion must be a positive number > 0", ErrorCode.REVOCATION_ERROR);
+            }
+
+            // try downloading the crl
+            if (issuerURL) {
+                if (key.kid) {
+                    await downloadAndValidateCRL(issuerURL, key.kid, crlVersion, log);
+                } else {
+                    log.error(keyName + ': ' + "missing kid, can't download CRL", ErrorCode.REVOCATION_ERROR);
+                }
+            }
+        }
+
         try {
             key = await keys.add(key, issuerURL);
         } catch (error) {
@@ -261,7 +281,6 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
         } else if (key.use !== 'sig') {
             log.warn(keyName + ': ' + "wrong usage in issuer key. expected: 'sig', actual: " + key.use, ErrorCode.INVALID_KEY_WRONG_USE);
         }
-
     }
 
     return log;

@@ -9,6 +9,7 @@ import * as fhirBundle from './fhirBundle';
 import Log from './logger';
 import beautify from 'json-beautify'
 import { cdcCovidCvxCodes, loincCovidTestCodes } from './fhirBundle';
+import { checkRid } from './crl-validator';
 
 export const schema = jwsPayloadSchema;
 
@@ -72,6 +73,10 @@ export function validate(jwsPayloadText: string): Log {
     if (!jwsPayload?.vc?.credentialSubject?.fhirBundle) {
         // The schema check above will list the expected properties/type
         return log.fatal("JWS.payload.vc.credentialSubject.fhirBundle{} required to continue.", ErrorCode.CRITICAL_DATA_MISSING);
+    }
+
+    if (jwsPayload?.vc?.rid) {
+        checkRid(jwsPayload?.vc?.rid, log);
     }
 
     log.info("JWS Payload validated");
