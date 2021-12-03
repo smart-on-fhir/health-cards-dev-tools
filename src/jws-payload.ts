@@ -9,7 +9,7 @@ import * as fhirBundle from './fhirBundle';
 import Log from './logger';
 import beautify from 'json-beautify'
 import { cdcCovidCvxCodes, loincCovidTestCodes } from './fhirBundle';
-import { checkRid } from './crl-validator';
+import { isRidValid } from './crl-validator';
 
 export const schema = jwsPayloadSchema;
 
@@ -76,7 +76,7 @@ export function validate(jwsPayloadText: string): Log {
     }
 
     if (jwsPayload?.vc?.rid) {
-        checkRid(jwsPayload?.vc?.rid, log);
+        isRidValid(jwsPayload?.vc?.rid, log);
     }
 
     log.info("JWS Payload validated");
