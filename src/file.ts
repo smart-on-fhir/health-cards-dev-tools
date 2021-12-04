@@ -19,9 +19,13 @@ export interface FileInfo {
     ext: string,
     buffer: Buffer,
     fileType: core.FileTypeResult | string | undefined,
-    image?: { data: Buffer, height: number, width: number } | undefined
+    image?: FileImage
 }
 
+
+export interface FileImage {
+    data: Buffer, height: number, width: number
+}
 
 // Reads a file and determines what kind of file it is
 export async function getFileData(filepath: string): Promise<FileInfo> {
@@ -57,7 +61,7 @@ export async function getFileData(filepath: string): Promise<FileInfo> {
 
     switch (fileInfo.fileType) {
         case 'png':
-            fileInfo.image = PNG.sync.read(fileInfo.buffer);
+            fileInfo.image = PNG.sync.read(fileInfo.buffer);          
             break;
         case 'jpg':
             fileInfo.image = jpeg.decode(buffer, { useTArray: true }) as { data: Buffer, height: number, width: number };

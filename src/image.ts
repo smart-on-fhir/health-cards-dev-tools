@@ -5,13 +5,14 @@ import svg2img from 'svg2img';   // svg files to image buffer
 import jsQR from 'jsqr';         // qr image decoder
 import { ErrorCode } from './error';
 import Log from './logger';
-import { FileInfo } from './file';
+import { FileImage, FileInfo } from './file';
 import * as qr from './qr';
 import { PNG } from 'pngjs';
 import fs from 'fs';
 import Jimp from 'jimp';
 import { create, toFile, QRCodeSegment } from 'qrcode';
 import { ByteChunk, Chunk } from 'jsqr/dist/decoder/decodeData';
+import jpeg from 'jpeg-js';
 
 export async function validate(images: FileInfo[]): Promise<Log> {
 
@@ -92,15 +93,17 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
 
     const result: JWS | undefined = undefined;
 
-    //const png = PNG.sync.read(image);
-    const data = fileInfo.image;
+    let data = fileInfo!.image;
 
     if (!data) {
         log.fatal('Could not read image data from : ' + fileInfo.name);
         return undefined;
     }
 
-    const code = jsQR(new Uint8ClampedArray(data.data.buffer), data.width, data.height);
+    let code = jsQR(new Uint8ClampedArray(data.data.buffer), data.width, data.height);
+
+    // if we could not decode, try scaling the image
+    code = code || tryScaling(data, log);
 
     if (code == null) {
         log.fatal('Could not decode QR image from : ' + fileInfo.name, ErrorCode.QR_DECODE_ERROR);
@@ -180,4 +183,69 @@ export async function dataToQRImage(path: string, data: QRCodeSegment[]) : Promi
             throw error;
         });
 
+}
+
+// takes an image of raw RGBA data and scales it to a new size
+function scaleImage(image: FileImage, scale: number) {
+
+    const h = Math.floor(image.height * scale);
+    const w = Math.floor(image.width * scale);
+    const si = 1.0 / scale;
+    const nb = new Uint32Array(h * w);
+    const ob = new Uint32Array(image.data.buffer);
+
+    for (let i = 0; i < nb.length; i++) {
+        nb[i] = ob[Math.floor((i / w) * si) * image.width + Math.floor((i % w) * si)];
+    }
+
+    return { data: Buffer.from(nb.buffer), height: h, width: w };
+}
+
+// try scaling the image until it decodes; this works for some poorly scaled qr images
+function tryScaling(image: FileImage, log?: Log) {
+
+    const scaleMin = 0.5;
+    const scaleMax = 2.0;
+    let code = null;
+
+    for (let s = scaleMin; s <= scaleMax + 0.01; s += 0.1) {
+        const data = scaleImage(image as FileImage, s);
+        code = jsQR(new Uint8ClampedArray(data.data.buffer), data.width, data.height);
+        log && log.debug(`image scaled to ${s.toFixed(1)} : ${code ? 'succeeded' : 'failed'}`);
+        if (code) break;
+    }
+
+    return code;
+}
+
+// this is a utility function to generate qr codes that can be decoded only using tryScaling.
+// it is not used to do any validation
+function searchScaling(image: FileImage) {
+
+    const scaleMin = 0.2;
+    let code = null;
+    let data;
+    let s;
+
+    // find a scale of image that won't decode 
+    for (s = 0.95; s >= scaleMin; s -= 0.01) {
+
+        console.log(`trying ${s.toFixed(2)}`);
+
+        data = scaleImage(image as FileImage, s);
+        code = jsQR(new Uint8ClampedArray(data.data.buffer), data.width, data.height);
+
+        // image failed to decode at s; now see if tryScaling() can make it work
+        if (!code) {
+
+            console.log(`${s.toFixed(2)} failed`);
+            code = tryScaling(data as FileImage);
+
+            // this should be an image that requires scaling to decode; save it.
+            if (code) {
+                const jpg = jpeg.encode(data as FileImage, 100);
+                fs.writeFileSync(`scaled.${s.toFixed(2)}.jpg`, jpg.data);
+            }
+        }
+    }
 }
