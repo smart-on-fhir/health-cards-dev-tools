@@ -153,6 +153,9 @@ test("Cards: valid 1195-byte QR numeric", testCard(['test-example-1195-byte-qrnu
 test("Cards: valid 00 QR code", testCard(['example-00-g-qr-code-0.svg'], "qr"));
 test("Cards: valid 01 QR code", testCard(['example-01-g-qr-code-0.svg'], "qr"));
 
+test("Cards: valid 00 QR code: requires scaling 23", testCard(['test-example-00-g-qr-code-0-scaled-23.jpg'], "qr"));
+test("Cards: valid 00 QR code: requires scaling 85", testCard(['test-example-00-g-qr-code-0-scaled-85.jpg'], "qr"));
+
 test("Cards: valid 02 QR code",
     testCard(['example-02-g-qr-code-0.svg', 'example-02-g-qr-code-1.svg', 'example-02-g-qr-code-2.svg'], "qr", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
 
