@@ -102,8 +102,11 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
 
     let code = jsQR(new Uint8ClampedArray(data.data.buffer), data.width, data.height);
 
+    if(!code) log.debug(`failed to decode ${fileInfo.name}`);
+
     // if we could not decode, try scaling the image
     code = code || tryScaling(data, log);
+
 
     if (code == null) {
         log.fatal('Could not decode QR image from : ' + fileInfo.name, ErrorCode.QR_DECODE_ERROR);
