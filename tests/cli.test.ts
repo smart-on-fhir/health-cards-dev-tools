@@ -94,6 +94,7 @@ test("Cards: valid 00 jws-payload", () => expect(testCliCommand('node . --path t
 test("Cards: valid 00 fhirBundle", () => expect(testCliCommand('node . --path testdata/example-00-a-fhirBundle.json --type fhirbundle --loglevel info')).toBe(0));
 test("Cards: valid 00 qr-code-numeric", () => expect(testCliCommand('node . --path testdata/example-00-f-qr-code-numeric-value-0.txt --type qrnumeric --loglevel info')).toBe(0));
 test("Cards: valid 00 qr-code.svg", () => expect(testCliCommand('node . --path testdata/example-00-g-qr-code-0.svg --type qr --loglevel info')).toBe(0));
+test("Cards: valid 00 qr-code scaling", () => expect(testCliCommand('node . --path testdata/test-example-00-g-qr-code-0-scaled-23.jpg --type qr --loglevel info')).toBe(0));
 
 test("Cards: valid 01 health card", () => expect(testCliCommand('node . --path testdata/example-01-e-file.smart-health-card --type healthcard --loglevel warning')).toBe(0));
 test("Cards: valid 01 jws", () => expect(testCliCommand('node . --path testdata/example-01-d-jws.txt --type jws --loglevel warning')).toBe(0));
