@@ -61,7 +61,7 @@ export async function getFileData(filepath: string): Promise<FileInfo> {
 
     switch (fileInfo.fileType) {
         case 'png':
-            fileInfo.image = PNG.sync.read(fileInfo.buffer);          
+            fileInfo.image = PNG.sync.read(fileInfo.buffer);
             break;
         case 'jpg':
             fileInfo.image = jpeg.decode(buffer, { useTArray: true }) as { data: Buffer, height: number, width: number };
