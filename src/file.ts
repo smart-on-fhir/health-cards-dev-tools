@@ -19,9 +19,13 @@ export interface FileInfo {
     ext: string,
     buffer: Buffer,
     fileType: core.FileTypeResult | string | undefined,
-    image?: { data: Buffer, height: number, width: number } | undefined
+    image?: FileImage
 }
 
+
+export interface FileImage {
+    data: Buffer, height: number, width: number
+}
 
 // Reads a file and determines what kind of file it is
 export async function getFileData(filepath: string): Promise<FileInfo> {
