@@ -121,22 +121,27 @@ const JWS_TOO_LONG_WARNING = 1;
 test("Cards: valid 00 FHIR bundle", testCard(['example-00-a-fhirBundle.json'], "fhirbundle"));
 test("Cards: valid 01 FHIR bundle", testCard(['example-01-a-fhirBundle.json'], "fhirbundle"));
 test("Cards: valid 02 FHIR bundle", testCard(['example-02-a-fhirBundle.json'], "fhirbundle", [SHORT_URL_WARNINGS]));
+test("Cards: valid 03 FHIR bundle", testCard(['example-03-a-fhirBundle.json'], "fhirbundle"));
 
 test("Cards: valid 00 JWS payload expanded", testCard(['example-00-b-jws-payload-expanded.json'], "jwspayload"));
 test("Cards: valid 01 JWS payload expanded", testCard(['example-01-b-jws-payload-expanded.json'], "jwspayload"));
 test("Cards: valid 02 JWS payload expanded", testCard(['example-02-b-jws-payload-expanded.json'], "jwspayload", [SHORT_URL_WARNINGS]));
+test("Cards: valid 03 JWS payload expanded", testCard(['example-03-b-jws-payload-expanded.json'], "jwspayload"));
 
 test("Cards: valid 00 JWS payload minified", testCard(['example-00-c-jws-payload-minified.json'], "jwspayload"));
 test("Cards: valid 01 JWS payload minified", testCard(['example-01-c-jws-payload-minified.json'], "jwspayload"));
 test("Cards: valid 02 JWS payload minified", testCard(['example-02-c-jws-payload-minified.json'], "jwspayload", [SHORT_URL_WARNINGS]));
+test("Cards: valid 03 JWS payload minified", testCard(['example-03-c-jws-payload-minified.json'], "jwspayload"));
 
 test("Cards: valid 00 JWS", testCard(['example-00-d-jws.txt'], "jws"));
 test("Cards: valid 01 JWS", testCard(['example-01-d-jws.txt'], "jws"));
 test("Cards: valid 02 JWS", testCard(['example-02-d-jws.txt'], "jws", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
+test("Cards: valid 03 JWS", testCard(['example-03-d-jws.txt'], "jws"));
 
 test("Cards: valid 00 health card", testCard(['example-00-e-file.smart-health-card'], "healthcard"));
 test("Cards: valid 01 health card", testCard(['example-01-e-file.smart-health-card'], "healthcard"));
 test("Cards: valid 02 health card", testCard(['example-02-e-file.smart-health-card'], "healthcard", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
+test("Cards: valid 03 health card", testCard(['example-03-e-file.smart-health-card'], "healthcard"));
 
 test("Cards: valid 00 QR numeric", testCard(['example-00-f-qr-code-numeric-value-0.txt'], "qrnumeric"));
 test("Cards: valid 01 QR numeric", testCard(['example-01-f-qr-code-numeric-value-0.txt'], "qrnumeric"));
@@ -148,6 +153,7 @@ test("Cards: valid 02 QR numeric (out of order)",
     testCard(['example-02-f-qr-code-numeric-value-1.txt',
         'example-02-f-qr-code-numeric-value-0.txt',
         'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
+test("Cards: valid 03 QR numeric", testCard(['example-03-f-qr-code-numeric-value-0.txt'], "qrnumeric"));
 test("Cards: valid 1195-byte QR numeric", testCard(['test-example-1195-byte-qrnumeric.txt'], "qrnumeric"));
 
 test("Cards: valid 00 QR code", testCard(['example-00-g-qr-code-0.svg'], "qr"));
@@ -167,6 +173,8 @@ test("Cards: valid 02 QR code JPG",
 
 test("Cards: valid 02 QR code BMP",
     testCard(['example-02-g-qr-code-0.bmp', 'example-02-g-qr-code-1.bmp', 'example-02-g-qr-code-2.bmp'], "qr", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
+
+test("Cards: valid 03 QR code", testCard(['example-03-g-qr-code-0.svg'], "qr"));
 
 test("Cards: valid 00 health card w/ multiple jws", testCard(['test-example-00-e-file-multi-jws.smart-health-card'], "healthcard"));
 
