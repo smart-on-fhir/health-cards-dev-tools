@@ -59,6 +59,8 @@ export function validate(jwsPayloadText: string): Log {
                 log.warn(`Health card is not yet valid, nbf=${jwsPayload.nbf} (${nbf.toUTCString()}).`, ErrorCode.NOT_YET_VALID);
             }
         }
+    } else {
+        log.error(`JWS payload's nbf is not numeric: ${jwsPayload.nbf}`, ErrorCode.JSON_PARSE_ERROR);
     }
 
     if (jwsPayload.vc && Object.keys(jwsPayload.vc).includes("@context")) {
