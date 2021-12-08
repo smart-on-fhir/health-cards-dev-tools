@@ -8,7 +8,7 @@ import path from 'path';
 import fs from 'fs';
 import { Option, Command, version } from 'commander';
 import * as validator from './validate';
-import Log, { LogLevels } from './logger';
+import Log, { LogLevels, note } from './logger';
 import { getFileData } from './file';
 import { ErrorCode, ExcludableErrors, getExcludeErrorCodes } from './error';
 import * as utils from './utils'
@@ -212,8 +212,7 @@ async function processOptions(options: CliOptions) {
         if (!v) {
             console.log("Can't determine the latest dev tools version. Make sure you have the latest version.")
         } else if (semver.gt(v, npmpackage.version)) {
-            console.log(`NOTE: You are not using the latest dev tools version. Current: v${npmpackage.version}, latest: v${v}\n` +
-                "You can update by running 'npm run update-validator'.");
+            note(`You are not using the latest dev tools version. Current: v${npmpackage.version}, latest: v${v} You can update by running: ${color.italic('npm run update-validator')}.`);
         }
     });
     // check if the dev tools package is behind the spec
@@ -221,7 +220,7 @@ async function processOptions(options: CliOptions) {
         if (!v) {
             console.log("Can't determine the latest spec version.");
         } else if (semver.gt(v, npmpackage.version.substr(0, 'x.y.z'.length))) { // ignore prerelease tag
-            console.log(`NOTE: the dev tools script v${npmpackage.version} is not validating the latest version of the spec: v${v}`);
+            note(`The dev tools script v${npmpackage.version} is not validating the latest version of the spec: v${v}`);
         }
     })
     console.log("\nValidation completed");

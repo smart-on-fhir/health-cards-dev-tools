@@ -49,7 +49,10 @@ export enum ErrorCode {
     INVALID_KEY_UNKNOWN,
 
     // config errors
-    OPENSSL_NOT_AVAILABLE = 300
+    OPENSSL_NOT_AVAILABLE = 300,
+
+    // FHIR-validator
+    FHIR_VALIDATOR_ERROR = 400
 }
 
 class ExcludableError {

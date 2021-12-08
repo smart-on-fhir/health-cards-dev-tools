@@ -206,3 +206,8 @@ function toFile(log: Log, logPath: string, options: CliOptions, append = true) {
 
     fs.writeFileSync(logPath, JSON.stringify(fileContents, null, 4) + '\n');
 }
+
+// standardized the 'Note' message
+export function note(message: string) : void {
+    console.log(`\n${color.white.bold('Note:')} ${color.white.dim(message)}\n`);
+}

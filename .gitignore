@@ -131,3 +131,6 @@ tmp/*
 
 # full fhir schema
 schema/fhir-schema-full.json
+
+# temp file for fhir bundle to FHIR-validator
+temp.fhirbundle.json

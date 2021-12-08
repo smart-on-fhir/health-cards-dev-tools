@@ -11,6 +11,8 @@ import patientDM from '../schema/patient-dm.json';
 import Log from './logger';
 import beautify from 'json-beautify'
 import { propPath, walkProperties } from './utils';
+import { validate as fhirValidator, isDockerAvailable } from './fhirValidator';
+
 
 // The CDC CVX covid vaccine codes (https://www.cdc.gov/vaccines/programs/iis/COVID-19-related-codes.html),
 export const cdcCovidCvxCodes = ["207", "208", "210", "212", "217", "218", "219", "500", "501", "502", "503", "504", "505", "506", "507", "508", "509", "510", "511"];
@@ -23,7 +25,8 @@ export const loincCovidTestCodes = ["50548-7", "68993-5", "82159-5", "94306-8", 
 
 export enum ValidationProfiles {
     'any',
-    'usa-covid19-immunization'
+    'usa-covid19-immunization',
+    'fhir-validator'
 }
 
 export class FhirOptions {
@@ -52,6 +55,24 @@ export function validate(fhirBundleText: string): Log {
 
     // failures will be recorded in the log
     if (!validateSchema(fhirSchema, fhirBundle, log)) return log;
+
+
+    if (profile === ValidationProfiles['fhir-validator']) {
+
+        if (!isDockerAvailable()) {
+            return log.error(`Profile: fhir-validator requires Docker to execute FHIR Validator.  See: http://hl7.org/fhir/validator/`);
+        }
+
+        log.info(`applying profile : fhir-validator`);
+
+        fhirValidator(fhirBundleText, log);
+
+        log.info("FHIR bundle validated");
+        log.debug("FHIR Bundle Contents:");
+        log.debug(beautify(fhirBundle, null as unknown as Array<string>, 3, 100));
+
+        return log;
+    }
 
 
     // to continue validation, we must have a list of resources in .entry[]
