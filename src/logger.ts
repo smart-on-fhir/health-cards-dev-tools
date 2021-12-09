@@ -165,7 +165,7 @@ function formatOutput(outputTree: Log, level: LogLevels): string[] {
             results.push(list("Fatal", outputTree.get(LogLevels.FATAL), color.red.inverse));
     }
 
-    results.push(list("Note", outputTree.get(LogLevels.NOTE), color.rainbow));
+    results.push(list("Note", outputTree.get(LogLevels.NOTE), color.green));
 
     // remove empty entries
     results = results.filter(r => r.length);
