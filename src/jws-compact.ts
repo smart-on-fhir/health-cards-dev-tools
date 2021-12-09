@@ -184,7 +184,7 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
     }
 
     // try to validate the payload (even if inflation failed)
-    const payloadLog = jwsPayload.validate(inflatedPayload || b64DecodedPayloadString || rawPayload);
+    const payloadLog = await jwsPayload.validate(inflatedPayload || b64DecodedPayloadString || rawPayload);
     log.child.push(payloadLog);
 
     // if we got a fatal error, quit here

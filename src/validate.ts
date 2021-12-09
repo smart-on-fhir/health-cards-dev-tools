@@ -86,11 +86,11 @@ export async function validateCard(fileData: FileInfo[], options: CliOptions): P
             break;
 
         case "jwspayload":
-            result = jwsPayload.validate(fileData[0].buffer.toString());
+            result = await jwsPayload.validate(fileData[0].buffer.toString());
             break;
 
         case "fhirbundle":
-            result = fhirBundle.validate(fileData[0].buffer.toString());
+            result = await fhirBundle.validate(fileData[0].buffer.toString());
             break;
 
         default:
