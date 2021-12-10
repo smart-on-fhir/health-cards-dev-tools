@@ -1,5 +1,9 @@
 # CHANGE LOG
 
+## v1.2.0-0
+ - Add support for SHC revocation
+ - Add image scaling to assist QR decoding
+
 ## v1.1.1-3
  - Add additional Pfizer formulations cvx codes
  - Check for BOM prefix in UTF8 JWS payload

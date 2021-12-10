@@ -9,6 +9,7 @@ import * as fhirBundle from './fhirBundle';
 import Log from './logger';
 import beautify from 'json-beautify'
 import { cdcCovidCvxCodes, loincCovidTestCodes } from './fhirBundle';
+import { isRidValid } from './crl-validator';
 
 export const schema = jwsPayloadSchema;
 
@@ -58,6 +59,8 @@ export function validate(jwsPayloadText: string): Log {
                 log.warn(`Health card is not yet valid, nbf=${jwsPayload.nbf} (${nbf.toUTCString()}).`, ErrorCode.NOT_YET_VALID);
             }
         }
+    } else {
+        log.error(`JWS payload's nbf is not numeric: ${jwsPayload.nbf}`, ErrorCode.JSON_PARSE_ERROR);
     }
 
     if (jwsPayload.vc && Object.keys(jwsPayload.vc).includes("@context")) {
@@ -72,6 +75,10 @@ export function validate(jwsPayloadText: string): Log {
     if (!jwsPayload?.vc?.credentialSubject?.fhirBundle) {
         // The schema check above will list the expected properties/type
         return log.fatal("JWS.payload.vc.credentialSubject.fhirBundle{} required to continue.", ErrorCode.CRITICAL_DATA_MISSING);
+    }
+
+    if (jwsPayload?.vc?.rid) {
+        isRidValid(jwsPayload?.vc?.rid, log);
     }
 
     log.info("JWS Payload validated");
