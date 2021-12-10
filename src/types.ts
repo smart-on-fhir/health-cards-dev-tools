@@ -28,7 +28,8 @@ interface JWSPayload {
         type: string[],
         credentialSubject: {
             fhirBundle: FhirBundle
-        }
+        },
+        rid?: string
     }
 }
 interface FhirBundle {
