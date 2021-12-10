@@ -256,7 +256,7 @@ test("Cards: JWS Payload with BOM UTF-8 prefix",
 test("Cards: CRL with invalid method", testCard(['badcrl/invalid-method/jws-crl-invalid-method.txt'], 'jws', [[ec.REVOCATION_ERROR]]));
 test("Cards: CRL with invalid rid (base64)", testCard(['badcrl/non-base64url-rid/jws-crl-non-base64url-rid.txt'], 'jws', [[ec.REVOCATION_ERROR]]));
 test("Cards: CRL with invalid rid (too long)", testCard(['badcrl/too-long-rid/jws-crl-too-long-rid.txt'], 'jws', [[ec.REVOCATION_ERROR]]));
-test("Cards: CRL with invalid method", testCard(['badcrl/version-mismatch/jws-crl-version-mismatch.txt'], 'jws', [[ec.REVOCATION_ERROR]]));
+test("Cards: CRL with version mismatch", testCard(['badcrl/version-mismatch/jws-crl-version-mismatch.txt'], 'jws', [[ec.REVOCATION_ERROR]]));
 
 test("Cards: invalid issuer url",
     testCard(['test-example-00-e-file-invalid_issuer_url.smart-health-card'], 'healthcard', [[ec.ISSUER_KEY_DOWNLOAD_ERROR, ec.JWS_VERIFICATION_ERROR]], { clearKeyStore: true })

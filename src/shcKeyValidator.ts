@@ -220,11 +220,11 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
         
         // check for revocation file, we do this before parsing the key because the code below recasts the key to a
         // JWK object overwritting the crlVersion field
-        const keyWithCrl = key as unknown as {crlVersion: any};
-        if (keyWithCrl && keyWithCrl.crlVersion) {
+        const keyWithCrl: JWK.Key & { crlVersion?: number } = key;
+        if (keyWithCrl?.crlVersion !== undefined) {
             const crlVersion = keyWithCrl.crlVersion;
-            if (typeof crlVersion !== 'number' || crlVersion < 1.0 || (Math.floor(crlVersion) !== crlVersion) || crlVersion === Infinity) {
-                log.error(keyName + ': ' + "crlVersion must be a positive number > 0", ErrorCode.REVOCATION_ERROR);
+            if (!Number.isInteger(crlVersion) || crlVersion < 1) {
+                log.error(`${keyName}: crlVersion must be a positive integer >= 1`, ErrorCode.REVOCATION_ERROR);
             }
 
             // try downloading the crl
@@ -232,7 +232,7 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
                 if (key.kid) {
                     await downloadAndValidateCRL(issuerURL, key.kid, crlVersion, log);
                 } else {
-                    log.error(keyName + ': ' + "missing kid, can't download CRL", ErrorCode.REVOCATION_ERROR);
+                    log.error(`${keyName}: missing kid, can't download CRL`, ErrorCode.REVOCATION_ERROR);
                 }
             }
         }
