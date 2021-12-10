@@ -27,11 +27,11 @@ export function isRidValid(ridWithTimestamp: string, log?: Log): boolean {
         result = false;
         log?.error(`Revocation ID rid SHALL be no longer than 24 characters: ${rid}`, ErrorCode.REVOCATION_ERROR);
     }
-    const timestamp = parseInt(split[1]) * 1000; // convert seconds to milliseconds
     if (split.length === 2) {
+        const timestamp = parseInt(split[1]) * 1000; // convert seconds to milliseconds
         if (timestamp) {
             if (timestamp > Date.now()) {
-                log?.warn(`Revocation ID's timestamp is in the future: ${timestamp.toString()}`, ErrorCode.NOT_YET_VALID);
+                log?.warn(`Revocation ID's timestamp is in the future: ${new Date(timestamp).toString()}`, ErrorCode.NOT_YET_VALID);
             }
         } else {
             result = false;
