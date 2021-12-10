@@ -64,13 +64,13 @@ async function validateJws(text: string, options?: IOptions): Promise<Validation
 }
  
 async function validateJwspayload(payload: string, options?: IOptions): Promise<ValidationErrors> {
-    const log = jwsPayload.validate(payload);
+    const log = await jwsPayload.validate(payload);
     return Promise.resolve(formatOutput(log, options?.logLevel || LogLevels.WARNING));
 }
 
 async function validateFhirBundle(json: string, options?: IOptions): Promise<ValidationErrors> {
     FhirOptions.ValidationProfile = options?.profile || ValidationProfiles.any;
-    const log = fhirBundle.validate(json);
+    const log = await fhirBundle.validate(json);
     return Promise.resolve(formatOutput(log, options?.logLevel || LogLevels.WARNING));
 }
 

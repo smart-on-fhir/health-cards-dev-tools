@@ -31,7 +31,8 @@ export class FhirOptions {
     static ValidationProfile: ValidationProfiles = ValidationProfiles.any;
 }
 
-export function validate(fhirBundleText: string): Log {
+// eslint-disable-next-line @typescript-eslint/require-await
+export async function validate(fhirBundleText: string): Promise<Log> {
 
     const log = new Log('FhirBundle');
     const profile: ValidationProfiles = FhirOptions.ValidationProfile;

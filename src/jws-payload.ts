@@ -14,7 +14,7 @@ import { isRidValid } from './crl-validator';
 export const schema = jwsPayloadSchema;
 
 
-export function validate(jwsPayloadText: string): Log {
+export async function validate(jwsPayloadText: string): Promise<Log> {
 
     const log = new Log('JWS.payload');
 
@@ -85,7 +85,7 @@ export function validate(jwsPayloadText: string): Log {
 
     const fhirBundleJson = jwsPayload.vc.credentialSubject.fhirBundle;
     const fhirBundleText = JSON.stringify(fhirBundleJson);
-    log.child.push((fhirBundle.validate(fhirBundleText)));
+    log.child.push((await fhirBundle.validate(fhirBundleText)));
 
     // does the FHIR bundle contain an immunization?
     const hasImmunization = fhirBundleJson?.entry?.some(entry => entry?.resource?.resourceType === 'Immunization');
