@@ -8,7 +8,9 @@ import { CliOptions } from './shc-validator';
 
 
 export class LogItem {
-    constructor(public message: string, public code: ErrorCode = 0, public logLevel: LogLevels = LogLevels.INFO) { }
+    constructor(public message: string, public code: ErrorCode = 0, public logLevel: LogLevels = LogLevels.INFO) { 
+        this.message = splitLines(message);
+    }
 }
 
 
@@ -22,7 +24,9 @@ export enum LogLevels {
     // Only print out errors
     ERROR,
     // Only print out fatal errors, where processing can't continue
-    FATAL
+    FATAL,
+    // Always output Note
+    NOTE
 }
 
 
@@ -44,6 +48,11 @@ export default class Log {
         });
 
         return this._exitCode;
+    }
+
+    note(message: string): Log {
+        this.log.push(new LogItem(message, 0, LogLevels.NOTE));
+        return this;
     }
 
     debug(message: string): Log {
@@ -156,6 +165,8 @@ function formatOutput(outputTree: Log, level: LogLevels): string[] {
             results.push(list("Fatal", outputTree.get(LogLevels.FATAL), color.red.inverse));
     }
 
+    results.push(list("Note", outputTree.get(LogLevels.NOTE), color.green));
+
     // remove empty entries
     results = results.filter(r => r.length);
 
@@ -205,4 +216,16 @@ function toFile(log: Log, logPath: string, options: CliOptions, append = true) {
     });
 
     fs.writeFileSync(logPath, JSON.stringify(fileContents, null, 4) + '\n');
+}
+
+// standardized the 'Note' message
+export function note(message: string) : void {
+    console.log(`\n${color.white.bold('Note:')} ${color.white.dim(message)}\n`);
+}
+
+// splits long lines using the width of the console
+function splitLines(text : string, width = Math.floor(process.stdout.columns * 0.9)) {
+    const regex = new RegExp(`([^\r\n]{1,${width}}(?=\\s|$)|[^\r\n]{${width}}|(?<=\n)\r?\n)`, 'g');
+    const result = text.match(regex) || [text];
+    return result.join('\n');
 }
