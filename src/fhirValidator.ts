@@ -86,7 +86,7 @@ async function runValidatorJRE(artifactPath: string): Promise<ExecaReturnValue<s
 
     log.info(`Validating ${artifactPath} with FHIR validator.`);
 
-    const result = await runCommand(`java -jar ${validatorJarFile} ${artifactPath}`, 'running FHIR-validator');
+    const result = await runCommand(`java -jar ${validatorJarFile} ${artifactPath}`, `Running FHIR-validator with JRE`);
 
     return result;
 }
@@ -108,7 +108,7 @@ async function runValidatorDocker(artifactPath: string): Promise<ExecaReturnValu
 
     const command = `docker run --mount type=bind,source=${path.resolve(artifactPath)},target=/${artifactPath} ${imageName} ${dockerCommand}`;
 
-    const result = await runCommand(command);
+    const result = await runCommand(command, `Running FHIR-validator with Docker (${imageName})`);
 
     return result;
 }
@@ -180,7 +180,7 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
 const JRE = {
 
     isAvailable: async (): Promise<boolean> => {
-        const result = await runCommand(`java --version`);
+        const result = await runCommand(`java --version`, `Check if JRE is available`);
         if (result.exitCode === 0) {
             const version = /^java \d+.+/.exec(result.stdout)?.[0] ?? 'unknown';
             log?.debug(`Java detected : ${version}`);
@@ -196,7 +196,7 @@ const Docker = {
 
     // check if Docker is installed
     isAvailable: async (): Promise<boolean> => {
-        const result = await runCommand(`docker --version`);
+        const result = await runCommand(`docker --version`, `Check if Docker is available`);
         if (result.exitCode === 0) {
             const version = /^Docker version \d+.+/.exec(result.stdout)?.[0] ?? 'unknown';
             log?.debug(`Docker detected : ${version}`);
@@ -205,7 +205,7 @@ const Docker = {
     },
 
     imageExists: async (imageName: string): Promise<boolean> => {
-        return (await runCommand(`docker image inspect ${imageName}`)).exitCode === 0;
+        return (await runCommand(`docker image inspect ${imageName}`, `Check Docker image ${imageName} exists`)).exitCode === 0;
     },
 
     checkPermissions: async (): Promise<boolean> => {
@@ -218,7 +218,7 @@ const Docker = {
 
     cleanupImage: async (imageName: string): Promise<void> => {
         log && log.debug(`Remove Docker image ${imageName}`);
-        await runCommand(`docker image rm -f ${imageName}`);
+        await runCommand(`docker image rm -f ${imageName}`, `Remove Docker image ${imageName}`);
     },
 
     buildImage: async (dockerFile: string, imageName: string): Promise<boolean> => {
@@ -236,7 +236,7 @@ const Docker = {
 
         log.debug(`Building Docker image ${imageName} from ${dockerFile}`);
 
-        const result = await runCommand(`docker build -t ${imageName} -f ${dockerFile} .`);
+        const result = await runCommand(`docker build -t ${imageName} -f ${dockerFile} .`, `Build Docker image ${imageName} from ${dockerFile}`);
 
         if (result.exitCode === 0 && await Docker.imageExists(imageName)) {
             log.debug(`Docker image ${imageName} created.`);
