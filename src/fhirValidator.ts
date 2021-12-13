@@ -1,7 +1,7 @@
 import execa, { ExecaChildProcess, ExecaReturnValue } from 'execa';
 import fs from 'fs';
 import path from 'path';
-import Log, { note } from '../src/logger';
+import Log from '../src/logger';
 import { ErrorCode } from './error';
 import color from 'colors';
 import got from 'got';
@@ -16,18 +16,16 @@ const validatorUrl = 'https://github.com/hapifhir/org.hl7.fhir.core/releases/lat
 
 
 async function downloadFHIRValidator(): Promise<void> {
-    fs.writeFileSync(validatorJarFile, (await got(validatorUrl, { followRedirect: true }).buffer()));
+    try {
+        fs.writeFileSync(validatorJarFile, (await got(validatorUrl, { followRedirect: true }).buffer()));
+    } catch (err) {
+        log.debug(`File download error ${(err as Error).toString()}`);
+    }
 }
 
 
-export async function fhirValidatorAvailable(): Promise<boolean> {
-    return await Docker.isAvailable() || JRE.isAvailable();
-}
-
-
-function workingAnnimation(message: string, interval = 100) {
-
-    const chars = ["⠙", "⠘", "⠰", "⠴", "⠤", "⠦", "⠆", "⠃", "⠋", "⠉"]; //['|', '/', '-', '\\'];
+function workingAnimation(message: string, interval = 200) {
+    const chars = ['|', '/', '―', '\\']; //['\u{2819}', "⠙", "⠘", "⠰", "⠴", "⠤", "⠦", "⠆", "⠃", "⠋", "⠉"]; //- doesn't work on CMD/Powershell windows
     let x = 0;
 
     const handle = setInterval(() => {
@@ -39,6 +37,7 @@ function workingAnnimation(message: string, interval = 100) {
         stop: () => {
             clearInterval(handle);
             process.stdout.clearLine(0);
+            process.stdout.write('\n');
         }
     }
 }
@@ -49,7 +48,7 @@ async function runCommand(command: string, message?: string): Promise<ExecaChild
     let result;
     const start = Date.now();
 
-    const annimation = workingAnnimation(message || command);
+    const animation = workingAnimation(message || command);
 
     try {
         result = await execa.command(command);
@@ -57,14 +56,12 @@ async function runCommand(command: string, message?: string): Promise<ExecaChild
         result = failed as ExecaReturnValue<string>;
     }
 
-    // stop the annimation timer
-    annimation.stop();
-
-
+    // stop the animation timer
+    animation.stop();
 
     // output some results of the execa command
     log?.debug(
-`Running command : ${command}\n \
+        `Running command : ${command}\n \
 duration: ${((Date.now() - start) / 1000).toFixed(2)} seconds\n  \
 exitcode : ${result.exitCode}\n  \
 stdout: ${result.stdout.split('\n').join("\n          ")}\n  \
@@ -80,19 +77,21 @@ async function runValidatorJRE(artifactPath: string): Promise<ExecaReturnValue<s
     if (!fs.existsSync(validatorJarFile)) await downloadFHIRValidator();
 
     if (!fs.existsSync(validatorJarFile)) {
-        log.error(`Failed to download FHIR Validator Jar file : ${validatorJarFile}`);
+        log.error(`Failed to download FHIR Validator Jar file ${validatorJarFile} from ${validatorUrl}`);
         return null;
     }
 
     log.info(`Validating ${artifactPath} with FHIR validator.`);
 
-    const result = await runCommand(`java -jar ${validatorJarFile} ${artifactPath}`, 'running FHIR-validator');
+    const result = await runCommand(`java -jar ${validatorJarFile} ${artifactPath}`, `Running FHIR-validator with JRE`);
 
     return result;
 }
 
 // Runs the FHIR validator using a Docker image
 async function runValidatorDocker(artifactPath: string): Promise<ExecaReturnValue<string> | null> {
+
+    if (!await Docker.checkPermissions()) return null;
 
     if (!await Docker.imageExists(imageName)) {
         log.debug(`Image ${imageName} not found. Attempting to build.`);
@@ -108,7 +107,7 @@ async function runValidatorDocker(artifactPath: string): Promise<ExecaReturnValu
 
     const command = `docker run --mount type=bind,source=${path.resolve(artifactPath)},target=/${artifactPath} ${imageName} ${dockerCommand}`;
 
-    const result = await runCommand(command);
+    const result = await runCommand(command, `Running FHIR-validator with Docker (${imageName})`);
 
     return result;
 }
@@ -119,6 +118,10 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
     log = logger;
 
     //note(`The FHIR-Validator may take additional time to run its validations.\n`);
+
+    if (!await Docker.isAvailable() && !await JRE.isAvailable()) {
+        return log.error(`Validator: use of option ${color.italic('--validator fhir-validator')} requires Docker or JRE to execute the FHIR Validator Java application.  See: http://hl7.org/fhir/validator/`);
+    }
 
     const tempFileName = 'temp.fhirbundle.json';
 
@@ -150,10 +153,10 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
     }
 
     // null returned if validator failed before validation actually checked
-    if(result === null) return log;
+    if (result === null) return log;
 
     // if everything is ok, return
-    if (result && /Information: All OK/.test(result?.stdout))return log;
+    if (result && /Information: All OK/.test(result?.stdout)) return log;
 
     const errors = result?.stdout.match(/(?<=\n\s*Error @ ).+/g) || [];
     errors.forEach(err => {
@@ -167,7 +170,7 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
         log.warn(formattedError, ErrorCode.FHIR_VALIDATOR_ERROR);
     });
 
-    // if there are no errors or warnings but the validaiton is not 'All OK'
+    // if there are no errors or warnings but the validation is not 'All OK'
     // something is wrong.
     if (!errors && !warnings) {
         log.error(`${fileName} : failed to find Errors or 'All OK'`);
@@ -180,7 +183,7 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
 const JRE = {
 
     isAvailable: async (): Promise<boolean> => {
-        const result = await runCommand(`java --version`);
+        const result = await runCommand(`java --version`, `Check if JRE is available`);
         if (result.exitCode === 0) {
             const version = /^java \d+.+/.exec(result.stdout)?.[0] ?? 'unknown';
             log?.debug(`Java detected : ${version}`);
@@ -196,7 +199,7 @@ const Docker = {
 
     // check if Docker is installed
     isAvailable: async (): Promise<boolean> => {
-        const result = await runCommand(`docker --version`);
+        const result = await runCommand(`docker --version`, `Check if Docker is available`);
         if (result.exitCode === 0) {
             const version = /^Docker version \d+.+/.exec(result.stdout)?.[0] ?? 'unknown';
             log?.debug(`Docker detected : ${version}`);
@@ -205,20 +208,24 @@ const Docker = {
     },
 
     imageExists: async (imageName: string): Promise<boolean> => {
-        return (await runCommand(`docker image inspect ${imageName}`)).exitCode === 0;
+        return (await runCommand(`docker image inspect ${imageName}`, `Check Docker image ${imageName} exists`)).exitCode === 0;
     },
 
     checkPermissions: async (): Promise<boolean> => {
         const result = await runCommand(`docker image ls`);
         if (result.exitCode !== 0) {
-            log?.debug(`Docker permission check failed ${result.stderr}`);
+            if (/permission denied/.test(result.stderr)) {
+                log.error(`Selecting the '--validator fhir-validator' option is attempting to run the HL7 FHIR Validator using a Docker image. However, Docker on this system requires elevated permissions to use. Run this tool as an elevated user or add yourself to the 'docker' group. See README.md for additional information.`);
+            } else {
+                log.error(`Docker command failed ${result.stderr}`);
+            }
         }
         return result.exitCode === 0;
     },
 
     cleanupImage: async (imageName: string): Promise<void> => {
         log && log.debug(`Remove Docker image ${imageName}`);
-        await runCommand(`docker image rm -f ${imageName}`);
+        await runCommand(`docker image rm -f ${imageName}`, `Remove Docker image ${imageName}`);
     },
 
     buildImage: async (dockerFile: string, imageName: string): Promise<boolean> => {
@@ -228,15 +235,9 @@ const Docker = {
             return false;
         }
 
-        if (!await Docker.checkPermissions()) {
-            log.error(`Docker requires elevated permissions to build FHIR-validator image.\nRun this test as a elevated user or build Docker image independently:\
-        ${color.italic.bold.gray(`docker build -t ${imageName} -f "${path.resolve(dockerFile)}" .`)} (the trailing period is part of the command) `);
-            return false;
-        }
-
         log.debug(`Building Docker image ${imageName} from ${dockerFile}`);
 
-        const result = await runCommand(`docker build -t ${imageName} -f ${dockerFile} .`);
+        const result = await runCommand(`docker build -t ${imageName} -f ${dockerFile} .`, `Build Docker image ${imageName} from ${dockerFile}`);
 
         if (result.exitCode === 0 && await Docker.imageExists(imageName)) {
             log.debug(`Docker image ${imageName} created.`);

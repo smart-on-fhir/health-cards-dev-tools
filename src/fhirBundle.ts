@@ -11,7 +11,7 @@ import patientDM from '../schema/patient-dm.json';
 import Log from './logger';
 import beautify from 'json-beautify'
 import { propPath, walkProperties } from './utils';
-import { validate as fhirValidator, fhirValidatorAvailable } from './fhirValidator';
+import { validate as fhirValidator } from './fhirValidator';
 
 // The CDC CVX covid vaccine codes (https://www.cdc.gov/vaccines/programs/iis/COVID-19-related-codes.html),
 export const cdcCovidCvxCodes = ["207", "208", "210", "212", "217", "218", "219", "500", "501", "502", "503", "504", "505", "506", "507", "508", "509", "510", "511"];
@@ -76,15 +76,11 @@ export async function validate(fhirBundleText: string): Promise<Log> {
 
     if (validator === Validators['fhir-validator']) {
 
-        if (!await fhirValidatorAvailable()) {
-            return log.error(`Validator: use of '--validator fhir-validator' requires Docker or JRE to execute the FHIR Validator Java application.  See: http://hl7.org/fhir/validator/`);
-        }
-
         log.info(`Applying validator : fhir-validator`);
 
         void await fhirValidator(fhirBundleText, log);
 
-        log.info("FHIR bundle validated");
+        log.hasErrors || log.info("FHIR bundle validated");
         log.debug("FHIR bundle contents:");
         log.debug(beautify(fhirBundle, null as unknown as Array<string>, 3, 100));
 
@@ -265,7 +261,7 @@ See README.md for more information.`);
         ValidationProfilesFunctions['usa-covid19-immunization'](fhirBundle.entry, log);
     }
 
-    log.info("FHIR bundle validated");
+    log.hasErrors || log.info("FHIR bundle validated");
     log.debug("FHIR bundle contents:");
     log.debug(beautify(fhirBundle, null as unknown as Array<string>, 3, 100));
 
