@@ -37,7 +37,7 @@ export enum ErrorCode {
     TRAILING_CHARACTERS,
     NOT_YET_VALID,
     PROFILE_ERROR,
-    
+
     // key errors
     INVALID_KEY_WRONG_KTY = 200,
     INVALID_KEY_WRONG_ALG,
@@ -49,7 +49,10 @@ export enum ErrorCode {
     INVALID_KEY_UNKNOWN,
 
     // config errors
-    OPENSSL_NOT_AVAILABLE = 300
+    OPENSSL_NOT_AVAILABLE = 300,
+
+    // FHIR validator errors
+    FHIR_VALIDATOR_ERROR = 400
 }
 
 class ExcludableError {
@@ -83,8 +86,7 @@ export function getExcludeErrorCodes(errors: string[]): Set<ErrorCode> {
     for (const error of errors) {
         for (const excludableError of ExcludableErrors) {
             try {
-                if (excludableError.error === error || new RegExp('^' + error.replace('*','.*') + '$').test(excludableError.error))
-                {
+                if (excludableError.error === error || new RegExp('^' + error.replace('*', '.*') + '$').test(excludableError.error)) {
                     excludableError.code.map(e => errorCodes.add(e));
                 }
             } catch {

@@ -11,6 +11,7 @@ import patientDM from '../schema/patient-dm.json';
 import Log from './logger';
 import beautify from 'json-beautify'
 import { propPath, walkProperties } from './utils';
+import { validate as fhirValidator } from './fhirValidator';
 
 // The CDC CVX covid vaccine codes (https://www.cdc.gov/vaccines/programs/iis/COVID-19-related-codes.html),
 export const cdcCovidCvxCodes = ["207", "208", "210", "212", "217", "218", "219", "500", "501", "502", "503", "504", "505", "506", "507", "508", "509", "510", "511"];
@@ -26,9 +27,14 @@ export enum ValidationProfiles {
     'usa-covid19-immunization'
 }
 
+export enum Validators {
+    'default',
+    'fhir-validator'
+}
 export class FhirOptions {
     static LogOutputPath = '';
-    static ValidationProfile: ValidationProfiles = ValidationProfiles.any;
+    static ValidationProfile = ValidationProfiles.any;
+    static Validator = Validators.default;
 }
 
 // eslint-disable-next-line @typescript-eslint/require-await
@@ -36,6 +42,7 @@ export async function validate(fhirBundleText: string): Promise<Log> {
 
     const log = new Log('FhirBundle');
     const profile: ValidationProfiles = FhirOptions.ValidationProfile;
+    const validator: Validators = FhirOptions.Validator;
 
     if (fhirBundleText.trim() !== fhirBundleText) {
         log.error(`FHIR bundle has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
@@ -54,6 +61,53 @@ export async function validate(fhirBundleText: string): Promise<Log> {
     // failures will be recorded in the log
     if (!validateSchema(fhirSchema, fhirBundle, log)) return log;
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+    if (validator === Validators['fhir-validator']) {
+
+        log.info(`Applying validator : fhir-validator`);
+
+        void await fhirValidator(fhirBundleText, log);
+
+        log.hasErrors || log.info("FHIR bundle validated");
+        log.debug("FHIR bundle contents:");
+        log.debug(beautify(fhirBundle, null as unknown as Array<string>, 3, 100));
+
+        return log;
+    }
+
+    log.note(`This tool's default FHIR validation is not as complete as the dedicated HL7 FHIR Validator at ${'http://hl7.org/fhir/validator/'} (hl7.org). \
+If you have Docker or the Java JRE installed, this tool supports validating against the FHIR validator by using the '--validator fhir-validator' on the command line. \
+See README.md for more information.`);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+              
+    // Begin 'default
 
     // to continue validation, we must have a list of resources in .entry[]
     if (!fhirBundle.entry ||
@@ -207,8 +261,8 @@ export async function validate(fhirBundleText: string): Promise<Log> {
         ValidationProfilesFunctions['usa-covid19-immunization'](fhirBundle.entry, log);
     }
 
-    log.info("FHIR bundle validated");
-    log.debug("FHIR Bundle Contents:");
+    log.hasErrors || log.info("FHIR bundle validated");
+    log.debug("FHIR bundle contents:");
     log.debug(beautify(fhirBundle, null as unknown as Array<string>, 3, 100));
 
     return log;
@@ -292,4 +346,3 @@ const ValidationProfilesFunctions = {
         return true;
     }
 }
-
