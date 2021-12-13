@@ -15,6 +15,9 @@ export class LogItem {
 
 
 export enum LogLevels {
+
+    // Always output Note
+    NOTE = -1,
     // Print out everything
     DEBUG = 0,
     // Print out informational messages
@@ -24,9 +27,7 @@ export enum LogLevels {
     // Only print out errors
     ERROR,
     // Only print out fatal errors, where processing can't continue
-    FATAL,
-    // Always output Note
-    NOTE
+    FATAL
 }
 
 
