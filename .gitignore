@@ -131,3 +131,9 @@ tmp/*
 
 # full fhir schema
 schema/fhir-schema-full.json
+
+# temp fhir bundle file
+temp.fhirbundle.json
+
+# downloaded HL7 validator for JRE deployment
+validator_cli.jar
