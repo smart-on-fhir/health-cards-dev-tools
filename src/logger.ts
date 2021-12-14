@@ -104,6 +104,10 @@ export default class Log {
         });
     }
 
+    hasErrors() : boolean {
+        return !!(this.get(LogLevels.FATAL).length + this.get(LogLevels.ERROR).length);
+    }
+
     // collects errors from all children into a single collection; specify level to filter >= level
     flatten(level: LogLevels = LogLevels.DEBUG): { title: string, message: string, code: ErrorCode, level: LogLevels }[] {
 
