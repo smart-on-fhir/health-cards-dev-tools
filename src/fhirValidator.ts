@@ -183,7 +183,7 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
 const JRE = {
 
     isAvailable: async (): Promise<boolean> => {
-        const result = await runCommand(`java1 --version`, `Check if JRE is available`);
+        const result = await runCommand(`java --version`, `Check if JRE is available`);
         if (result.exitCode === 0) {
             const version = /^java \d+.+/.exec(result.stdout)?.[0] ?? 'unknown';
             log?.debug(`Java detected : ${version}`);
@@ -199,7 +199,7 @@ const Docker = {
 
     // check if Docker is installed
     isAvailable: async (): Promise<boolean> => {
-        const result = await runCommand(`docker1 --version`, `Check if Docker is available`);
+        const result = await runCommand(`docker --version`, `Check if Docker is available`);
         if (result.exitCode === 0) {
             const version = /^Docker version \d+.+/.exec(result.stdout)?.[0] ?? 'unknown';
             log?.debug(`Docker detected : ${version}`);
