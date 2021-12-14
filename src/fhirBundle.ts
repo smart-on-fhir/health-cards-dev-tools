@@ -80,7 +80,7 @@ export async function validate(fhirBundleText: string): Promise<Log> {
 
         void await fhirValidator(fhirBundleText, log);
 
-        log.info("FHIR bundle validated");
+        log.hasErrors || log.info("FHIR bundle validated");
         log.debug("FHIR bundle contents:");
         log.debug(beautify(fhirBundle, null as unknown as Array<string>, 3, 100));
 
@@ -261,7 +261,7 @@ See README.md for more information.`);
         ValidationProfilesFunctions['usa-covid19-immunization'](fhirBundle.entry, log);
     }
 
-    log.info("FHIR bundle validated");
+    log.hasErrors || log.info("FHIR bundle validated");
     log.debug("FHIR bundle contents:");
     log.debug(beautify(fhirBundle, null as unknown as Array<string>, 3, 100));
 

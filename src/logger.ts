@@ -104,7 +104,7 @@ export default class Log {
         });
     }
 
-    hasErrors() : boolean {
+    public get hasErrors(): boolean {
         return !!(this.get(LogLevels.FATAL).length + this.get(LogLevels.ERROR).length);
     }
 
