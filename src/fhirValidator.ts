@@ -1,7 +1,7 @@
 import execa, { ExecaChildProcess, ExecaReturnValue } from 'execa';
 import fs from 'fs';
 import path from 'path';
-import Log, { note } from '../src/logger';
+import Log from '../src/logger';
 import { ErrorCode } from './error';
 import color from 'colors';
 import got from 'got';
@@ -24,7 +24,7 @@ async function downloadFHIRValidator(): Promise<void> {
 }
 
 
-function workingAnnimation(message: string, interval = 200) {
+function workingAnimation(message: string, interval = 200) {
     const chars = ['|', '/', '―', '\\']; //['\u{2819}', "⠙", "⠘", "⠰", "⠴", "⠤", "⠦", "⠆", "⠃", "⠋", "⠉"]; //- doesn't work on CMD/Powershell windows
     let x = 0;
 
@@ -48,7 +48,7 @@ async function runCommand(command: string, message?: string): Promise<ExecaChild
     let result;
     const start = Date.now();
 
-    const annimation = workingAnnimation(message || command);
+    const animation = workingAnimation(message || command);
 
     try {
         result = await execa.command(command);
@@ -56,8 +56,8 @@ async function runCommand(command: string, message?: string): Promise<ExecaChild
         result = failed as ExecaReturnValue<string>;
     }
 
-    // stop the annimation timer
-    annimation.stop();
+    // stop the animation timer
+    animation.stop();
 
     // output some results of the execa command
     log?.debug(
@@ -170,7 +170,7 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
         log.warn(formattedError, ErrorCode.FHIR_VALIDATOR_ERROR);
     });
 
-    // if there are no errors or warnings but the validaiton is not 'All OK'
+    // if there are no errors or warnings but the validation is not 'All OK'
     // something is wrong.
     if (!errors && !warnings) {
         log.error(`${fileName} : failed to find Errors or 'All OK'`);
@@ -213,12 +213,11 @@ const Docker = {
 
     checkPermissions: async (): Promise<boolean> => {
         const result = await runCommand(`docker image ls`);
-        if (result.exitCode !== 0) {
-
-            if (/'permission denied'/.test(result.stderr)) {
+        if (result.exitCode === 0) {
+            if (/permission denied/.test(result.stderr)) {
                 log.error(`Docker requires elevated permissions to use.\nRun this tool as an elevated user or add yourself to the 'docker' group. \n (i.e. sudo -E env "PATH=$PATH" shc-validator ... )`);
             } else {
-                log?.debug(`Docker check failed ${result.stderr}`);
+                log.error(`Docker command failed ${result.stderr}`);
             }
         }
         return result.exitCode === 0;
