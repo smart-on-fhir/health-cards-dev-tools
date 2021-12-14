@@ -213,9 +213,9 @@ const Docker = {
 
     checkPermissions: async (): Promise<boolean> => {
         const result = await runCommand(`docker image ls`);
-        if (result.exitCode === 0) {
+        if (result.exitCode !== 0) {
             if (/permission denied/.test(result.stderr)) {
-                log.error(`Docker requires elevated permissions to use.\nRun this tool as an elevated user or add yourself to the 'docker' group. \n (i.e. sudo -E env "PATH=$PATH" shc-validator ... )`);
+                log.error(`Selecting the '--validator fhir-validator' option is attempting to run the HL7 FHIR Validator using a Docker image. However, Docker on this system requires elevated permissions to use. Run this tool as an elevated user or add yourself to the 'docker' group. See README.md for additional information.`);
             } else {
                 log.error(`Docker command failed ${result.stderr}`);
             }
