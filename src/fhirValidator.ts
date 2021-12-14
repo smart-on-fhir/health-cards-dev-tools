@@ -24,9 +24,8 @@ async function downloadFHIRValidator(): Promise<void> {
 }
 
 
-function workingAnnimation(message: string, interval = 100) {
-
-    const chars = ["⠙", "⠘", "⠰", "⠴", "⠤", "⠦", "⠆", "⠃", "⠋", "⠉"]; //['|', '/', '-', '\\'];
+function workingAnnimation(message: string, interval = 200) {
+    const chars = ['|', '/', '―', '\\']; //['\u{2819}', "⠙", "⠘", "⠰", "⠴", "⠤", "⠦", "⠆", "⠃", "⠋", "⠉"]; //- doesn't work on CMD/Powershell windows
     let x = 0;
 
     const handle = setInterval(() => {
@@ -38,6 +37,7 @@ function workingAnnimation(message: string, interval = 100) {
         stop: () => {
             clearInterval(handle);
             process.stdout.clearLine(0);
+            process.stdout.write('\n');
         }
     }
 }
@@ -58,8 +58,6 @@ async function runCommand(command: string, message?: string): Promise<ExecaChild
 
     // stop the annimation timer
     annimation.stop();
-
-
 
     // output some results of the execa command
     log?.debug(
@@ -92,6 +90,8 @@ async function runValidatorJRE(artifactPath: string): Promise<ExecaReturnValue<s
 
 // Runs the FHIR validator using a Docker image
 async function runValidatorDocker(artifactPath: string): Promise<ExecaReturnValue<string> | null> {
+
+    if (!await Docker.checkPermissions()) return null;
 
     if (!await Docker.imageExists(imageName)) {
         log.debug(`Image ${imageName} not found. Attempting to build.`);
@@ -214,7 +214,12 @@ const Docker = {
     checkPermissions: async (): Promise<boolean> => {
         const result = await runCommand(`docker image ls`);
         if (result.exitCode !== 0) {
-            log?.debug(`Docker permission check failed ${result.stderr}`);
+
+            if (/'permission denied'/.test(result.stderr)) {
+                log.error(`Docker requires elevated permissions to use.\nRun this tool as an elevated user or add yourself to the 'docker' group. \n (i.e. sudo -E env "PATH=$PATH" shc-validator ... )`);
+            } else {
+                log?.debug(`Docker check failed ${result.stderr}`);
+            }
         }
         return result.exitCode === 0;
     },
@@ -228,12 +233,6 @@ const Docker = {
 
         if (!fs.existsSync(dockerFile)) {
             log.error(`Cannot find Dockerfile ${dockerFile}`);
-            return false;
-        }
-
-        if (!await Docker.checkPermissions()) {
-            log.error(`Docker requires elevated permissions to build FHIR-validator image.\nRun this test as a elevated user or build Docker image independently:\
-        ${color.italic.bold.gray(`docker build -t ${imageName} -f "${path.resolve(dockerFile)}" .`)} (the trailing period is part of the command) `);
             return false;
         }
 
