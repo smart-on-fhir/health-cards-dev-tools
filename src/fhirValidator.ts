@@ -21,7 +21,7 @@ async function downloadFHIRValidator(): Promise<void> {
 
 
 export async function fhirValidatorAvailable(): Promise<boolean> {
-    return await Docker.isAvailable() || JRE.isAvailable();
+    return await Docker.isAvailable() || await JRE.isAvailable();
 }
 
 
