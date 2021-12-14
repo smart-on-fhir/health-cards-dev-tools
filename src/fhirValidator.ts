@@ -16,12 +16,11 @@ const validatorUrl = 'https://github.com/hapifhir/org.hl7.fhir.core/releases/lat
 
 
 async function downloadFHIRValidator(): Promise<void> {
-    fs.writeFileSync(validatorJarFile, (await got(validatorUrl, { followRedirect: true }).buffer()));
-}
-
-
-export async function fhirValidatorAvailable(): Promise<boolean> {
-    return await Docker.isAvailable() || await JRE.isAvailable();
+    try {
+        fs.writeFileSync(validatorJarFile, (await got(validatorUrl, { followRedirect: true }).buffer()));
+    } catch (err) {
+        log.debug(`File download error ${(err as Error).toString()}`);
+    }
 }
 
 
@@ -64,7 +63,7 @@ async function runCommand(command: string, message?: string): Promise<ExecaChild
 
     // output some results of the execa command
     log?.debug(
-`Running command : ${command}\n \
+        `Running command : ${command}\n \
 duration: ${((Date.now() - start) / 1000).toFixed(2)} seconds\n  \
 exitcode : ${result.exitCode}\n  \
 stdout: ${result.stdout.split('\n').join("\n          ")}\n  \
@@ -80,7 +79,7 @@ async function runValidatorJRE(artifactPath: string): Promise<ExecaReturnValue<s
     if (!fs.existsSync(validatorJarFile)) await downloadFHIRValidator();
 
     if (!fs.existsSync(validatorJarFile)) {
-        log.error(`Failed to download FHIR Validator Jar file : ${validatorJarFile}`);
+        log.error(`Failed to download FHIR Validator Jar file ${validatorJarFile} from ${validatorUrl}`);
         return null;
     }
 
@@ -120,6 +119,10 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
 
     //note(`The FHIR-Validator may take additional time to run its validations.\n`);
 
+    if (!await Docker.isAvailable() && !await JRE.isAvailable()) {
+        return log.error(`Validator: use of option ${color.italic('--validator fhir-validator')} requires Docker or JRE to execute the FHIR Validator Java application.  See: http://hl7.org/fhir/validator/`);
+    }
+
     const tempFileName = 'temp.fhirbundle.json';
 
     if (JSON.parse(fileOrJSON)) {
@@ -150,10 +153,10 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
     }
 
     // null returned if validator failed before validation actually checked
-    if(result === null) return log;
+    if (result === null) return log;
 
     // if everything is ok, return
-    if (result && /Information: All OK/.test(result?.stdout))return log;
+    if (result && /Information: All OK/.test(result?.stdout)) return log;
 
     const errors = result?.stdout.match(/(?<=\n\s*Error @ ).+/g) || [];
     errors.forEach(err => {
@@ -180,7 +183,7 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
 const JRE = {
 
     isAvailable: async (): Promise<boolean> => {
-        const result = await runCommand(`java --version`, `Check if JRE is available`);
+        const result = await runCommand(`java1 --version`, `Check if JRE is available`);
         if (result.exitCode === 0) {
             const version = /^java \d+.+/.exec(result.stdout)?.[0] ?? 'unknown';
             log?.debug(`Java detected : ${version}`);
@@ -196,7 +199,7 @@ const Docker = {
 
     // check if Docker is installed
     isAvailable: async (): Promise<boolean> => {
-        const result = await runCommand(`docker --version`, `Check if Docker is available`);
+        const result = await runCommand(`docker1 --version`, `Check if Docker is available`);
         if (result.exitCode === 0) {
             const version = /^Docker version \d+.+/.exec(result.stdout)?.[0] ?? 'unknown';
             log?.debug(`Docker detected : ${version}`);
