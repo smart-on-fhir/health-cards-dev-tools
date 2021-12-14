@@ -24,6 +24,7 @@ interface FhirHealthCard {
 interface JWSPayload {
     "iss": string,
     "nbf": number,
+    exp?: number,
     "vc": {
         type: string[],
         credentialSubject: {

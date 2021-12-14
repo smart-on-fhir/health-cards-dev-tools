@@ -194,6 +194,8 @@ test("Cards: health card w/ trailing chars", testCard('test-example-00-e-file-tr
 test("Cards: numeric QR w/ trailing chars", testCard('test-example-00-f-qr-code-numeric-value-0-trailing_chars.txt', 'qrnumeric', [[ec.TRAILING_CHARACTERS]]));
 test("Cards: jws too long", testCard('example-02-d-jws.txt', 'jws', [SCHEMA_ERROR_ARRAY, [ec.JWS_TOO_LONG]]));
 test("Cards: not yet valid", testCard('test-example-00-b-jws-payload-expanded-nbf_not_yet_valid.json', 'jwspayload', [0, [ec.NOT_YET_VALID]]));
+test("Cards: expired", testCard('test-example-00-b-jws-payload-expanded-expired.json', 'jwspayload', [0, [ec.EXPIRATION_ERROR]]));
+test("Cards: exp in milliseconds", testCard('test-example-00-b-jws-payload-expanded-exp_milliseconds.json', 'jwspayload', [0, [ec.EXPIRATION_ERROR]]));
 test("Cards: unnecessary QR chunks", testCard(['test-example-00-g-qr-code-0-qr_chunk_too_small.png', 'test-example-00-g-qr-code-1-qr_chunk_too_small.png'], 'qr', [0, [ec.INVALID_QR]]));
 test("Cards: many unnecessary QR chunks", testCard([
     'test-example-00-f-qr-code-numeric-value-0-qr_chunk_too_small.txt',
@@ -265,6 +267,9 @@ test("Cards: invalid issuer url",
 test("Cards: nbf in milliseconds",
     testCard(['test-example-00-b-jws-payload-expanded-nbf_milliseconds.json'], 'jwspayload', [[ec.NOT_YET_VALID]])
 );
+
+// one error for exp < nbf, one warning for card being expired
+test("Cards: exp date before nbf", testCard('test-example-00-b-jws-payload-expanded-pre-expired.json', 'jwspayload', [[ec.EXPIRATION_ERROR],[ec.EXPIRATION_ERROR]]));
 
 // the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch
 test("Cards: invalid issuer url (http)",

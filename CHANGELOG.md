@@ -1,5 +1,9 @@
 # CHANGE LOG
 
+## v1.2.1-0
+ - Add support for SHC expiration
+ - Minor updates to logger
+
 ## v1.2.0-0
  - Add support for SHC revocation
  - Add image scaling to assist QR decoding
