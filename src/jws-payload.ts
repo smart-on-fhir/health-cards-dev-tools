@@ -13,7 +13,6 @@ import { isRidValid } from './crl-validator';
 
 export const schema = jwsPayloadSchema;
 
-
 export async function validate(jwsPayloadText: string): Promise<Log> {
 
     const log = new Log('JWS.payload');
@@ -41,26 +40,54 @@ export async function validate(jwsPayloadText: string): Promise<Log> {
     // failures will be recorded in the log. we can continue processing.
     validateSchema(jwsPayloadSchema, jwsPayload, log);
 
+    const validateDate = (inputDate: any, label: string, log: Log): Date | undefined => {
+        if (utils.isNumeric(inputDate)) {
+            const date = new Date();
+            date.setTime(inputDate * 1000); // convert seconds to milliseconds
+            return date;
+        } else {
+            log.error(`JWS payload's ${label} is not numeric: ${inputDate}`, ErrorCode.JSON_PARSE_ERROR);
+            return undefined;
+        }
+    }
+
     // validate issuance date, if available - the schema check above will flag if missing/invalid
-    if (utils.isNumeric(jwsPayload.nbf)) {
-        const nbf = new Date();
-        nbf.setTime(jwsPayload.nbf * 1000); // convert seconds to milliseconds
-        const now = new Date();
-        if (nbf > now) {
-            if (jwsPayload.nbf > new Date(2021, 1, 1).getTime()) {
+    const now = new Date();
+    const nbf = validateDate(jwsPayload.nbf, "nbf", log);
+    if (nbf && nbf > now) {
+        if (jwsPayload.nbf > new Date(2021, 1, 1).getTime()) {
+            // we will assume the nbf was encoded in milliseconds, and we will return an error
+            const dateParsedInMilliseconds = new Date();
+            dateParsedInMilliseconds.setTime(jwsPayload.nbf);
+            log.error(`Health card is not yet valid, nbf=${jwsPayload.nbf} (${nbf.toUTCString()}).\n` +
+                "nbf should be encoded in seconds since 1970-01-01T00:00:00Z UTC.\n" +
+                `Did you encode the date in milliseconds, which would give the date: ${dateParsedInMilliseconds.toUTCString()}?`,
+                ErrorCode.NOT_YET_VALID);
+        } else {
+            log.warn(`Health card is not yet valid, nbf=${jwsPayload.nbf} (${nbf.toUTCString()}).`, ErrorCode.NOT_YET_VALID);
+        }
+    }
+
+    // validate expiration date, if available
+    if (jwsPayload.exp) {
+        const exp = validateDate(jwsPayload.exp, "exp", log);
+        if (exp) {
+            if (nbf && exp <= nbf) {
+                log.error(`Health card expires before being valid, nbf=${jwsPayload.nbf}, exp=${jwsPayload.exp}`, ErrorCode.EXPIRATION_ERROR);
+            }
+            if (jwsPayload.exp && jwsPayload.exp > new Date(2021, 1, 1).getTime()) {
                 // we will assume the nbf was encoded in milliseconds, and we will return an error
                 const dateParsedInMilliseconds = new Date();
-                dateParsedInMilliseconds.setTime(jwsPayload.nbf);
-                log.error(`Health card is not yet valid, nbf=${jwsPayload.nbf} (${nbf.toUTCString()}).\n` +
-                    "nbf should be encoded in seconds since 1970-01-01T00:00:00Z UTC.\n" +
+                dateParsedInMilliseconds.setTime(jwsPayload.exp);
+                log.warn(`Health card expires in a long time, exp=${jwsPayload.exp} (${exp.toUTCString()}).\n` +
+                    "exp should be encoded in seconds since 1970-01-01T00:00:00Z UTC.\n" +
                     `Did you encode the date in milliseconds, which would give the date: ${dateParsedInMilliseconds.toUTCString()}?`,
-                    ErrorCode.NOT_YET_VALID);
-            } else {
-                log.warn(`Health card is not yet valid, nbf=${jwsPayload.nbf} (${nbf.toUTCString()}).`, ErrorCode.NOT_YET_VALID);
+                    ErrorCode.EXPIRATION_ERROR);
+            }
+            if (exp < now) {
+                log.warn(`Health card is expired, exp=${jwsPayload.exp} (${exp.toUTCString()})`, ErrorCode.EXPIRATION_ERROR);
             }
         }
-    } else {
-        log.error(`JWS payload's nbf is not numeric: ${jwsPayload.nbf}`, ErrorCode.JSON_PARSE_ERROR);
     }
 
     if (jwsPayload.vc && Object.keys(jwsPayload.vc).includes("@context")) {
