@@ -36,6 +36,7 @@ export enum ErrorCode {
     INVALID_FILE_EXTENSION,
     TRAILING_CHARACTERS,
     NOT_YET_VALID,
+    EXPIRATION_ERROR,
     PROFILE_ERROR,
 
     // key errors

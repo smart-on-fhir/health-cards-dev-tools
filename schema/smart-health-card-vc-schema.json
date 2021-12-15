@@ -20,6 +20,12 @@
             "type": "number",
             "$comment": "TODO: more restriction"
         },
+        "exp": {
+            "$id": "#root/exp",
+            "title": "Exp",
+            "type": "number",
+            "$comment": "TODO: more restriction"
+        },
         "vc": {
             "$id": "#root/vc",
             "title": "Vc",
