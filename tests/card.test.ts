@@ -8,7 +8,7 @@ import { ErrorCode as ec } from '../src/error';
 import Log, { LogLevels } from '../src/logger';
 import { isOpensslAvailable } from '../src/utils';
 import { CliOptions } from '../src/shc-validator';
-
+import { jreOrDockerAvailable } from '../src/fhirValidator';
 const testdataDir = './testdata/';
 
 
@@ -269,7 +269,7 @@ test("Cards: nbf in milliseconds",
 );
 
 // one error for exp < nbf, one warning for card being expired
-test("Cards: exp date before nbf", testCard('test-example-00-b-jws-payload-expanded-pre-expired.json', 'jwspayload', [[ec.EXPIRATION_ERROR],[ec.EXPIRATION_ERROR]]));
+test("Cards: exp date before nbf", testCard('test-example-00-b-jws-payload-expanded-pre-expired.json', 'jwspayload', [[ec.EXPIRATION_ERROR], [ec.EXPIRATION_ERROR]]));
 
 // the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch
 test("Cards: invalid issuer url (http)",
@@ -388,3 +388,20 @@ test("Cards: unknown VC types", testCard('test-example-00-b-jws-payload-expanded
 test("Cards: mismatch kid/issuer", testCard(['test-example-00-d-jws-issuer-kid-mismatch.txt'], "jws", [[ec.ISSUER_KID_MISMATCH]], { jwkset: 'testdata/issuer.jwks.public.not.smart.json' }));
 
 test("Cards: immunization status not 'completed'", testCard('test-example-00-a-fhirBundle-status-not-completed.json', 'fhirbundle', [[ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR]]));
+
+
+// Tests using the HL7 FHIR Validator
+// Since these tests require a Java runtime (JRE) or Docker to be installed, they are conditionally executed.
+// These tests can also take a longer as they have to spin up a Docker image 
+describe('FHIR validator tests', () => {
+
+    const testif = (condition: boolean) => condition ? it : it.skip;
+    const canRunFhirValidator = jreOrDockerAvailable();
+
+    // shc-validator -p ./testdata/test-example-00-a-fhirBundle-profile-usa.json -t fhirbundle -l debug -V fhirvalidator
+    testif(canRunFhirValidator)("Cards: fhir validator test", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
+        [8, 1], { validator: 'fhirvalidator' }), 1000 * 60 * 5 /*5 minutes*/);
+
+
+});
+

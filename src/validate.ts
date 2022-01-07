@@ -14,7 +14,7 @@ import * as qr from './qr';
 import * as image from './image';
 import keys, { KeySet } from './keys';
 import * as utils from './utils';
-import { FhirOptions, ValidationProfiles } from './fhirBundle';
+import { FhirOptions, ValidationProfiles, Validators } from './fhirBundle';
 import { CliOptions } from './shc-validator';
 import { clearTrustedIssuerDirectory, setTrustedIssuerDirectory } from './issuerDirectory';
 
@@ -42,6 +42,13 @@ async function processOptions(options: CliOptions) {
         await setTrustedIssuerDirectory(options.directory);
     } else {
         clearTrustedIssuerDirectory();
+    }
+
+    if (options.validator) {
+        if(!Object.values(Validators).includes(options.validator)) {
+            throw new Error(`Invalid validator value ${options.validator}`);
+        }
+        FhirOptions.Validator = Validators[options.validator as keyof typeof Validators];
     }
 
 }

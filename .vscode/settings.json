@@ -2,10 +2,18 @@
     "eslint.alwaysShowStatus": true,
     "eslint.format.enable": true,
     "cSpell.words": [
+        "badcrl",
+        "clearline",
         "Codeable",
+        "Excludable",
         "execa",
+        "exitcode",
         "fhir",
         "fhirbundle",
+        "fhirhealthcard",
+        "fhirout",
+        "fhirvalidator",
+        "fidm",
         "grayscale",
         "healthcard",
         "istextorbinary",
@@ -13,8 +21,12 @@
         "jwks",
         "jwkset",
         "jwspayload",
+        "libressl",
         "logfile",
         "loglevel",
+        "loinc",
+        "LOINC",
+        "myfhirbundle",
         "npmpackage",
         "outdir",
         "pako",
@@ -22,6 +34,8 @@
         "qrcode",
         "qrnumeric",
         "repos",
-        "testdata"
+        "testdata",
+        "testif",
+        "uuidv"
     ]
 }

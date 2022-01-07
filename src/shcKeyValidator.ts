@@ -7,13 +7,13 @@ import { ErrorCode } from './error';
 import { validateSchema } from './schema';
 import keySetSchema from '../schema/keyset-schema.json';
 import keys, { KeySet } from './keys';
-import execa from 'execa';
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { isOpensslAvailable, parseJson } from './utils'
+import { isOpensslAvailable } from './utils'
 import { Certificate } from '@fidm/x509'
 import { downloadAndValidateCRL } from './crl-validator';
+import { runCommandSync } from './command';
 
 // directory where to write cert files for openssl validation
 const tmpDir = 'tmp';
@@ -98,7 +98,7 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
         //
         const opensslVerifyCommand = "openssl verify " + rootCaArg + caArg + issuerCert;
         log.debug('Calling openssl for x5c validation: ' + opensslVerifyCommand);
-        const result = execa.commandSync(opensslVerifyCommand);
+        const result = runCommandSync(opensslVerifyCommand, log);
         if (result.exitCode != 0) {
             log.debug(result.stderr);
             throw 'OpenSSL returned an error: exit code ' + result.exitCode.toString();
@@ -219,7 +219,7 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
         }
         
         // check for revocation file, we do this before parsing the key because the code below recasts the key to a
-        // JWK object overwritting the crlVersion field
+        // JWK object overwriting the crlVersion field
         const keyWithCrl: JWK.Key & { crlVersion?: number } = key;
         if (keyWithCrl?.crlVersion !== undefined) {
             const crlVersion = keyWithCrl.crlVersion;

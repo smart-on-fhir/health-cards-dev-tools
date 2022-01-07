@@ -14,7 +14,7 @@ import { ErrorCode, ExcludableErrors, getExcludeErrorCodes } from './error';
 import * as utils from './utils'
 import npmpackage from '../package.json';
 import { KeySet } from './keys';
-import { FhirOptions, ValidationProfiles } from './fhirBundle';
+import { FhirOptions, ValidationProfiles, Validators } from './fhirBundle';
 import * as versions from './check-for-update';
 import semver from 'semver';
 import { JwsValidationOptions } from './jws-compact';
@@ -42,6 +42,7 @@ program.option('-k, --jwkset <key>', 'path to trusted issuer key set');
 program.option('-e, --exclude <error>', 'error to exclude, can be repeated, can use a * wildcard. Valid options:' +
     ExcludableErrors.map(e => ` "${e.error}"`).join(),
     (e: string, errors: string[]) => errors.concat([e]), []);
+program.addOption(new Option('-V, --validator <validator>', 'the choice of FHIR validator to use').choices(Object.keys(Validators).filter(x => Number.isNaN(Number(x)))).default('default'));
 program.parse(process.argv);
 
 export interface CliOptions {
@@ -54,7 +55,8 @@ export interface CliOptions {
     logout: string;
     fhirout: string;
     exclude: string[];
-    clearKeyStore? : boolean;
+    clearKeyStore?: boolean;
+    validator: string;
 }
 
 
@@ -115,6 +117,14 @@ async function processOptions(options: CliOptions) {
         options.profile ?
             ValidationProfiles[options.profile as keyof typeof ValidationProfiles] :
             FhirOptions.ValidationProfile = ValidationProfiles['any'];
+
+            
+    // set the FHIR validator
+    FhirOptions.Validator =
+        options.validator ?
+            Validators[options.validator as keyof typeof Validators] :
+            FhirOptions.Validator = Validators['default'];
+
 
 
     // requires both --path and --type properties

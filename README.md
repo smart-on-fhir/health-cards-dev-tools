@@ -97,6 +97,7 @@ To validate health card artifacts, use the `shc-validator.ts` script, or simply 
                                    (choices: "fhirbundle", "jwspayload", "jws", "healthcard", "fhirhealthcard", "qrnumeric", "qr", "jwkset")
       -l, --loglevel <loglevel>    set the minimum log level (choices: "debug", "info", "warning", "error", "fatal", default: "warning")
       -P, --profile <profile>      vaccination profile to validate (choices: "any", "usa-covid19-immunization", default: "any")
+      -V, --validator <validator>  FHIR bundle validator (choices: "default", "fhirvalidator" (requires Java runtime or Docker)) 
       -d, --directory <directory>  trusted issuer directory to validate against
       -o, --logout <path>          output path for log (if not specified log will be printed on console)
       -f, --fhirout <path>         output path for the extracted FHIR bundle
@@ -160,9 +161,15 @@ const results = validate.jws(jwsString);
 results.then(console.log)
 ```
 
-## Notes
+## FHIR Validation
 
-Validation of the FHIR bundle is currently limited. The tool validates a subset of the full FHIR schema; the behavior can be scoped by using the profile option, or  changed by modifying the `src/prune-fhir-schema.ts` script. Extensive tests and conformance to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/) can be performed using the [FHIR validator](https://wiki.hl7.org/Using_the_FHIR_Validator) tool.
+Validation of the FHIR bundle is currently not comprehensive. The tool validates a subset of the full FHIR schema; the behavior can be scoped by using the profile option, or changed by modifying the `src/prune-fhir-schema.ts` script. Extensive tests and conformance to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/) can be performed using the [FHIR validator](https://wiki.hl7.org/Using_the_FHIR_Validator) tool.
 
+This tool can now apply the HL7 FHIR Validator, in place of the limited default validator, with the use of the `--validator fhirvalidator` option.  The HL7 FHIR Validator is a Java application and so requires a Java runtime (JRE), or alternatively, Docker to be installed on your system. 
+This tool will attempt to run it with an installed JRE first, if available. If not, it will attempt to instantiate a Docker image (with a JRE). If neither method is succeeds an error will be returned.
 
-
+__Note__: Docker may require elevated permissions to execute docker commands, requiring this tool to also run with elevated permissions when attempting to use a Docker image. For example:
+```
+# Run shc-validator as sudo ('-E env "PATH=$PATH"' preserves the environment of the current user)
+sudo -E env "PATH=$PATH" shc-validator --path myfhirbundle.json --type fhirbundle --validator fhirvalidator
+```
