@@ -9,6 +9,8 @@ import {JWK} from 'node-jose';
 import got from 'got';
 import { svgToQRImage } from './image';
 import { Command } from 'commander';
+import { FileInfo, getFileData } from './file';
+
 
 const outPath = 'testdata';
 const baseExampleUrl = 'https://spec.smarthealth.cards/examples/';
@@ -27,7 +29,7 @@ const exampleSuffixes = [
 
 const pipeline = promisify(stream.pipeline);
 
-async function fetchExamples(outdir: string, force: boolean = false) : Promise<void> {
+async function fetchExamples(outdir: string, force = false): Promise<void> {
     
     const getExamples = exampleSuffixes.map(async (exampleSuffix) => {
 
@@ -76,7 +78,7 @@ const issuerPrivateKeyUrl = 'https://raw.githubusercontent.com/smart-on-fhir/hea
 const issuerPublicKeyFileName = 'issuer.jwks.public.json';
 
 
-async function fetchKeys(outdir: string, force: boolean = false) : Promise<void> {
+async function fetchKeys(outdir: string, force = false): Promise<void> {
 
     const filePath = path.join(outdir, issuerPublicKeyFileName);
 
@@ -94,21 +96,20 @@ async function fetchKeys(outdir: string, force: boolean = false) : Promise<void>
 
 
 // for each .svg file, generate a png, jpg, and bmp QR image
-async function generateImagesFromSvg(dir: string, force: boolean = false) {
-    const files = fs.readdirSync(dir);
-    for (let i = 0; i < files.length; i++) {
-        const file = path.join(dir, files[i]);
-        if (path.extname(file) === '.svg') {
-            // TODO make use of force option
-            await svgToQRImage(file);
-        }
+async function generateImagesFromSvg(dir: string, force = false) {
+
+    const svgFiles = fs.readdirSync(dir).filter(f => path.extname(f) === '.svg');
+    const svgFileInfo: FileInfo[] = await Promise.all(svgFiles.map(f => getFileData(path.join(dir, f))));
+
+    for(const fi of svgFileInfo) {
+        await svgToQRImage(fi);
     }
 }
 
 const program = new Command();
 program.option('-f, --force', 'forces example retrieval, even if already present');
 program.parse(process.argv);
-const force = program.opts().force || false;
+const force = !!program.opts().force;
 
 // We have to wrap these calls in an async function for ES5 support
 // Typescript error: Top-level 'await' expressions are only allowed when the 'module' option is set to 'esnext'

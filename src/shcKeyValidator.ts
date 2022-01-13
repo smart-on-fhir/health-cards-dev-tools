@@ -11,7 +11,7 @@ import execa from 'execa';
 import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { isOpensslAvailable, parseJson } from './utils'
+import { isOpensslAvailable } from './utils'
 import { Certificate } from '@fidm/x509'
 import { downloadAndValidateCRL } from './crl-validator';
 

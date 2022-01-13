@@ -3,29 +3,44 @@
 
 import fs from 'fs';
 import path from 'path';
-import fileType from 'file-type';
-import core from 'file-type/core';
-import { PNG } from 'pngjs';
-import jpeg from 'jpeg-js';
-import {decode} from 'bmp-js';
+import { getImageBuffer } from './image';
 
-type QRData = "png" | "jpg" | "bmp" | "svg" | "shc" | "unknown";
-type FileData = { data: Buffer | string | undefined, type: QRData };
 
+/*
+
+  Reads a user file from the file system and returns an object with the data buffer and additional metadata.
+  If we can get all the data/metadata we need here, then ideally, none of the other code needs to deal with the file system.
+
+  This is used for all user supplied input files:
+
+  shc                   decoded qr code data
+  svg                   qr code as vector data
+  png                   qr code as an image
+  bmp                   "
+  gif                   "
+  tif                   "
+  jpg                   "
+  jws                   serialized json web signature (jws)
+  smart-health-card     json with a verifiable credential array
+  fhir-bundle           json FHIR data
+  keys                  json with an array of keys
+
+*/
 
 export interface FileInfo {
     name: string,
     path: string,
     ext: string,
     buffer: Buffer,
-    fileType: core.FileTypeResult | string | undefined,
+    fileType: string | undefined,
     image?: FileImage
 }
 
 
 export interface FileImage {
-    data: Buffer, height: number, width: number
+    data: Buffer, height: number, width: number, density?: number
 }
+
 
 // Reads a file and determines what kind of file it is
 export async function getFileData(filepath: string): Promise<FileInfo> {
@@ -37,41 +52,68 @@ export async function getFileData(filepath: string): Promise<FileInfo> {
     // read the file data
     const buffer: Buffer = fs.readFileSync(filepath);
 
+    // collect file metadata
     const fileInfo: FileInfo = {
-        name: path.basename(filepath),
+        name: path.basename(filepath, path.extname(filepath)),
         path: path.resolve(filepath),
         ext: path.extname(filepath),
         buffer: buffer,
-        fileType: await fileType.fromBuffer(buffer)
+        fileType: fileType(buffer)
     };
 
-    if (fileInfo.fileType) {
-        if ((fileInfo.fileType as core.FileTypeResult).ext) {
-            fileInfo.fileType = (fileInfo.fileType as core.FileTypeResult).ext;
-        }
-    } else {
-        // let's try to determine the type, assuming text files
-        const textFileContent = buffer.toString('utf-8');
-        if (fileInfo.ext === '.svg' || textFileContent.startsWith("<svg")) {
-            fileInfo.fileType = 'svg';
-        } else if (textFileContent.startsWith("shc:")) {
-            fileInfo.fileType = 'shc';
-        }
-    }
-
+    // get the image data if this is an image file
     switch (fileInfo.fileType) {
         case 'png':
-            fileInfo.image = PNG.sync.read(fileInfo.buffer);
-            break;
         case 'jpg':
-            fileInfo.image = jpeg.decode(buffer, { useTArray: true }) as { data: Buffer, height: number, width: number };
-            break;
+        case 'gif':
+        case 'tif':
         case 'bmp':
-            fileInfo.image = decode(buffer) as { data: Buffer, height: number, width: number };
-            break;
-        default:
+        case 'svg':
+            fileInfo.image = await getImageBuffer(fileInfo);
             break;
     }
 
     return fileInfo;
 }
+
+
+// determine the type of a file by examining its contents
+function fileType(buffer: Buffer): string | undefined {
+
+    const bytes = new Uint8ClampedArray(buffer);
+
+    const hex = (start: number, end?: number) => buffer.toString('hex', start, end);
+    const ascii = (start: number, end?: number) => buffer.toString('ascii', start, end);
+
+    if (buffer.length < 8) return undefined;
+
+    if (buffer.subarray(0, 2).toString('ascii') === 'BM' &&
+        (bytes[4] << 16) + (bytes[3] << 8) + (bytes[2]) === buffer.length) return 'bmp';
+
+    if (hex(0, 2) === 'ffd8' && buffer.subarray(-2).toString('hex') === 'ffd9') return 'jpg';
+    //buffer.subarray(-2).toString('hex') === 'ffd9') return 'jpg';
+
+    if (buffer.subarray(0, 8).toString('hex') === '89504e470d0a1a0a') return 'png';
+
+    if (/GIF8(9|7)a/.test(buffer.subarray(0, 6).toString('ascii'))) return 'gif';
+
+    if (buffer.subarray(0, 4).toString('hex') === '49492a00') return 'tif';
+
+    // we didn't match it to an image type, try text
+
+    const fileText = buffer.toString('utf-8');
+
+    if (/^\s*<svg/.test(fileText)) return 'svg';
+
+    if (/^\s*shc:/.test(fileText)) return 'shc';
+
+    if (/^\s*[\W-]+\.[\W-]+\.[\W-]+\s*$/.test(fileText)) return 'jws';
+
+    try {
+        if (JSON.parse(fileText)) return 'json';
+    } catch { /*empty*/ }
+
+    return undefined;
+}
+
+
