@@ -135,7 +135,7 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
 const JRE = {
 
     isAvailable: (): boolean => {
-        const result = runCommandSync(`java --version`, log);
+        const result = runCommandSync(`java -version`, log);
         if (result.exitCode === 0) {
             const version = /^(java|openjdk) \d+.+/.exec(result.stdout)?.[0] ?? 'unknown';
             log?.debug(`Java detected : ${version}`);
