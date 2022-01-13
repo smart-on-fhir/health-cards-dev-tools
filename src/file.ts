@@ -80,24 +80,20 @@ export async function getFileData(filepath: string): Promise<FileInfo> {
 // determine the type of a file by examining its contents
 function fileType(buffer: Buffer): string | undefined {
 
-    const bytes = new Uint8ClampedArray(buffer);
-
     const hex = (start: number, end?: number) => buffer.toString('hex', start, end);
     const ascii = (start: number, end?: number) => buffer.toString('ascii', start, end);
 
     if (buffer.length < 8) return undefined;
 
-    if (buffer.subarray(0, 2).toString('ascii') === 'BM' &&
-        (bytes[4] << 16) + (bytes[3] << 8) + (bytes[2]) === buffer.length) return 'bmp';
+    if (ascii(0, 2) === 'BM' && buffer.readUInt32LE(2) === buffer.length) return 'bmp';
 
     if (hex(0, 2) === 'ffd8' && buffer.subarray(-2).toString('hex') === 'ffd9') return 'jpg';
-    //buffer.subarray(-2).toString('hex') === 'ffd9') return 'jpg';
 
-    if (buffer.subarray(0, 8).toString('hex') === '89504e470d0a1a0a') return 'png';
+    if (hex(0, 8) === '89504e470d0a1a0a') return 'png';
 
-    if (/GIF8(9|7)a/.test(buffer.subarray(0, 6).toString('ascii'))) return 'gif';
+    if (/GIF8(9|7)a/.test(ascii(0, 6))) return 'gif';
 
-    if (buffer.subarray(0, 4).toString('hex') === '49492a00') return 'tif';
+    if (hex(0, 4) === '49492a00') return 'tif';
 
     // we didn't match it to an image type, try text
 
@@ -107,7 +103,7 @@ function fileType(buffer: Buffer): string | undefined {
 
     if (/^\s*shc:/.test(fileText)) return 'shc';
 
-    if (/^\s*[\W-]+\.[\W-]+\.[\W-]+\s*$/.test(fileText)) return 'jws';
+    if (/^\s*[\w-]+\.[\w-]+\.[\w-]+\s*$/.test(fileText)) return 'jws';
 
     try {
         if (JSON.parse(fileText)) return 'json';
@@ -115,5 +111,3 @@ function fileType(buffer: Buffer): string | undefined {
 
     return undefined;
 }
-
-
