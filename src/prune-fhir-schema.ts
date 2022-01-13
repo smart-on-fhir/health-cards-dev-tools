@@ -86,6 +86,7 @@ async function pruneSchema(resources: string[]/*, fullFhirSchema?: Schema*/): Pr
     // The reason is that if the entry items have bad schema, we will get dozens of errors as the bad-schema object
     // fails to match any of the possible Resources. So instead, we validate the entries individually against
     // the resource type specified in its resourceType field.
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     newSchema.definitions['Bundle_Entry'].properties!.resource = { "type": "object" };
 
     return newSchema;
