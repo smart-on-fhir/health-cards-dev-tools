@@ -156,13 +156,13 @@ test("Cards: valid 02 QR numeric (out of order)",
 test("Cards: valid 03 QR numeric", testCard(['example-03-f-qr-code-numeric-value-0.txt'], "qrnumeric"));
 test("Cards: valid 1195-byte QR numeric", testCard(['test-example-1195-byte-qrnumeric.txt'], "qrnumeric"));
 
-test("Cards: valid 00 QR code", testCard(['example-00-g-qr-code-0.svg'], "qr"));
-test("Cards: valid 01 QR code", testCard(['example-01-g-qr-code-0.svg'], "qr"));
+test("Cards: valid 00 QR code SVG", testCard(['example-00-g-qr-code-0.svg'], "qr"));
+test("Cards: valid 01 QR code SVG", testCard(['example-01-g-qr-code-0.svg'], "qr"));
 
 test("Cards: valid 00 QR code: requires scaling 23", testCard(['test-example-00-g-qr-code-0-scaled-23.jpg'], "qr"), 10 * 1000 /* 10-seconds*/);
 test("Cards: valid 00 QR code: requires scaling 85", testCard(['test-example-00-g-qr-code-0-scaled-85.jpg'], "qr"), 10 * 1000 /* 10-seconds*/);
 
-test("Cards: valid 02 QR code",
+test("Cards: valid 02 QR code SVG",
     testCard(['example-02-g-qr-code-0.svg', 'example-02-g-qr-code-1.svg', 'example-02-g-qr-code-2.svg'], "qr", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
 
 test("Cards: valid 02 QR code PNG",

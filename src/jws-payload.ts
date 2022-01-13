@@ -40,7 +40,7 @@ export async function validate(jwsPayloadText: string): Promise<Log> {
     // failures will be recorded in the log. we can continue processing.
     validateSchema(jwsPayloadSchema, jwsPayload, log);
 
-    const validateDate = (inputDate: any, label: string, log: Log): Date | undefined => {
+    const validateDate = (inputDate: number, label: string, log: Log): Date | undefined => {
         if (utils.isNumeric(inputDate)) {
             const date = new Date();
             date.setTime(inputDate * 1000); // convert seconds to milliseconds

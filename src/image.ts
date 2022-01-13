@@ -1,18 +1,22 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import svg2img from 'svg2img';   // svg files to image buffer
-import jsQR from 'jsqr';         // qr image decoder
+import jsQR from 'jsqr';
 import { ErrorCode } from './error';
 import Log from './logger';
 import { FileImage, FileInfo } from './file';
 import * as qr from './qr';
-import { PNG } from 'pngjs';
 import fs from 'fs';
-import Jimp from 'jimp';
-import { create, toFile, QRCodeSegment } from 'qrcode';
+import { create } from 'qrcode';
 import { ByteChunk, Chunk } from 'jsqr/dist/decoder/decodeData';
 import jpeg from 'jpeg-js';
+import sharp from 'sharp';
+import path from 'path';
+
+
+// the size of images generated from svg data 
+const svgImageWidth = 600;
+
 
 export async function validate(images: FileInfo[]): Promise<Log> {
 
@@ -32,9 +36,7 @@ export async function validate(images: FileInfo[]): Promise<Log> {
         log.debug(images[i].name + ' = ' + shc);
     }
 
-
     log.child.push((await qr.validate(shcStrings)));
-
 
     return log;
 }
@@ -43,19 +45,14 @@ export async function validate(images: FileInfo[]): Promise<Log> {
 // takes file path to QR data and returns base64 data
 async function decode(fileInfo: FileInfo, log: Log): Promise<string | undefined> {
 
-    let svgBuffer;
-
     switch (fileInfo.fileType) {
 
-        case 'svg': // TODO: move this processing to file.ts, with all others? would require some refactoring to catch and log errors 
-            svgBuffer = await svgToImageBuffer(fileInfo.buffer.toString(), log);
-            fileInfo.image = PNG.sync.read(svgBuffer);
-            fs.writeFileSync(fileInfo.path + '.png', svgBuffer);
 
         // eslint-disable-next-line no-fallthrough
         case 'png':
         case 'jpg':
         case 'bmp':
+        case 'svg':
             return Promise.resolve(decodeQrBuffer(fileInfo, log));
 
         default:
@@ -66,25 +63,30 @@ async function decode(fileInfo: FileInfo, log: Log): Promise<string | undefined>
 }
 
 
-// the svg data is turned into an image buffer. these values ensure that the resulting image is readable
-// by the QR image decoder. 300x300 fails while 400x400 succeeds 
-const svgImageWidth = 600;
+export async function getImageBuffer(fileInfo: FileInfo): Promise<FileImage> {
 
+    let s: sharp.Sharp;
 
-// Converts a SVG file into a QR image buffer (as if read from a image file)
-async function svgToImageBuffer(svgPath: string, log: Log): Promise<Buffer> {
+    if (fileInfo.fileType === 'bmp') {
+        s = importBmp24(fileInfo.path);
+    } else {
+        s = sharp(fileInfo.path);
+    }
 
-    // TODO: create a test that causes failure here
-    return new Promise<Buffer>((resolve, reject) => {
-        svg2img(svgPath, { width: svgImageWidth, height: svgImageWidth },
-            (error: unknown, buffer: Buffer) => {
-                if (error) {
-                    log.fatal("Could not convert SVG to image. Error: " + (error as Error).message);
-                    reject(undefined);
+    // we need to preserve the svg density parameter to deal with a sharp scaling bug
+    const metadata = await s.metadata();
+
+    const { data, info } = await s.raw().ensureAlpha().toBuffer({ resolveWithObject: true })
+        .catch((err) => {
+            throw err;
+        });
+
+    return {
+        data: data,
+        width: info.width,
+        height: info.height,
+        density: metadata.density
                 }
-                resolve(buffer);
-            });
-    });
 }
 
 
@@ -92,8 +94,7 @@ async function svgToImageBuffer(svgPath: string, log: Log): Promise<Buffer> {
 function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
 
     const result: JWS | undefined = undefined;
-
-    let data = fileInfo!.image;
+    const data = fileInfo.image;
 
     if (!data) {
         log.fatal('Could not read image data from : ' + fileInfo.name);
@@ -153,40 +154,30 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
     return code.data;
 }
 
+// used to create test images (jpg, png, etc) from a base svg file
+export async function svgToQRImage(fileInfo: FileInfo): Promise<void> {
 
-export function svgToQRImage(filePath: string): Promise<unknown> {
+    if (!fileInfo.image?.data) throw new Error('File contains no image data.');
+    if (!fileInfo.image.density) throw new Error('svgToQRImage density missing');
 
-    const baseFileName = filePath.slice(0, filePath.lastIndexOf('.'));
+    // the 'sharp' package doesn't properly handle scaling svg image and results in blurry conversions to image.
+    // a workaround is to compute the proper new density and use it when opening the svg.
+    // this will give very clear images, when correct.
+    const density = (fileInfo.image.density * svgImageWidth) / fileInfo.image.width;
 
-    return new
-        Promise<Buffer>((resolve, reject) => {
-            svg2img(filePath, { width: 600, height: 600 },
-                (error: unknown, buffer: Buffer) => {
-                    error ? reject("Could not create image from svg") : resolve(buffer);
-                });
-        })
-        .then((buffer) => {
-            fs.writeFileSync(baseFileName + '.png', buffer);
-            return Jimp.read(baseFileName + '.png');
-        })
-        .then(png => {
-            return Promise.all([
-                png.write(baseFileName + '.bmp'),
-                png.grayscale().quality(100).write(baseFileName + '.jpg')
-            ]);
-        })
+    const s = sharp(fileInfo.path, { density: density })
+        .resize(svgImageWidth, svgImageWidth);
+
+    const filePath = path.join(path.dirname(fileInfo.path), fileInfo.name);
+
+    await Promise.all([
+        s.toFile(`${filePath}.bmp`),
+        s.toFile(`${filePath}.png`),
+        s.toFile(`${filePath}.jpg`)
+    ])
         .catch(err => { console.error(err); });
 }
 
-
-export async function dataToQRImage(path: string, data: QRCodeSegment[]) : Promise<void> {
-
-    await toFile(path, data, { type: 'png', errorCorrectionLevel: 'low' })
-        .catch((error) => {
-            throw error;
-        });
-
-}
 
 // takes an image of raw RGBA data and scales it to a new size
 function scaleImage(image: FileImage, scale: number) {
@@ -204,6 +195,7 @@ function scaleImage(image: FileImage, scale: number) {
     return { data: Buffer.from(nb.buffer), height: h, width: w };
 }
 
+
 // try scaling the image until it decodes; this works for some poorly scaled qr images
 function tryScaling(image: FileImage, log?: Log) {
 
@@ -212,7 +204,7 @@ function tryScaling(image: FileImage, log?: Log) {
     let code = null;
 
     for (let s = scaleMin; s <= scaleMax + 0.01; s += 0.1) {
-        const data = scaleImage(image as FileImage, s);
+        const data = scaleImage(image, s);
         code = jsQR(new Uint8ClampedArray(data.data.buffer), data.width, data.height);
         log && log.debug(`image scaled to ${s.toFixed(1)} : ${code ? 'succeeded' : 'failed'}`);
         if (code) break;
@@ -220,6 +212,32 @@ function tryScaling(image: FileImage, log?: Log) {
 
     return code;
 }
+
+
+// convert a 24-bit uncompressed bitmap to a Sharp object
+// sharp does not support importing bitmaps (bizarre - I even asked the dev)
+function importBmp24(filePath: string): sharp.Sharp {
+
+    const buff = fs.readFileSync(filePath);
+    const dv = new DataView(buff.buffer, buff.byteOffset, buff.byteLength);
+    const uint32 = (offset: number) => dv.getUint32(offset, true);
+
+    if (
+        buff.toString('ascii', 0, 2) !== 'BM' ||  // must start with 'BM'
+        uint32(2) !== fs.statSync(filePath).size ||  // bytes 2-5 must match the file size
+        dv.getUint16(28, true) !== 24 // bits-per-pixel must be 24
+    ) throw new Error('invalid 24-bit bitmap');
+
+    return sharp(
+        // .reverse() corrects BGR to RGB and the rows being stored bottom-to-top
+        // .slice(0) needed to make new pixel buffer copy as sharp does not respect the offset/length properties of an ArrayBuffer
+        (new Uint8Array(buff.buffer, buff.byteOffset + uint32(10), uint32(34))).reverse().slice(0),
+        { raw: { width: uint32(18), height: uint32(22), channels: 3 } }
+    )
+        .flop() /* correct horizontal flip from .reverse() */
+        .ensureAlpha();
+}
+
 
 // this is a utility function to generate qr codes that can be decoded only using tryScaling.
 // it is not used to do any validation
@@ -235,7 +253,7 @@ function searchScaling(image: FileImage) {
 
         console.log(`trying ${s.toFixed(2)}`);
 
-        data = scaleImage(image as FileImage, s);
+        data = scaleImage(image, s);
         code = jsQR(new Uint8ClampedArray(data.data.buffer), data.width, data.height);
 
         // image failed to decode at s; now see if tryScaling() can make it work

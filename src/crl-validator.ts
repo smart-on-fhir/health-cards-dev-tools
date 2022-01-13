@@ -2,7 +2,7 @@ import { ErrorCode } from "./error";
 import { JwsValidationOptions } from "./jws-compact";
 import got from 'got';
 import Log from "./logger";
-import { parseJson, isNumeric } from "./utils";
+import { parseJson } from "./utils";
 
 interface CRL {
     kid: string,
