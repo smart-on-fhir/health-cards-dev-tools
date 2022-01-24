@@ -3,7 +3,7 @@ import * as fhirHealthCard from './fhirHealthCard';
 import * as jws from './jws-compact';
 import * as jwsPayload from './jws-payload';
 import * as fhirBundle from './fhirBundle';
-import { FhirOptions, ValidationProfiles } from './fhirBundle';
+import { FhirOptions, ValidationProfiles, Validators } from './fhirBundle';
 import * as qr from './qr';
 import Log, { LogLevels } from './logger';
 import { ErrorCode } from './error';
@@ -27,7 +27,8 @@ export interface IOptions {
     logLevel?: LogLevels,
     profile?: ValidationProfiles,
     directory?: string,
-    clearKeyStore?: boolean
+    clearKeyStore?: boolean,
+    validator?: Validators
 }
 
 async function validateKeySet(text: string, options?: IOptions): Promise<ValidationErrors> {
@@ -58,11 +59,11 @@ async function validateFhirHealthcard(json: string, options?: IOptions): Promise
 
 async function validateJws(text: string, options?: IOptions): Promise<ValidationErrors> {
     options?.directory ? await setTrustedIssuerDirectory(options.directory) : clearTrustedIssuerDirectory();
-    options?.clearKeyStore  && keys.clear();
+    options?.clearKeyStore && keys.clear();
     const log = await jws.validate(text);
     return formatOutput(log, options?.logLevel || LogLevels.WARNING);
 }
- 
+
 async function validateJwspayload(payload: string, options?: IOptions): Promise<ValidationErrors> {
     const log = await jwsPayload.validate(payload);
     return Promise.resolve(formatOutput(log, options?.logLevel || LogLevels.WARNING));
@@ -70,6 +71,10 @@ async function validateJwspayload(payload: string, options?: IOptions): Promise<
 
 async function validateFhirBundle(json: string, options?: IOptions): Promise<ValidationErrors> {
     FhirOptions.ValidationProfile = options?.profile || ValidationProfiles.any;
+    FhirOptions.Validator = options?.validator || Validators.default;
+    if (options?.profile === ValidationProfiles['usa-covid19-immunization'] && options?.validator === Validators.fhirvalidator) {
+        return [{ message: `mutually exclusive options --profile usa-covid19-immunization and --validator fhirvalidator`, code: ErrorCode.ERROR, level: LogLevels.ERROR }];
+    }
     const log = await fhirBundle.validate(json);
     return Promise.resolve(formatOutput(log, options?.logLevel || LogLevels.WARNING));
 }
@@ -109,3 +114,4 @@ export const validate = {
 
 export { ValidationProfiles };
 
+export { Validators };

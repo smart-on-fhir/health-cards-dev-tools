@@ -95,44 +95,31 @@ async function fetchKeys(outdir: string, force = false): Promise<void> {
 }
 
 async function getFileDataWithTimeout(fileDir: string): Promise<FileInfo> {
-
     return new Promise((resolve, reject) => {
-
-        console.log(`getFileData ${fileDir}`);
-
         getFileData(fileDir)
             .then((fi) => {
-                console.log(`getFileData ${fileDir} complete`);
                 resolve(fi);
             }, reject);
 
         setTimeout(() => {
             reject(`getFileData timeout ${fileDir}`);
         }, 10000);
-
     });
-
 }
 
 async function svgToQRImageWithTimeout(fi: FileInfo): Promise<void> {
-
     return new Promise((resolve, reject) => {
-
-        console.log(`svgToQRImage ${fi.path}`);
-
         svgToQRImage(fi)
             .then(() => {
-                console.log(`svgToQRImage ${fi.path} complete`);
                 resolve();
             }, reject);
 
         setTimeout(() => {
             reject(`svgToQRImage timeout ${fi.path}`);
         }, 10000);
-
     });
-
 }
+
 // for each .svg file, generate a png, jpg, and bmp QR image
 async function generateImagesFromSvg(dir: string): Promise<void> {
 
@@ -146,23 +133,7 @@ async function generateImagesFromSvg(dir: string): Promise<void> {
         if (!fi) return;
         await svgToQRImageWithTimeout(fi).catch(error => console.log(error));
     }
-
-    // for(const fi of svgFileInfo) {
-    //     await svgToQRImage(fi);
-    // }
 }
-
-
-// // for each .svg file, generate a png, jpg, and bmp QR image
-// async function generateImagesFromSvg(dir: string, force = false) {
-
-//     const svgFiles = fs.readdirSync(dir).filter(f => path.extname(f) === '.svg');
-//     const svgFileInfo: FileInfo[] = await Promise.all(svgFiles.map(f => getFileData(path.join(dir, f))));
-
-//     for(const fi of svgFileInfo) {
-//         await svgToQRImage(fi);
-//     }
-// }
 
 const program = new Command();
 program.option('-f, --force', 'forces example retrieval, even if already present');

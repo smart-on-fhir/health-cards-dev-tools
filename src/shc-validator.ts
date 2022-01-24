@@ -42,7 +42,7 @@ program.option('-k, --jwkset <key>', 'path to trusted issuer key set');
 program.option('-e, --exclude <error>', 'error to exclude, can be repeated, can use a * wildcard. Valid options:' +
     ExcludableErrors.map(e => ` "${e.error}"`).join(),
     (e: string, errors: string[]) => errors.concat([e]), []);
-program.addOption(new Option('-V, --validator <validator>', 'the choice of FHIR validator to use').choices(Object.keys(Validators).filter(x => Number.isNaN(Number(x)))).default('default'));
+program.addOption(new Option('-V, --validator <validator>', 'the choice of FHIR validator to use (cannot be used with non-default --profile)').choices(Object.keys(Validators).filter(x => Number.isNaN(Number(x)))));
 program.parse(process.argv);
 
 export interface CliOptions {
@@ -116,15 +116,26 @@ async function processOptions(options: CliOptions) {
     FhirOptions.ValidationProfile =
         options.profile ?
             ValidationProfiles[options.profile as keyof typeof ValidationProfiles] :
-            FhirOptions.ValidationProfile = ValidationProfiles['any'];
+            FhirOptions.ValidationProfile = ValidationProfiles.any;
 
-            
+
     // set the FHIR validator
     FhirOptions.Validator =
         options.validator ?
             Validators[options.validator as keyof typeof Validators] :
-            FhirOptions.Validator = Validators['default'];
+            FhirOptions.Validator = Validators.default;
 
+
+    // --profile usa-covid19-immunization & --validator fhirvalidator are mutually exclusive
+    if (
+        FhirOptions.Validator === Validators.fhirvalidator &&
+        FhirOptions.ValidationProfile === ValidationProfiles['usa-covid19-immunization']
+    ) {
+        console.log("Invalid option combination, cannot specify both --profile usa-covid19-immunization and --validator fhirvalidator");
+        console.log(options);
+        program.help();
+        return;
+    }
 
 
     // requires both --path and --type properties

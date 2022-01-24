@@ -37,8 +37,6 @@ async function runValidatorJRE(artifactPath: string): Promise<CommandResult | nu
         return null;
     }
 
-    log.info(`Validating ${artifactPath} with FHIR validator.`);
-
     const result: CommandResult = await runCommand(`java -jar ${validatorJarFile} ${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
 
     return result;
@@ -59,8 +57,6 @@ async function runValidatorDocker(artifactPath: string): Promise<CommandResult |
     }
 
     const dockerCommand = `java -jar validator_cli.jar data/${artifactPath}`;
-
-    log.info(`Validating ${path.resolve(artifactPath)} with FHIR validator.`);
 
     // create a new container from image, copies the 
     const command = `docker run --rm --name ${dockerContainer} -v ${path.resolve(path.dirname(artifactPath))}:/data  ${imageName} ${dockerCommand}`;
