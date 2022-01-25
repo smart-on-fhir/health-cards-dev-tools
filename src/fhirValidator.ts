@@ -89,6 +89,8 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
         log.debug(`not valid JSON ${fileOrJSON}, no temp file created.`);
     }
 
+    await runCommand(`ls -la`, `ls`, log);
+
     const artifact = path.resolve(fileOrJSON);
 
     if (!fs.existsSync(artifact)) {
@@ -100,6 +102,7 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
     const result: CommandResult | null = await (usingJre ? runValidatorJRE(fileName) : runValidatorDocker(fileName));
 
     if (fs.existsSync(tempFileName)) {
+        log.debug(`deleting temp file ${tempFileName}`);
         fs.rmSync(tempFileName);
     }
 
