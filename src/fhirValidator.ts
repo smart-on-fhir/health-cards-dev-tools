@@ -11,7 +11,7 @@ const dockerFile = 'fhir.validator.Dockerfile';
 const dockerContainer = 'fhir.validator.container';
 const validatorJarFile = 'validator_cli.jar';
 const validatorUrl = 'https://github.com/hapifhir/org.hl7.fhir.core/releases/latest/download/validator_cli.jar';
-const tempFileName = '~temp.fhirbundle.json';
+const tempFileName = 'tempfhirbundle.json';
 
 
 // share a log between the functions. This can be passed in externally through the validate() function
@@ -97,7 +97,7 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
         return log.error(`Artifact ${artifact} not found.`);
     }
 
-    const fileName = path.basename(artifact);
+    const fileName = `./${path.basename(artifact)}`;
 
     const result: CommandResult | null = await (usingJre ? runValidatorJRE(fileName) : runValidatorDocker(fileName));
 
@@ -139,7 +139,7 @@ const JRE = {
     isAvailable: (): boolean => {
         const result = runCommandSync(`java -version`, log);
         if (result.exitCode === 0) {
-            const version = /^(java|openjdk) \d+.+/.exec(result.stdout || result.stderr)?.[0] ?? 'unknown';
+            const version = /^(java \d+.+|openjdk version "\d+.+)/.exec(result.stdout || result.stderr)?.[0] ?? 'unknown';
             log?.debug(`Java detected : ${version}`);
         }
 
