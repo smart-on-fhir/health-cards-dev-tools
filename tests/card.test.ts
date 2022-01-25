@@ -13,7 +13,8 @@ const testdataDir = './testdata/';
 
 
 // wrap testcard with a function that returns a function - now we don't need all 'async ()=> await' for every test case
-function testCard(fileName: string | string[],
+function testCard(
+    fileName: string | string[],
     fileType: ValidationType = 'healthcard',
     expected: (number | null | undefined | ec[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
     options: Partial<CliOptions> = {}) {
@@ -33,15 +34,15 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
 
     options.type = fileType;
 
-    const log = (await validateCard(files, options as CliOptions)).flatten();
-
+    const log = await validateCard(files, options as CliOptions);
+    const flatLog = log.flatten();
 
     const errors = [
-        log.filter(i => i.level >= LogLevels.ERROR),
-        log.filter(i => i.level === LogLevels.WARNING),
-        log.filter(i => i.level === LogLevels.INFO),
-        log.filter(i => i.level === LogLevels.DEBUG),
-        log.filter(i => i.level === LogLevels.FATAL)
+        flatLog.filter(i => i.level >= LogLevels.ERROR),
+        flatLog.filter(i => i.level === LogLevels.WARNING),
+        flatLog.filter(i => i.level === LogLevels.INFO),
+        flatLog.filter(i => i.level === LogLevels.DEBUG),
+        flatLog.filter(i => i.level === LogLevels.FATAL)
     ];
 
     const errorLevelMap = [LogLevels.ERROR, LogLevels.WARNING, LogLevels.INFO, LogLevels.DEBUG, LogLevels.FATAL];
@@ -61,7 +62,13 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
                     console.debug(`    ${ec[e.code]}|${e.code}|${e.message}`);
                 });
             }
+
+            if(err.length !== exp) {
+                console.debug(log.toString(LogLevels.DEBUG));
+            }
+
             expect(err.length).toBe(exp);
+
         }
 
         if (exp instanceof Array) {
@@ -399,8 +406,8 @@ describe('FHIR validator tests', () => {
     const canRunFhirValidator = jreOrDockerAvailable();
     console.log(`Java: ${canRunFhirValidator.toString()}`);
     // shc-validator -p ./testdata/test-example-00-a-fhirBundle-profile-usa.json -t fhirbundle -l debug -V fhirvalidator
-    testif(canRunFhirValidator)("Cards: fhir validator test", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
-        [8, 1], { validator: 'fhirvalidator' }), 1000 * 60 * 5 /*5 minutes*/);
+    testif(canRunFhirValidator)("Cards: fhir x validator test", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
+        [8, 1], { validator: 'fhirvalidator', loglevel: 'debug' }), 1000 * 60 * 5 /*5 minutes*/);
 
 
 });
