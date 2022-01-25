@@ -107,7 +107,7 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
 
     if (fs.existsSync(tempFileName)) {
         log.debug(`deleting temp file ${tempFileName}`);
-        fs.rmSync(tempFileName);
+        //fs.rmSync(tempFileName);
     }
 
     // null returned if validator failed before validation actually checked
