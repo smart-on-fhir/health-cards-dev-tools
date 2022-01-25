@@ -37,7 +37,7 @@ async function runValidatorJRE(artifactPath: string): Promise<CommandResult | nu
         return null;
     }
 
-    const result: CommandResult = await runCommand(`java -jar ${validatorJarFile} ${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
+    const result: CommandResult = await runCommand(`java -jar ./${validatorJarFile} ./${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
 
     return result;
 }
@@ -97,7 +97,7 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
         return log.error(`Artifact ${artifact} not found.`);
     }
 
-    const fileName = `./${path.basename(artifact)}`;
+    const fileName = path.basename(artifact);
 
     const result: CommandResult | null = await (usingJre ? runValidatorJRE(fileName) : runValidatorDocker(fileName));
 
