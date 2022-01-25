@@ -5,13 +5,14 @@ import { ErrorCode } from './error';
 import color from 'colors';
 import got from 'got';
 import { runCommand, runCommandSync } from '../src/command';
+import crypto from 'crypto';
 
 const imageName = 'fhir.validator.image';
 const dockerFile = 'fhir.validator.Dockerfile';
 const dockerContainer = 'fhir.validator.container';
 const validatorJarFile = 'validator_cli.jar';
 const validatorUrl = 'https://github.com/hapifhir/org.hl7.fhir.core/releases/latest/download/validator_cli.jar';
-const tempFileName = 'tempfhirbundle.json';
+const tempFilePrefix = 'tempfhirbundle';
 
 
 // share a log between the functions. This can be passed in externally through the validate() function
@@ -37,11 +38,7 @@ async function runValidatorJRE(artifactPath: string): Promise<CommandResult | nu
         return null;
     }
 
-    let result: CommandResult = await runCommand(`java -jar ./${validatorJarFile} ./${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
-
-    if(result.exitCode) {
-        result = await runCommand(`java -jar ./${validatorJarFile} ./${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
-    }
+    const result: CommandResult = await runCommand(`java -jar ./${validatorJarFile} ./${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
 
     return result;
 }
@@ -77,6 +74,7 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
 
     const usingJre = JRE.isAvailable();
     const usingDocker = !usingJre && Docker.isAvailable();
+    const tempFileName = `${tempFilePrefix}${crypto.randomBytes(4).readUInt32LE(0)}.json`;
 
     if (!usingJre && !usingDocker) {
         return log.error(
@@ -107,7 +105,7 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
 
     if (fs.existsSync(tempFileName)) {
         log.debug(`deleting temp file ${tempFileName}`);
-        //fs.rmSync(tempFileName);
+        fs.rmSync(tempFileName);
     }
 
     // null returned if validator failed before validation actually checked
