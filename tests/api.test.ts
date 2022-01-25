@@ -90,6 +90,11 @@ async function _validateApi(filePath: string[] | string, type: string, expected:
         const err = errors[i];
 
         if (Number.isInteger(exp)) {
+
+            if(err.length !== exp) {
+                console.debug(JSON.stringify(log));
+            }
+
             expect(err.length).toBe(exp);
         }
 
