@@ -82,8 +82,11 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
     }
 
     if (JSON.parse(fileOrJSON)) {
+        log.debug(`writing valid json as temp file ${tempFileName}`);
         fs.writeFileSync(tempFileName, fileOrJSON);  // overwrites by default
         fileOrJSON = tempFileName;
+    } else {
+        log.debug(`not valid JSON ${fileOrJSON}, no temp file created.`);
     }
 
     const artifact = path.resolve(fileOrJSON);
@@ -133,7 +136,7 @@ const JRE = {
     isAvailable: (): boolean => {
         const result = runCommandSync(`java -version`, log);
         if (result.exitCode === 0) {
-            const version = /^(java|openjdk) \d+.+/.exec(result.stdout)?.[0] ?? 'unknown';
+            const version = /^(java|openjdk) \d+.+/.exec(result.stdout || result.stderr)?.[0] ?? 'unknown';
             log?.debug(`Java detected : ${version}`);
         }
 
