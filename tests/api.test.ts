@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { ErrorCode as ec, LogLevels } from '../src/api';
 import { jreOrDockerAvailable } from '../src/fhirValidator';
+import { isRegExp } from 'util/types';
 
 const testdataDir = './testdata/';
 
@@ -65,7 +66,7 @@ async function _validateApi(filePath: string[] | string, type: string, expected:
 
     let log = await p;
 
-    log.length !== 0 && console.log(JSON.stringify(log));
+    //log.length !== 0 && console.log(JSON.stringify(log));
 
     // skip the no-openssl warning
     log = log.filter(e => e.code !== api.ErrorCode.OPENSSL_NOT_AVAILABLE);
@@ -93,6 +94,11 @@ async function _validateApi(filePath: string[] | string, type: string, expected:
         }
 
         if (exp instanceof Array) {
+
+            if(err.length !== exp.length) {
+                console.debug(JSON.stringify(log));
+            }
+
             // then number of expected errors should equal the number of actual errors
             expect(err).toHaveLength(exp.length);
             for (let j = 0; j < err.length; j++) {
