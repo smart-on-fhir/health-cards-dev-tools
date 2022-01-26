@@ -7,5 +7,5 @@ module.exports = {
   coverageProvider: "v8",
   testEnvironment: "jsdom",
   preset: "ts-jest",
-  testTimeout: 10000
+  testTimeout: 15000
 };

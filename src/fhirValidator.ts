@@ -42,7 +42,12 @@ async function runValidatorJRE(artifactPath: string): Promise<CommandResult | nu
 
     fs.copyFileSync(`./${validatorJarFile}`, tempJarFile);
 
-    const result: CommandResult = await runCommand(`java -jar ./${tempJarFile} ./${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
+    let result: CommandResult = await runCommand(`java -jar ./${tempJarFile} ./${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
+
+    if (result.exitCode) {
+        result = await runCommand(`java -jar ./${tempJarFile} ./${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
+    }
+
 
     fs.rmSync(tempJarFile);
 
