@@ -38,7 +38,7 @@ async function runValidatorJRE(artifactPath: string): Promise<CommandResult | nu
         return null;
     }
 
-    const tempJarFile = `./validator_cli_${crypto.randomBytes(4).readUInt32LE(0)}.jar`;
+    const tempJarFile = `validator_cli_${crypto.randomBytes(4).readUInt32LE(0)}.jar`;
 
     fs.copyFileSync(`./${validatorJarFile}`, tempJarFile);
 
