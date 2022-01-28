@@ -48,7 +48,7 @@ async function runValidatorJRE(artifactPath: string): Promise<CommandResult | nu
 
     log.debug(`start ${count}`);
 
-    let result: CommandResult = await runCommand(`java -jar ./${tempJarFile} ./${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
+    const result: CommandResult = await runCommand(`java -jar ./${tempJarFile} ./${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
 
     log.debug(`end ${count}`);
 
