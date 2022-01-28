@@ -27,13 +27,16 @@ async function downloadFHIRValidator(): Promise<void> {
     }
 }
 
+
 let jreValidatorCount = 0;
 
 
 // Runs the FHIR validator using the installed JRE
 async function runValidatorJRE(artifactPath: string): Promise<CommandResult | null> {
 
-    const count = jreValidatorCount++;
+    const count = ++jreValidatorCount;
+
+    console.debug(`runValidatorJRE called ${count} times. ==============================================================================`);
 
     if (!fs.existsSync(validatorJarFile)) await downloadFHIRValidator();
 
@@ -46,17 +49,11 @@ async function runValidatorJRE(artifactPath: string): Promise<CommandResult | nu
 
     fs.copyFileSync(`./${validatorJarFile}`, tempJarFile);
 
-    log.debug(`start ${count}`);
-
     const result: CommandResult = await runCommand(`java -jar ./${tempJarFile} ./${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
 
-    log.debug(`end ${count}`);
-
-    // if (result.exitCode) {
-    //     result = await runCommand(`java -jar ./${tempJarFile} ./${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
-    // }
-
     fs.rmSync(tempJarFile);
+
+    console.debug(`runValidatorJRE done ${count}. ==============================================================================`);
 
     return result;
 }
