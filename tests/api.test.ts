@@ -1,5 +1,5 @@
 import * as api from '../src/api';
-import {IOptions} from '../src/api';
+import {IOptions} from '../src/options';
 import fs from 'fs';
 import path from 'path';
 import { ErrorCode as ec, LogLevels } from '../src/api';
@@ -12,14 +12,14 @@ function validateApi(
     filePath: string[] | string,
     type: string,
     expected: (number | null | undefined | ec[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
-    options?: IOptions) {
+    options: Partial<IOptions> = {}) {
 
     return async () => {
         await _validateApi(filePath, type, expected, options);
     }
 }
 
-async function _validateApi(filePath: string[] | string, type: string, expected: (number | null | undefined | ec[])[], options?: IOptions): Promise<void> {
+async function _validateApi(filePath: string[] | string, type: string, expected: (number | null | undefined | ec[])[], options: Partial<IOptions> = {}): Promise<void> {
 
     let data: string[] = [];
     let url = '';
@@ -146,19 +146,19 @@ test('qrnumeric: invalid QR header', validateApi(['test-example-00-f-qr-code-num
 test('healthcard: health card w/ trailing chars', validateApi(['test-example-00-e-file-trailing_chars.smart-health-card'], 'healthcard', [[ec.TRAILING_CHARACTERS]]));
 
 
-test('jws: issuer in trusted directory ref by name', validateApi(['example-00-d-jws.txt'], 'jws', [0], { directory: 'test' }));
+test('jws: issuer in trusted directory ref by name', validateApi(['example-00-d-jws.txt'], 'jws', [0], { issuerDirectory: 'test' }));
 
 
-test('jws: issuer in trusted directory ref by URL', validateApi(['example-00-d-jws.txt'], 'jws', [0], { directory: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-dev-tools/main/testdata/test-issuers.json' }));
+test('jws: issuer in trusted directory ref by URL', validateApi(['example-00-d-jws.txt'], 'jws', [0], { issuerDirectory: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-dev-tools/main/testdata/test-issuers.json' }));
 
 
-test('jws: issuer not in trusted directory', validateApi(['example-00-d-jws.txt'], 'jws', [[ec.ISSUER_NOT_TRUSTED]], { directory: 'VCI' }));
+test('jws: issuer not in trusted directory', validateApi(['example-00-d-jws.txt'], 'jws', [[ec.ISSUER_NOT_TRUSTED]], { issuerDirectory: 'VCI' }));
 
 
-test('jws: invalid directory', validateApi('https://spec.smarthealth.cards/examples/issuer', 'trusteddirectory', [[ec.ISSUER_DIRECTORY_NOT_FOUND]], { directory: 'foo' }));
+test('jws: invalid directory', validateApi('https://spec.smarthealth.cards/examples/issuer', 'trusteddirectory', [[ec.ISSUER_DIRECTORY_NOT_FOUND]], { issuerDirectory: 'foo' }));
 
 
-test('jws: valid directory', validateApi('https://spec.smarthealth.cards/examples/issuer', 'trusteddirectory', [0], { directory: 'test' }));
+test('jws: valid directory', validateApi('https://spec.smarthealth.cards/examples/issuer', 'trusteddirectory', [0], { issuerDirectory: 'test' }));
 
 // Without the clearKeyStore option, this test should fail as it will use an existing key store key from a previous test and get
 // the 'kid mismatch' error instead of the expected 'missing key' error

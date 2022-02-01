@@ -14,15 +14,18 @@ import * as qr from './qr';
 import * as image from './image';
 import keys, { KeySet } from './keys';
 import * as utils from './utils';
-import { FhirOptions, ValidationProfiles } from './fhirBundle';
+import { ValidationProfiles } from './fhirBundle';
 import { CliOptions } from './shc-validator';
 import { clearTrustedIssuerDirectory, setTrustedIssuerDirectory } from './issuerDirectory';
+import { IOptions, setOptions } from './options';
 
 
 export type ValidationType = "qr" | "qrnumeric" | "healthcard" | "fhirhealthcard" | "jws" | "jwspayload" | "fhirbundle" | "jwkset";
 
 
-async function processOptions(options: CliOptions) {
+async function processOptions(options: CliOptions) : Promise<IOptions> {
+
+    const defaultOptions = setOptions();
 
     if (options.clearKeyStore === true) {
         keys.clear();
@@ -33,10 +36,10 @@ async function processOptions(options: CliOptions) {
         await validateKey(keys);
     }
 
-    FhirOptions.ValidationProfile =
+    defaultOptions.profile = 
         options.profile ?
             ValidationProfiles[options.profile as keyof typeof ValidationProfiles] :
-            FhirOptions.ValidationProfile = ValidationProfiles['any'];
+            ValidationProfiles.any;
 
     if (options.directory) {
         await setTrustedIssuerDirectory(options.directory);
@@ -44,6 +47,7 @@ async function processOptions(options: CliOptions) {
         clearTrustedIssuerDirectory();
     }
 
+    return defaultOptions;
 }
 
 
@@ -54,47 +58,47 @@ export async function validateKey(keySet: KeySet, log: Log = new Log('Validate K
 
 
 /** Validates SMART Health Card */
-export async function validateCard(fileData: FileInfo[], options: CliOptions): Promise<Log> {
+export async function validateCard(fileData: FileInfo[], cliOptions: CliOptions): Promise<Log> {
 
     let result: Log;
 
-    await processOptions(options);
+    const options : IOptions = await processOptions(cliOptions);
 
-    switch (options.type.toLocaleLowerCase()) {
+    switch (cliOptions.type.toLocaleLowerCase()) {
 
         case "qr":
-            result = await image.validate(fileData);
+            result = await image.validate(fileData, options);
             break;
 
         case "qrnumeric":
-            result = await qr.validate(fileData.map((fi) => fi.buffer.toString('utf-8')));
+            result = await qr.validate(fileData.map((fi) => fi.buffer.toString('utf-8')), options);
             break;
 
         case "healthcard":
-            result = await healthCard.validate(fileData[0].buffer.toString());
+            result = await healthCard.validate(fileData[0].buffer.toString(), options);
             if (fileData[0].ext !== '.smart-health-card') {
                 result.warn("Invalid file extension. Should be .smart-health-card.", ErrorCode.INVALID_FILE_EXTENSION);
             }
             break;
 
         case "fhirhealthcard":
-            result = await fhirHealthCard.validate(fileData[0].buffer.toString());
+            result = await fhirHealthCard.validate(fileData[0].buffer.toString(), options);
             break;
 
         case "jws":
-            result = await jws.validate(fileData[0].buffer.toString());
+            result = await jws.validate(fileData[0].buffer.toString(), options);
             break;
 
         case "jwspayload":
-            result = await jwsPayload.validate(fileData[0].buffer.toString());
+            result = await jwsPayload.validate(fileData[0].buffer.toString(), options);
             break;
 
         case "fhirbundle":
-            result = await fhirBundle.validate(fileData[0].buffer.toString());
+            result = await fhirBundle.validate(fileData[0].buffer.toString(), options);
             break;
 
         default:
-            return Promise.reject(`Invalid type : ${options.type}`);
+            return Promise.reject(`Invalid type : ${cliOptions.type}`);
     }
 
     return result;
