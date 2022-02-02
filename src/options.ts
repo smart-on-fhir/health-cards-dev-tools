@@ -8,7 +8,8 @@ interface IOptions {
     clearKeyStore: boolean,
     cascade: boolean,
     logOutputPath: string,
-    skipJwksDownload: boolean
+    skipJwksDownload: boolean,
+    jwkset : string
 }
 
 const defaultOptions: IOptions = {
@@ -18,7 +19,8 @@ const defaultOptions: IOptions = {
     clearKeyStore: false,
     cascade: true,
     logOutputPath: '',
-    skipJwksDownload: false
+    skipJwksDownload: false,
+    jwkset : ''
 }
 
 const setOptions = function (options: Partial<IOptions> = {}): IOptions {
@@ -35,7 +37,8 @@ const setOptions = function (options: Partial<IOptions> = {}): IOptions {
         if ('clearKeyStore' in options && typeof options.clearKeyStore !== 'boolean') throw new Error(`Invalid clearKeyStore ${options.clearKeyStore ?? ''}`);
         if ('cascade' in options && typeof options.cascade !== 'boolean') throw new Error(`Invalid cascade ${options.cascade ?? ''}`);
         if ('skipJwksDownload' in options && typeof options.skipJwksDownload !== 'boolean') throw new Error(`Invalid skipJwksDownload ${options.skipJwksDownload ?? ''}`);
-        if ('logOutputPath' in options && typeof options.logOutputPath !== 'string') throw new Error(`Invalid logOutputPath ${options.logOutputPath ?? ''}`)
+        if ('logOutputPath' in options && typeof options.logOutputPath !== 'string') throw new Error(`Invalid logOutputPath ${options.logOutputPath ?? ''}`);
+        if ('jwkset' in options && typeof options.jwkset !== 'string') throw new Error(`Invalid jwkset ${options.jwkset ?? ''}`);
     }
 
     return { // this syntax merges two object into a single object. For common properties, the second entry wins.

@@ -2,12 +2,13 @@
 // Licensed under the MIT license.
 
 import path from 'path';
-import { validateCard, ValidationType } from '../src/validate';
+import { validateCard } from '../src/validate';
 import { getFileData } from '../src/file';
 import { ErrorCode as ec } from '../src/error';
 import Log, { LogLevels } from '../src/logger';
 import { isOpensslAvailable } from '../src/utils';
-import { CliOptions } from '../src/shc-validator';
+import { IOptions, setOptions } from '../src/options';
+import { ValidationProfiles } from '../src/fhirBundle';
 
 const testdataDir = './testdata/';
 
@@ -16,14 +17,14 @@ const testdataDir = './testdata/';
 function testCard(fileName: string | string[],
     fileType: ValidationType = 'healthcard',
     expected: (number | null | undefined | ec[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
-    options: Partial<CliOptions> = {}) {
+    options: Partial<IOptions> = {}) {
 
     return async () => {
         await _testCard(fileName, fileType, expected, options);
     }
 }
 
-async function _testCard(fileName: string | string[], fileType: ValidationType, expected: (number | null | undefined | ec[])[], options: Partial<CliOptions>): Promise<void> {
+async function _testCard(fileName: string | string[], fileType: ValidationType, expected: (number | null | undefined | ec[])[], options: Partial<IOptions>): Promise<void> {
 
     if (typeof fileName === 'string') fileName = [fileName];
     const files = [];
@@ -31,10 +32,7 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
         files.push(await getFileData(path.join(testdataDir, fn)));
     }
 
-    options.type = fileType;
-
-    const log = (await validateCard(files, options as CliOptions)).flatten();
-
+    const log = (await validateCard(files, fileType, setOptions(options))).flatten();
 
     const errors = [
         log.filter(i => i.level >= LogLevels.ERROR),
@@ -182,8 +180,8 @@ test("Cards: valid FHIR api health card", testCard(['test-example-00-fhirhealthc
 test("Cards: valid FHIR api health card", testCard(['test-example-00-fhirhealthcard-multi-jws.json'], "fhirhealthcard"));
 test("Cards: valid FHIR api health card with optional data", testCard(['test-example-00-fhirhealthcard-with-resource-link.json'], "fhirhealthcard"));
 
-test("Cards: issuer in trusted directory ref by name", testCard(['example-00-d-jws.txt'], 'jws', [0], { directory: 'test' }));
-test("Cards: issuer in trusted directory ref by URL", testCard(['example-00-d-jws.txt'], 'jws', [0], { directory: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-dev-tools/main/testdata/test-issuers.json' }));
+test("Cards: issuer in trusted directory ref by name", testCard(['example-00-d-jws.txt'], 'jws', [0], { issuerDirectory: 'test' }));
+test("Cards: issuer in trusted directory ref by URL", testCard(['example-00-d-jws.txt'], 'jws', [0], { issuerDirectory: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-dev-tools/main/testdata/test-issuers.json' }));
 
 // Warning cases
 
@@ -269,7 +267,7 @@ test("Cards: nbf in milliseconds",
 );
 
 // one error for exp < nbf, one warning for card being expired
-test("Cards: exp date before nbf", testCard('test-example-00-b-jws-payload-expanded-pre-expired.json', 'jwspayload', [[ec.EXPIRATION_ERROR],[ec.EXPIRATION_ERROR]]));
+test("Cards: exp date before nbf", testCard('test-example-00-b-jws-payload-expanded-pre-expired.json', 'jwspayload', [[ec.EXPIRATION_ERROR], [ec.EXPIRATION_ERROR]]));
 
 // the JWK's x5c value has the correct URL, so we get an extra x5c error due to URL mismatch
 test("Cards: invalid issuer url (http)",
@@ -370,7 +368,7 @@ test("Cards: health card w/ multi-jws and issues",
 );
 
 test("Cards: fhir bundle w/ usa-profile errors", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
-    [[ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR]], { profile: 'usa-covid19-immunization' }));
+    [[ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR]], { profile: ValidationProfiles['usa-covid19-immunization'] }));
 
 test("Cards: fhir bundle w/ empty elements", testCard(['test-example-00-a-fhirBundle-empty-values.json'], 'fhirbundle',
     [[ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR]]));
@@ -379,7 +377,7 @@ test("Cards: fhir bundle w/ missing occurrence & extra occurrence", testCard(['t
 
 test("Cards: missing SHC VC type", testCard('test-example-00-b-jws-payload-expanded-missing-shc-vc-type.json', 'jwspayload', [[ec.SCHEMA_ERROR]]));
 
-test("Cards: issuer not in trusted directory", testCard(['example-00-d-jws.txt'], 'jws', [[ec.ISSUER_NOT_TRUSTED]], { directory: 'VCI' }));
+test("Cards: issuer not in trusted directory", testCard(['example-00-d-jws.txt'], 'jws', [[ec.ISSUER_NOT_TRUSTED]], { issuerDirectory: 'VCI' }));
 
 test("Cards: un-needed VC type", testCard('test-example-00-b-jws-payload-expanded-optional-vc-type.json', 'jwspayload', [0, [ec.SCHEMA_ERROR]]));
 

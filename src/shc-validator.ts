@@ -48,7 +48,7 @@ program.parse(process.argv);
 
 export interface CliOptions {
     path: string[];
-    type: validator.ValidationType;
+    type: ValidationType;
     jwkset: string;
     loglevel: string;
     profile: string;
@@ -201,7 +201,7 @@ async function processOptions(cliOptions: CliOptions) {
     if (cliOptions.type !== 'jwkset') {
 
         // validate a health card
-        const output = await validator.validateCard(fileData, cliOptions);
+        const output = await validator.validateCard(fileData, cliOptions.type, options);
         process.exitCode = output.exitCode;
 
         // if a logfile is specified, append to the specified logfile
@@ -218,6 +218,7 @@ async function processOptions(cliOptions: CliOptions) {
             note(`You are not using the latest dev tools version. Current: v${npmpackage.version}, latest: v${v}\nYou can update by running 'npm run update-validator'.`);
         }
     });
+
     // check if the dev tools package is behind the spec
     await vLatestSpec.then(v => {
         if (!v) {
@@ -225,7 +226,8 @@ async function processOptions(cliOptions: CliOptions) {
         } else if (semver.gt(v, npmpackage.version.substr(0, 'x.y.z'.length))) { // ignore prerelease tag
             note(`The dev tools script v${npmpackage.version} is not validating the latest version of the spec: v${v}`);
         }
-    })
+    });
+
     console.log("\nValidation completed");
 }
 

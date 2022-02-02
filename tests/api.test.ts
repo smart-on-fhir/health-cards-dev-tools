@@ -192,3 +192,5 @@ test('options: bad-skipJwksDownload-name', validateApi(['example-00-a-fhirBundle
 test('options: bad-skipJwksDownload-value', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Invalid skipJwksDownload true')], { skipJwksDownload: "true" } as unknown as IOptions));
 test('options: bad-logOutputPath-name', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Unknown option logOutputzPath')], { logOutputzPath: 1 } as unknown as IOptions));
 test('options: bad-logOutputPath-value', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Invalid logOutputPath 2')], { logOutputPath: 2 } as unknown as IOptions));
+test('options: bad-jwkset-name', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Unknown option jwksetz')], { jwksetz: 1 } as unknown as IOptions));
+test('options: bad-jwkset-value', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Invalid jwkset 2')], { jwkset: 2 } as unknown as IOptions));

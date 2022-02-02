@@ -14,18 +14,20 @@ import * as qr from './qr';
 import * as image from './image';
 import keys, { KeySet } from './keys';
 import * as utils from './utils';
-import { ValidationProfiles } from './fhirBundle';
-import { CliOptions } from './shc-validator';
 import { clearTrustedIssuerDirectory, setTrustedIssuerDirectory } from './issuerDirectory';
-import { IOptions, setOptions } from './options';
+import { IOptions } from './options';
 
 
-export type ValidationType = "qr" | "qrnumeric" | "healthcard" | "fhirhealthcard" | "jws" | "jwspayload" | "fhirbundle" | "jwkset";
+/** Validate the issuer key */
+export async function validateKey(keySet: KeySet, log: Log = new Log('Validate Key-Set')): Promise<Log> {
+    return (await verifyAndImportHealthCardIssuerKey(keySet, log));
+}
 
 
-async function processOptions(options: CliOptions) : Promise<IOptions> {
+/** Validates SMART Health Card */
+export async function validateCard(fileData: FileInfo[], artifact : ValidationType, options: IOptions): Promise<Log> {
 
-    const defaultOptions = setOptions();
+    let result: Log;
 
     if (options.clearKeyStore === true) {
         keys.clear();
@@ -36,35 +38,13 @@ async function processOptions(options: CliOptions) : Promise<IOptions> {
         await validateKey(keys);
     }
 
-    defaultOptions.profile = 
-        options.profile ?
-            ValidationProfiles[options.profile as keyof typeof ValidationProfiles] :
-            ValidationProfiles.any;
-
-    if (options.directory) {
-        await setTrustedIssuerDirectory(options.directory);
+    if (options.issuerDirectory) {
+        await setTrustedIssuerDirectory(options.issuerDirectory);
     } else {
         clearTrustedIssuerDirectory();
     }
 
-    return defaultOptions;
-}
-
-
-/** Validate the issuer key */
-export async function validateKey(keySet: KeySet, log: Log = new Log('Validate Key-Set')): Promise<Log> {
-    return (await verifyAndImportHealthCardIssuerKey(keySet, log));
-}
-
-
-/** Validates SMART Health Card */
-export async function validateCard(fileData: FileInfo[], cliOptions: CliOptions): Promise<Log> {
-
-    let result: Log;
-
-    const options : IOptions = await processOptions(cliOptions);
-
-    switch (cliOptions.type.toLocaleLowerCase()) {
+    switch (artifact.toLocaleLowerCase()) {
 
         case "qr":
             result = await image.validate(fileData, options);
@@ -98,7 +78,7 @@ export async function validateCard(fileData: FileInfo[], cliOptions: CliOptions)
             break;
 
         default:
-            return Promise.reject(`Invalid type : ${cliOptions.type}`);
+            return Promise.reject(`Invalid type : ${artifact}`);
     }
 
     return result;

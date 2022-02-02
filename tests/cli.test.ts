@@ -156,7 +156,6 @@ test("Logs: valid 00-e health card append log file", () => {
     expect(logs).toHaveLength(expectedEntries);
     expect(logs[0].log).toHaveLength(expectedLogItems[0]);
     expect(logs[1].log).toHaveLength(expectedLogItems[1]);
-
 });
 
 test("Logs: valid 00-e health card bad log path", () => {
@@ -170,6 +169,7 @@ test("Logs: valid 00-e health card fhir bundle log file", () => {
     runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --fhirout ' + logFile);
     // try parsing FHIR output log as a fhir bundle
     expect(testCliCommand(`node . --path ${logFile} --type fhirbundle`)).toBe(0);
+    fs.rmSync(logFile);
 });
 
 test("Logs: valid 00-e health card bad log path", () => {
