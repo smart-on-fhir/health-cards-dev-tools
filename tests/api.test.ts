@@ -11,7 +11,7 @@ const testdataDir = './testdata/';
 function validateApi(
     filePath: string[] | string,
     type: string,
-    expected: (number | null | undefined | ec[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
+    expected: (number | null | undefined | ec[] | Error)[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
     options: Partial<IOptions> = {}) {
 
     return async () => {
@@ -19,7 +19,7 @@ function validateApi(
     }
 }
 
-async function _validateApi(filePath: string[] | string, type: string, expected: (number | null | undefined | ec[])[], options: Partial<IOptions> = {}): Promise<void> {
+async function _validateApi(filePath: string[] | string, type: string, expected: (number | null | undefined | ec[] | Error)[], options: Partial<IOptions> = {}): Promise<void> {
 
     let data: string[] = [];
     let url = '';
@@ -62,7 +62,16 @@ async function _validateApi(filePath: string[] | string, type: string, expected:
             throw new Error(`Unknown validation type: ${type}`);
     }
 
-    let log = await p;
+    let log = await p.catch((error) => {
+        expect([error]).toStrictEqual(expected);
+    });
+
+    if (!log) return;
+
+    // no error occured when error was expected
+    if (expected[0] instanceof Error) {
+        throw new Error('Error not thrown');
+    }
 
     log.length !== 0 && console.log(JSON.stringify(log));
 
@@ -122,8 +131,7 @@ test('fhirhealthcard', validateApi(['test-example-00-fhirhealthcard.json'], 'fhi
 
 test('keyset', validateApi(['valid_keys.json'], 'keyset'));
 
-
-test('fhirbundle-with-usa-profile', validateApi(
+test('options: with-usa-profile', validateApi(
     ['test-example-00-a-fhirBundle-profile-usa.json'],
     'fhirbundle',
     [[ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR]],
@@ -162,4 +170,25 @@ test('jws: valid directory', validateApi('https://spec.smarthealth.cards/example
 
 // Without the clearKeyStore option, this test should fail as it will use an existing key store key from a previous test and get
 // the 'kid mismatch' error instead of the expected 'missing key' error
-test('jws: clear key store', validateApi(['test-example-00-d-jws-issuer-not-valid-with-smart-key.txt'], 'jws', [[ec.ISSUER_KEY_DOWNLOAD_ERROR, ec.JWS_VERIFICATION_ERROR]], {clearKeyStore: true}));
+test('jws: clear key store', validateApi(['test-example-00-d-jws-issuer-not-valid-with-smart-key.txt'], 'jws', [[ec.ISSUER_KEY_DOWNLOAD_ERROR, ec.JWS_VERIFICATION_ERROR]], { clearKeyStore: true }));
+
+
+// The jws contains a fhir-bundle warning. The first test with 'cascade' should encounter the warning and the second test should not.
+test('jws-with-fhir-error-cascade', validateApi(['test-example-00-d-jws-bad-fhir-metadata.txt'], 'jws', [0, [ec.FHIR_SCHEMA_ERROR]]));
+test('jws-with-fhir-error-no-cascade', validateApi(['test-example-00-d-jws-bad-fhir-metadata.txt'], 'jws', [0], { cascade: false }));
+
+// Test the user supplied options for when the name is wrong or the value is wrong (e.g. is a number when should be a string)
+test('options: bad-cascade-name', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Unknown option cascad1e')], { cascad1e: 1 } as unknown as IOptions));
+test('options: bad-cascade-value', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Invalid cascade 1')], { cascade: 1 } as unknown as IOptions));
+test('options: bad-logLevel-name', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Unknown option logLevet')], { logLevet: 1 } as unknown as IOptions));
+test('options: bad-logLevel-value', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Invalid logLevel 6')], { logLevel: 6 } as unknown as IOptions));
+test('options: bad-profile-name', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Unknown option brofile')], { brofile: 1 } as unknown as IOptions));
+test('options: bad-profile-value', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Invalid profile 2')], { profile: 2 } as unknown as IOptions));
+test('options: bad-issuerDirectory-name', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Unknown option issuerdirectory')], { issuerdirectory: 1 } as unknown as IOptions));
+test('options: bad-issuerDirectory-value', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Invalid issuerDirectory 2')], { issuerDirectory: 2 } as unknown as IOptions));
+test('options: bad-clearKeyStore-name', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Unknown option clearKeystore')], { clearKeystore: 1 } as unknown as IOptions));
+test('options: bad-clearKeyStore-value', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Invalid clearKeyStore 1')], { clearKeyStore: 1 } as unknown as IOptions));
+test('options: bad-skipJwksDownload-name', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Unknown option skipJwksClownload')], { skipJwksClownload: 1 } as unknown as IOptions));
+test('options: bad-skipJwksDownload-value', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Invalid skipJwksDownload true')], { skipJwksDownload: "true" } as unknown as IOptions));
+test('options: bad-logOutputPath-name', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Unknown option logOutputzPath')], { logOutputzPath: 1 } as unknown as IOptions));
+test('options: bad-logOutputPath-value', validateApi(['example-00-a-fhirBundle.json'], 'fhirbundle', [new Error('Invalid logOutputPath 2')], { logOutputPath: 2 } as unknown as IOptions));

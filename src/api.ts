@@ -17,15 +17,15 @@ import { IOptions, setOptions } from './options';
 function formatOutput(log: Log, logLevel: LogLevels = LogLevels.WARNING): ValidationErrors {
 
     return log
-        .log
+        .flatten()
         .map(e => {
-            return { message: e.message, code: e.code, level: e.logLevel };
+            return { message: e.message, code: e.code, level: e.level };
         })
         .filter(f => f.level >= logLevel);
 }
 
 async function validateKeySet(text: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
-    const fullOptions = setOptions({...options, cascade: false});
+    const fullOptions = setOptions(options);
 
     const keySet = parseJson<KeySet>(text);
     if (keySet == null) {
@@ -37,46 +37,46 @@ async function validateKeySet(text: string, options: Partial<IOptions> = {}): Pr
 }
 
 async function validateQrnumeric(shc: string[], options: Partial<IOptions> = {}): Promise<ValidationErrors> {
-    const fullOptions = setOptions({...options, cascade: false});
+    const fullOptions = setOptions(options);
     const log = await qr.validate(shc, fullOptions);
     return formatOutput(log, fullOptions.logLevel);
 }
 
 async function validateHealthcard(json: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
-    const fullOptions = setOptions({...options, cascade: false});
+    const fullOptions = setOptions(options);
     const log = await healthCard.validate(json, fullOptions);
     return formatOutput(log, fullOptions.logLevel);
 }
 
 async function validateFhirHealthcard(json: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
-    const fullOptions = setOptions({...options, cascade: false});
+    const fullOptions = setOptions(options);
     const log = await fhirHealthCard.validate(json, fullOptions);
     return formatOutput(log, fullOptions.logLevel);
 }
 
 async function validateJws(text: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
-    const fullOptions = setOptions({...options, cascade: false});
+    const fullOptions = setOptions(options);
     fullOptions.issuerDirectory ? await setTrustedIssuerDirectory(fullOptions.issuerDirectory) : clearTrustedIssuerDirectory();
-    fullOptions.clearKeyStore  && keys.clear();
+    fullOptions.clearKeyStore && keys.clear();
     const log = await jws.validate(text, fullOptions);
     return formatOutput(log, fullOptions.logLevel);
 }
- 
+
 async function validateJwspayload(payload: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
-    const fullOptions = setOptions({...options, cascade: false});
+    const fullOptions = setOptions(options);
     const log = await jwsPayload.validate(payload, fullOptions);
     return Promise.resolve(formatOutput(log, fullOptions.logLevel));
 }
 
 async function validateFhirBundle(json: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
-    const fullOptions = setOptions({...options, cascade: false});
+    const fullOptions = setOptions(options);
     const log = await fhirBundle.validate(json, fullOptions);
     return Promise.resolve(formatOutput(log, fullOptions.logLevel));
 }
 
 async function checkTrustedDirectory(url: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
 
-    const fullOptions = setOptions({...options, cascade: false});
+    const fullOptions = setOptions(options);
     const log = new Log('TrustedDirectory');
     const directory = fullOptions.issuerDirectory;
 
