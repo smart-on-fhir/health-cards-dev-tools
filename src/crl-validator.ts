@@ -1,5 +1,5 @@
 import { ErrorCode } from "./error";
-import { JwsValidationOptions } from "./jws-compact";
+import { jwksDownloadTimeOut } from "./jws-compact";
 import got from 'got';
 import Log from "./logger";
 import { parseJson } from "./utils";
@@ -45,7 +45,7 @@ export async function downloadAndValidateCRL(issuerURL: string, kid: string, crl
     const crlUrl = `${issuerURL}/.well-known/crl/${kid}.json`;
     try {
         log.info(`Retrieving CRL key from ${crlUrl}`);
-        const response = await got(crlUrl, { timeout: JwsValidationOptions.jwksDownloadTimeOut });
+        const response = await got(crlUrl, { timeout: jwksDownloadTimeOut });
         const crl = parseJson<CRL>(response.body);
         if (!crl) {
             log.error("Can't parse downloaded CRL", ErrorCode.REVOCATION_ERROR);

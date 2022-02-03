@@ -13,17 +13,15 @@ import Log, { LogLevels } from './logger';
 import { verifyAndImportHealthCardIssuerKey } from './shcKeyValidator';
 import { parseJson } from './utils';
 import { checkTrustedIssuerDirectory, TrustedIssuerDirectory } from './issuerDirectory';
+import { IOptions } from './options';
 
-export const JwsValidationOptions = {
-    skipJwksDownload: false,
-    jwksDownloadTimeOut: 5000
-}
+export const jwksDownloadTimeOut = 5000;
 
 export const schema = jwsCompactSchema;
 
 const MAX_JWS_SINGLE_CHUNK_LENGTH = 1195;
 
-export async function validate(jws: JWS, index = ''): Promise<Log> {
+export async function validate(jws: JWS, options: IOptions, index = ''): Promise<Log> {
 
     // the jws string is not JSON.  It is base64url.base64url.base64url
 
@@ -184,7 +182,7 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
     }
 
     // try to validate the payload (even if inflation failed)
-    const payloadLog = await jwsPayload.validate(inflatedPayload || b64DecodedPayloadString || rawPayload);
+    const payloadLog = await jwsPayload.validate(inflatedPayload || b64DecodedPayloadString || rawPayload, options);
     log.child.push(payloadLog);
 
     // if we got a fatal error, quit here
@@ -203,7 +201,6 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
         return log;
     }
 
-
     // Extract the key url
     if (payload.iss) {
         if (typeof payload.iss === 'string') {
@@ -217,7 +214,7 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
             }
 
             // download the keys into the keystore. if it fails, continue an try to use whatever is in the keystore.
-            if (!JwsValidationOptions.skipJwksDownload) {
+            if (!options.skipJwksDownload) {
                 await downloadAndImportKey(payload.iss, log);
             } else {
                 log.info("skipping issuer JWK set download");
@@ -250,7 +247,7 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<KeySet
     log.info("Retrieving issuer key from " + jwkURL);
     const requestedOrigin = 'https://example.org'; // request bogus origin to test CORS response
     try {
-        const response = await got(jwkURL, { headers: { Origin: requestedOrigin }, timeout: JwsValidationOptions.jwksDownloadTimeOut });
+        const response = await got(jwkURL, { headers: { Origin: requestedOrigin }, timeout: jwksDownloadTimeOut });
         // we expect a CORS response header consistent with the requested origin (either allow all '*' or the specific origin)
         // TODO: can we easily add a unit test for this?
         const acaoHeader = response.headers['access-control-allow-origin'];

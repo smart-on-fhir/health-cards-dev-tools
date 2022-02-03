@@ -10,10 +10,11 @@ import Log from './logger';
 import beautify from 'json-beautify'
 import { cdcCovidCvxCodes, loincCovidTestCodes } from './fhirBundle';
 import { isRidValid } from './crl-validator';
+import { IOptions } from './options';
 
 export const schema = jwsPayloadSchema;
 
-export async function validate(jwsPayloadText: string): Promise<Log> {
+export async function validate(jwsPayloadText: string, options: IOptions): Promise<Log> {
 
     const log = new Log('JWS.payload');
 
@@ -112,7 +113,6 @@ export async function validate(jwsPayloadText: string): Promise<Log> {
 
     const fhirBundleJson = jwsPayload.vc.credentialSubject.fhirBundle;
     const fhirBundleText = JSON.stringify(fhirBundleJson);
-    log.child.push((await fhirBundle.validate(fhirBundleText)));
 
     // does the FHIR bundle contain an immunization?
     const hasImmunization = fhirBundleJson?.entry?.some(entry => entry?.resource?.resourceType === 'Immunization');
@@ -160,6 +160,8 @@ export async function validate(jwsPayloadText: string): Promise<Log> {
             log.warn(`JWS.payload.vc.type : '${t}' is an unknown Verifiable Credential (VC) type (see: https://spec.smarthealth.cards/vocabulary/)`, ErrorCode.SCHEMA_ERROR);
         }
     });
+
+    options.cascade && log.child.push((await fhirBundle.validate(fhirBundleText, options)));
 
     return log;
 }
