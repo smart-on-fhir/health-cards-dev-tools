@@ -4,11 +4,12 @@
 import { ErrorCode } from './error';
 import * as jws from './jws-compact';
 import Log from './logger';
+import { IOptions } from './options';
 
 const MAX_SINGLE_QR_LENGTH = 1195;
 const MAX_QR_CHUNK_LENGTH = 1191;
 
-export async function validate(qr: string[]): Promise<Log> {
+export async function validate(qr: string[], options: IOptions): Promise<Log> {
 
     const log = new Log(
         qr.length > 1 ?
@@ -17,7 +18,7 @@ export async function validate(qr: string[]): Promise<Log> {
 
     const jwsString: JWS | undefined = shcChunksToJws(qr, log);
 
-    jwsString && (log.child.push((await jws.validate(jwsString))));
+    jwsString && options.cascade && (log.child.push((await jws.validate(jwsString, options))));
 
     return log;
 }
@@ -145,7 +146,7 @@ function shcToJws(shc: string, log: Log, chunkCount = 1): { result: JWS, chunkIn
 
     if (digitPairs == null || digitPairs[digitPairs.length - 1].length == 1) {
         log.fatal("Invalid numeric QR code, can't parse digit pairs. Numeric values should have even length.\n" +
-                  "Make sure no leading 0 are deleted from the encoding.", ErrorCode.INVALID_NUMERIC_QR);
+            "Make sure no leading 0 are deleted from the encoding.", ErrorCode.INVALID_NUMERIC_QR);
         return undefined;
     }
 
@@ -154,7 +155,7 @@ function shcToJws(shc: string, log: Log, chunkCount = 1): { result: JWS, chunkIn
     // is no larger than 77
     if (Math.max(...digitPairs.map(d => Number.parseInt(d))) > 77) {
         log.fatal("Invalid numeric QR code, one digit pair is bigger than the max value 77 (encoding of 'z')." +
-                  "Make sure you followed the encoding rules.", ErrorCode.INVALID_NUMERIC_QR);
+            "Make sure you followed the encoding rules.", ErrorCode.INVALID_NUMERIC_QR);
         return undefined;
     }
 

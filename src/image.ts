@@ -12,19 +12,19 @@ import { ByteChunk, Chunk } from 'jsqr/dist/decoder/decodeData';
 import jpeg from 'jpeg-js';
 import sharp from 'sharp';
 import path from 'path';
+import { IOptions } from './options';
 
 
 // the size of images generated from svg data 
 const svgImageWidth = 600;
 
 
-export async function validate(images: FileInfo[]): Promise<Log> {
+export async function validate(images: FileInfo[], options: IOptions): Promise<Log> {
 
     const log = new Log(
         images.length > 1 ?
             'QR images (' + images.length.toString() + ')' :
             'QR image');
-
 
     const shcStrings: SHC[] = [];
 
@@ -36,7 +36,7 @@ export async function validate(images: FileInfo[]): Promise<Log> {
         log.debug(images[i].name + ' = ' + shc);
     }
 
-    log.child.push((await qr.validate(shcStrings)));
+    options.cascade && log.child.push((await qr.validate(shcStrings, options)));
 
     return log;
 }
@@ -241,6 +241,7 @@ function importBmp24(filePath: string): sharp.Sharp {
 
 // this is a utility function to generate qr codes that can be decoded only using tryScaling.
 // it is not used to do any validation
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function searchScaling(image: FileImage) {
 
     const scaleMin = 0.2;

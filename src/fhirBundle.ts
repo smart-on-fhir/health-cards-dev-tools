@@ -12,6 +12,8 @@ import Log from './logger';
 import beautify from 'json-beautify'
 import { propPath, walkProperties } from './utils';
 import { validate as fhirValidator } from './fhirValidator';
+import { IOptions } from './options';
+
 
 // The CDC CVX covid vaccine codes (https://www.cdc.gov/vaccines/programs/iis/COVID-19-related-codes.html),
 export const cdcCovidCvxCodes = ["207", "208", "210", "212", "217", "218", "219", "500", "501", "502", "503", "504", "505", "506", "507", "508", "509", "510", "511"];
@@ -31,18 +33,13 @@ export enum Validators {
     'default',
     'fhirvalidator'
 }
-export class FhirOptions {
-    static LogOutputPath = '';
-    static ValidationProfile = ValidationProfiles.any;
-    static Validator = Validators.default;
-}
 
 // eslint-disable-next-line @typescript-eslint/require-await
-export async function validate(fhirBundleText: string): Promise<Log> {
+export async function validate(fhirBundleText: string, options: IOptions): Promise<Log> {
 
     const log = new Log('FhirBundle');
-    const profile: ValidationProfiles = FhirOptions.ValidationProfile;
-    const validator: Validators = FhirOptions.Validator;
+    const profile: ValidationProfiles = options?.profile || ValidationProfiles.any;
+    const validator: Validators = options?.validator || Validators.default;
 
     if (fhirBundleText.trim() !== fhirBundleText) {
         log.error(`FHIR bundle has leading or trailing spaces`, ErrorCode.TRAILING_CHARACTERS);
@@ -54,8 +51,8 @@ export async function validate(fhirBundleText: string): Promise<Log> {
         return log.fatal("Failed to parse FhirBundle data as JSON.", ErrorCode.JSON_PARSE_ERROR);
     }
 
-    if (FhirOptions.LogOutputPath) {
-        fs.writeFileSync(FhirOptions.LogOutputPath, fhirBundleText); // should we instead print out the output of beautify
+    if (options.logOutputPath) {
+        fs.writeFileSync(options.logOutputPath, fhirBundleText); // should we instead print out the output of beautify
     }
 
     // failures will be recorded in the log
@@ -243,11 +240,11 @@ See README.md for more information.`);
 
 const ValidationProfilesFunctions = {
 
-    "any": function (entries: BundleEntry[]): boolean {
+    any: function (entries: BundleEntry[]): boolean {
         return true || entries;
     },
 
-    "usa-covid19-immunization": function (entries: BundleEntry[], log: Log): boolean {
+    'usa-covid19-immunization': function (entries: BundleEntry[], log: Log): boolean {
 
         const profileName = 'usa-covid19-immunization';
         const profileLabel = `Profile[${profileName}]`;

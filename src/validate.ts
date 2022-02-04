@@ -14,15 +14,20 @@ import * as qr from './qr';
 import * as image from './image';
 import keys, { KeySet } from './keys';
 import * as utils from './utils';
-import { FhirOptions, ValidationProfiles, Validators } from './fhirBundle';
-import { CliOptions } from './shc-validator';
 import { clearTrustedIssuerDirectory, setTrustedIssuerDirectory } from './issuerDirectory';
+import { IOptions } from './options';
 
 
-export type ValidationType = "qr" | "qrnumeric" | "healthcard" | "fhirhealthcard" | "jws" | "jwspayload" | "fhirbundle" | "jwkset";
+/** Validate the issuer key */
+export async function validateKey(keySet: KeySet, log: Log = new Log('Validate Key-Set')): Promise<Log> {
+    return (await verifyAndImportHealthCardIssuerKey(keySet, log));
+}
 
 
-async function processOptions(options: CliOptions) {
+/** Validates SMART Health Card */
+export async function validateCard(fileData: FileInfo[], artifact : ValidationType, options: IOptions): Promise<Log> {
+
+    let result: Log;
 
     if (options.clearKeyStore === true) {
         keys.clear();
@@ -33,75 +38,47 @@ async function processOptions(options: CliOptions) {
         await validateKey(keys);
     }
 
-    FhirOptions.ValidationProfile =
-        options.profile ?
-            ValidationProfiles[options.profile as keyof typeof ValidationProfiles] :
-            FhirOptions.ValidationProfile = ValidationProfiles['any'];
-
-    if (options.directory) {
-        await setTrustedIssuerDirectory(options.directory);
+    if (options.issuerDirectory) {
+        await setTrustedIssuerDirectory(options.issuerDirectory);
     } else {
         clearTrustedIssuerDirectory();
     }
 
-    if (options.validator) {
-        if(!Object.values(Validators).includes(options.validator)) {
-            throw new Error(`Invalid validator value ${options.validator}`);
-        }
-        FhirOptions.Validator = Validators[options.validator as keyof typeof Validators];
-    }
-
-}
-
-
-/** Validate the issuer key */
-export async function validateKey(keySet: KeySet, log: Log = new Log('Validate Key-Set')): Promise<Log> {
-    return (await verifyAndImportHealthCardIssuerKey(keySet, log));
-}
-
-
-/** Validates SMART Health Card */
-export async function validateCard(fileData: FileInfo[], options: CliOptions): Promise<Log> {
-
-    let result: Log;
-
-    await processOptions(options);
-
-    switch (options.type.toLocaleLowerCase()) {
+    switch ((artifact as string).toLocaleLowerCase()) {
 
         case "qr":
-            result = await image.validate(fileData);
+            result = await image.validate(fileData, options);
             break;
 
         case "qrnumeric":
-            result = await qr.validate(fileData.map((fi) => fi.buffer.toString('utf-8')));
+            result = await qr.validate(fileData.map((fi) => fi.buffer.toString('utf-8')), options);
             break;
 
         case "healthcard":
-            result = await healthCard.validate(fileData[0].buffer.toString());
+            result = await healthCard.validate(fileData[0].buffer.toString(), options);
             if (fileData[0].ext !== '.smart-health-card') {
                 result.warn("Invalid file extension. Should be .smart-health-card.", ErrorCode.INVALID_FILE_EXTENSION);
             }
             break;
 
         case "fhirhealthcard":
-            result = await fhirHealthCard.validate(fileData[0].buffer.toString());
+            result = await fhirHealthCard.validate(fileData[0].buffer.toString(), options);
             break;
 
         case "jws":
-            result = await jws.validate(fileData[0].buffer.toString());
+            result = await jws.validate(fileData[0].buffer.toString(), options);
             break;
 
         case "jwspayload":
-            result = await jwsPayload.validate(fileData[0].buffer.toString());
+            result = await jwsPayload.validate(fileData[0].buffer.toString(), options);
             break;
 
         case "fhirbundle":
-            result = await fhirBundle.validate(fileData[0].buffer.toString());
+            result = await fhirBundle.validate(fileData[0].buffer.toString(), options);
             break;
 
         default:
-            return Promise.reject(`Invalid type : ${options.type}`);
+            return Promise.reject(`Invalid type : ${(artifact as string)}`);
     }
 
     return result;

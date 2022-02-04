@@ -6,6 +6,8 @@ type JWS = string;
 
 type SHC = string;
 
+type ValidationType = "qr" | "qrnumeric" | "healthcard" | "fhirhealthcard" | "jws" | "jwspayload" | "fhirbundle" | "jwkset";
+
 interface HealthCard {
     "verifiableCredential": JWS[]
 }

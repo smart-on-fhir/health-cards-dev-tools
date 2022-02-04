@@ -14,12 +14,13 @@ import { ErrorCode, ExcludableErrors, getExcludeErrorCodes } from './error';
 import * as utils from './utils'
 import npmpackage from '../package.json';
 import { KeySet } from './keys';
-import { FhirOptions, ValidationProfiles, Validators } from './fhirBundle';
+import { ValidationProfiles, Validators } from './fhirBundle';
 import * as versions from './check-for-update';
 import semver from 'semver';
-import { JwsValidationOptions } from './jws-compact';
+import { } from './jws-compact';
 import color from 'colors';
 import { setTrustedIssuerDirectory } from './issuerDirectory';
+import { setOptions } from './options';
 
 /**
  *  Defines the program
@@ -28,13 +29,14 @@ import { setTrustedIssuerDirectory } from './issuerDirectory';
  */
 const loglevelChoices = ['debug', 'info', 'warning', 'error', 'fatal'];
 const artifactTypes = ['fhirbundle', 'jwspayload', 'jws', 'healthcard', 'fhirhealthcard', 'qrnumeric', 'qr', 'jwkset'];
+const profileChoices = ['any', 'usa-covid19-immunization'];
 const program = new Command();
 program.version(npmpackage.version, '-v, --version', 'display specification and tool version');
 program.requiredOption('-p, --path <path>', 'path of the file(s) to validate. Can be repeated for the qr and qrnumeric types, to provide multiple file chunks',
     (p: string, paths: string[]) => paths.concat([p]), []);
 program.addOption(new Option('-t, --type <type>', 'type of file to validate').choices(artifactTypes));
 program.addOption(new Option('-l, --loglevel <loglevel>', 'set the minimum log level').choices(loglevelChoices).default('warning'));
-program.addOption(new Option('-P, --profile <profile>', 'vaccination profile to validate').choices(Object.keys(ValidationProfiles).filter(x => Number.isNaN(Number(x)))).default('any'));
+program.addOption(new Option('-P, --profile <profile>', 'vaccination profile to validate').choices(profileChoices).default('any'));
 program.option('-d, --directory <directory>', 'trusted issuer directory to validate against');
 program.option('-o, --logout <path>', 'output path for log (if not specified log will be printed on console)');
 program.option('-f, --fhirout <path>', 'output path for the extracted FHIR bundle');
@@ -47,7 +49,7 @@ program.parse(process.argv);
 
 export interface CliOptions {
     path: string[];
-    type: validator.ValidationType;
+    type: ValidationType;
     jwkset: string;
     loglevel: string;
     profile: string;
@@ -69,10 +71,11 @@ function exit(message: string, exitCode: ErrorCode = 0): void {
 /**
  * Processes the program options and launches validation
  */
-async function processOptions(options: CliOptions) {
+async function processOptions(cliOptions: CliOptions) {
 
     console.log(color.dim("SMART Health Card Dev Tools v" + npmpackage.version) + '\n');
 
+    const options = setOptions();
 
     // check the latest tools and spec version
     const vLatestDevTools = versions.latestDevToolsVersion();
@@ -80,12 +83,12 @@ async function processOptions(options: CliOptions) {
 
 
     // map the --loglevel option to the Log.LogLevel enum
-    const level = loglevelChoices.indexOf(options.loglevel) as LogLevels;
+    const level = loglevelChoices.indexOf(cliOptions.loglevel) as LogLevels;
 
 
     // verify that the directory of the logfile exists, if provided
-    if (options.logout) {
-        const logDir = path.dirname(path.resolve(options.logout));
+    if (cliOptions.logout) {
+        const logDir = path.dirname(path.resolve(cliOptions.logout));
         if (!fs.existsSync(logDir)) {
             return exit('Log file directory does not exist : ' + logDir, ErrorCode.LOG_PATH_NOT_FOUND);
         }
@@ -93,43 +96,41 @@ async function processOptions(options: CliOptions) {
 
 
     // set the log exclusions
-    if (options.exclude) {
-        Log.Exclusions = getExcludeErrorCodes(options.exclude);
+    if (cliOptions.exclude) {
+        Log.Exclusions = getExcludeErrorCodes(cliOptions.exclude);
     }
 
 
     // set global options
-    JwsValidationOptions.skipJwksDownload = !!options.jwkset;
+    options.skipJwksDownload = !!cliOptions.jwkset;
 
 
     // verify that the directory of the fhir output file exists, if provided
-    if (options.fhirout) {
-        const logDir = path.dirname(path.resolve(options.fhirout));
+    if (cliOptions.fhirout) {
+        const logDir = path.dirname(path.resolve(cliOptions.fhirout));
         if (!fs.existsSync(logDir)) {
             return exit('FHIR output file directory does not exist : ' + logDir, ErrorCode.LOG_PATH_NOT_FOUND);
         }
-        FhirOptions.LogOutputPath = options.fhirout;
+        options.logOutputPath = cliOptions.fhirout;
     }
 
 
-    // set the validation profile
-    FhirOptions.ValidationProfile =
-        options.profile ?
-            ValidationProfiles[options.profile as keyof typeof ValidationProfiles] :
-            FhirOptions.ValidationProfile = ValidationProfiles.any;
+    options.validator =
+        cliOptions.validator ?
+            Validators[cliOptions.validator as keyof typeof Validators] :
+            Validators.default;
 
 
-    // set the FHIR validator
-    FhirOptions.Validator =
-        options.validator ?
-            Validators[options.validator as keyof typeof Validators] :
-            FhirOptions.Validator = Validators.default;
+    options.profile =
+        cliOptions.profile ?
+            ValidationProfiles[cliOptions.profile as keyof typeof ValidationProfiles] :
+            ValidationProfiles.any;
 
 
     // --profile usa-covid19-immunization & --validator fhirvalidator are mutually exclusive
     if (
-        FhirOptions.Validator === Validators.fhirvalidator &&
-        FhirOptions.ValidationProfile === ValidationProfiles['usa-covid19-immunization']
+        options.validator === Validators.fhirvalidator &&
+        options.profile === ValidationProfiles['usa-covid19-immunization']
     ) {
         console.log("Invalid option combination, cannot specify both --profile usa-covid19-immunization and --validator fhirvalidator");
         console.log(options);
@@ -139,29 +140,29 @@ async function processOptions(options: CliOptions) {
 
 
     // requires both --path and --type properties
-    if (options.path.length === 0 || !options.type) {
+    if (cliOptions.path.length === 0 || !cliOptions.type) {
         console.log("Invalid option, missing '--path' or '--type'");
-        console.log(options);
+        console.log(cliOptions);
         program.help();
         return;
     }
 
 
     // only 'qr' and 'qrnumeric' --type supports multiple --path arguments
-    if (options.path.length > 1 && !(options.type === 'qr') && !(options.type === 'qrnumeric')) {
+    if (cliOptions.path.length > 1 && !(cliOptions.type === 'qr') && !(cliOptions.type === 'qrnumeric')) {
         return exit("Only the 'qr' and 'qrnumeric' types can have multiple --path options");
     }
 
 
     // check the trusted issuer directory
-    if (options.directory) {
-        await setTrustedIssuerDirectory(options.directory);
+    if (cliOptions.directory) {
+        await setTrustedIssuerDirectory(cliOptions.directory);
     }
 
     // read the data file(s) to validate
     const fileData = [];
-    for (let i = 0; i < options.path.length; i++) {
-        const path = options.path[i];
+    for (let i = 0; i < cliOptions.path.length; i++) {
+        const path = cliOptions.path[i];
         try {
             fileData.push(await getFileData(path));
         } catch (error) {
@@ -171,18 +172,18 @@ async function processOptions(options: CliOptions) {
 
 
     // cannot provide a key file to both --path and --jwkset
-    if (options.jwkset && options.type === 'jwkset') {
+    if (cliOptions.jwkset && cliOptions.type === 'jwkset') {
         return exit("Cannot pass a key file to both --path and --jwkset");
     }
 
 
     // if we have a key option, validate is and add it to the global key store
-    if (options.jwkset) {
+    if (cliOptions.jwkset) {
 
         let keys;
 
         try {
-            keys = utils.loadJSONFromFile<KeySet>(options.jwkset);
+            keys = utils.loadJSONFromFile<KeySet>(cliOptions.jwkset);
         } catch (error) {
             return exit((error as Error).message, ErrorCode.DATA_FILE_NOT_FOUND);
         }
@@ -193,14 +194,14 @@ async function processOptions(options: CliOptions) {
 
 
         // if a logfile is specified, append to the specified logfile
-        options.logout ?
-            output.toFile(options.logout, options, true) :
+        cliOptions.logout ?
+            output.toFile(cliOptions.logout, cliOptions, true) :
             console.log(output.toString(level));
     }
 
 
     // validate the specified key-set
-    if (options.type === 'jwkset') {
+    if (cliOptions.type === 'jwkset') {
 
         const keys = JSON.parse(fileData[0].buffer.toString('utf-8')) as KeySet;
 
@@ -209,22 +210,22 @@ async function processOptions(options: CliOptions) {
         process.exitCode = output.exitCode;
 
         // if a logfile is specified, append to the specified logfile
-        options.logout ?
-            output.toFile(options.logout, options, true) :
+        cliOptions.logout ?
+            output.toFile(cliOptions.logout, cliOptions, true) :
             console.log(output.toString(level));
     }
 
 
     // validate the specified artifact ('fhirbundle', 'jwspayload', 'jws', 'healthcard', 'fhirhealthcard', 'qrnumeric', 'qr')
-    if (options.type !== 'jwkset') {
+    if (cliOptions.type !== 'jwkset') {
 
         // validate a health card
-        const output = await validator.validateCard(fileData, options);
+        const output = await validator.validateCard(fileData, cliOptions.type, options);
         process.exitCode = output.exitCode;
 
         // if a logfile is specified, append to the specified logfile
-        options.logout ?
-            output.toFile(options.logout, options, true) :
+        cliOptions.logout ?
+            output.toFile(cliOptions.logout, cliOptions, true) :
             console.log(output.toString(level));
     }
 
@@ -236,6 +237,7 @@ async function processOptions(options: CliOptions) {
             note(`You are not using the latest dev tools version. Current: v${npmpackage.version}, latest: v${v}\nYou can update by running 'npm run update-validator'.`);
         }
     });
+
     // check if the dev tools package is behind the spec
     await vLatestSpec.then(v => {
         if (!v) {
@@ -243,7 +245,8 @@ async function processOptions(options: CliOptions) {
         } else if (semver.gt(v, npmpackage.version.substr(0, 'x.y.z'.length))) { // ignore prerelease tag
             note(`The dev tools script v${npmpackage.version} is not validating the latest version of the spec: v${v}`);
         }
-    })
+    });
+
     console.log("\nValidation completed");
 }
 

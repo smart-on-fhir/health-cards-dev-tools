@@ -7,12 +7,13 @@ import { ErrorCode } from './error';
 import healthCardSchema from '../schema/smart-health-card-schema.json';
 import * as jws from './jws-compact';
 import Log from './logger';
+import { IOptions } from './options';
 
 
 export const schema = healthCardSchema;
 
 
-export async function validate(healthCardText: string): Promise<Log> {
+export async function validate(healthCardText: string, options: IOptions): Promise<Log> {
 
     const log = new Log('SMART Health Card');
 
@@ -42,9 +43,10 @@ export async function validate(healthCardText: string): Promise<Log> {
         return log.fatal("HealthCard.verifiableCredential[jws-compact] required to continue.", ErrorCode.CRITICAL_DATA_MISSING);
     }
 
-
+    if (options.cascade) {
     for (let i = 0; i < vc.length; i++) {
-        log.child.push((await jws.validate(vc[i], vc.length> 1 ? i.toString() : '')));
+            log.child.push((await jws.validate(vc[i], options, vc.length > 1 ? i.toString() : '')));
+        }
     }
 
     return log;
