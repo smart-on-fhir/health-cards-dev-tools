@@ -98,8 +98,7 @@ function shcToJws(shc: string, log: Log, chunkCount = 1): { result: JWS, chunkIn
         if (!isChunkedHeader) {
             // should have been a valid chunked header, check if we are missing one
             const hasBadChunkCount = new RegExp(`^${qrHeader}${positiveIntRegExp}/[1-9][0-9]*/.*$`).test(shc);
-            const found = shc.match(new RegExp(`^${qrHeader}${positiveIntRegExp}/(?<expectedChunkCount2>[1-9][0-9]*)/.*$`)); // FIXME!!!!!
-            //if (found) console.log(found);
+           // const found = shc.match(new RegExp(`^${qrHeader}${positiveIntRegExp}/(?<expectedChunkCount2>[1-9][0-9]*)/.*$`)); // FIXME!!!!!
             if (hasBadChunkCount) {
                 const expectedChunkCount = parseInt(shc.substring(7, 8));
                 log.fatal(`Missing QR code chunk: received ${chunkCount}, expected ${expectedChunkCount}`, ErrorCode.MISSING_QR_CHUNK);

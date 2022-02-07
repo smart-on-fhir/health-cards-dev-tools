@@ -191,7 +191,6 @@ test('jws: clear key store', validateApi(['test-example-00-d-jws-issuer-not-vali
 describe('FHIR validator tests', () => {
     const testif = (condition: boolean) => condition ? it : it.skip;
     const canRunFhirValidator = jreOrDockerAvailable();
-    console.log(`Java: ${canRunFhirValidator.toString()}`);
     testif(canRunFhirValidator)('fhirbundle: validator=fhirvalidator', validateApi(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle', [Array(8).fill(ec.FHIR_VALIDATOR_ERROR), [ec.FHIR_VALIDATOR_ERROR]], { validator: Validators.fhirvalidator }), 1000 * 60 * 5 /*5 minutes*/);
 });
 
