@@ -108,4 +108,4 @@ export const validate = {
     "checkTrustedDirectory": checkTrustedDirectory,
 }
 
-export { ValidationProfiles, Validators };
+export { ValidationProfiles, Validators, IOptions };

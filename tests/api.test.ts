@@ -1,10 +1,8 @@
 import * as api from '../src/api';
-import {IOptions} from '../src/options';
 import fs from 'fs';
 import path from 'path';
-import { ErrorCode as ec, LogLevels } from '../src/api';
+import { ErrorCode as ec, LogLevels, Validators, IOptions } from '../src/api';
 import { jreOrDockerAvailable } from '../src/fhirValidator';
-import { Validators } from '../src/fhirBundle';
 
 const testdataDir = './testdata/';
 
