@@ -3,7 +3,7 @@ import * as fhirHealthCard from './fhirHealthCard';
 import * as jws from './jws-compact';
 import * as jwsPayload from './jws-payload';
 import * as fhirBundle from './fhirBundle';
-import { ValidationProfiles } from './fhirBundle';
+import { ValidationProfiles, Validators } from './fhirBundle';
 import * as qr from './qr';
 import Log, { LogLevels } from './logger';
 import { ErrorCode } from './error';
@@ -108,4 +108,4 @@ export const validate = {
     "checkTrustedDirectory": checkTrustedDirectory,
 }
 
-export { ValidationProfiles };
+export { ValidationProfiles, Validators };
