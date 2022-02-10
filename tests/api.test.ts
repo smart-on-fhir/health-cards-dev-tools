@@ -68,12 +68,10 @@ async function _validateApi(filePath: string[] | string, type: string, expected:
 
     if (!log) return;
 
-    // no error occured when error was expected
+    // no error occurred when error was expected
     if (expected[0] instanceof Error) {
         throw new Error('Error not thrown');
     }
-
-    //log.length !== 0 && console.log(JSON.stringify(log));
 
     // skip the no-openssl warning
     log = log.filter(e => e.code !== api.ErrorCode.OPENSSL_NOT_AVAILABLE);
