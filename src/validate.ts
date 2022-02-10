@@ -44,7 +44,7 @@ export async function validateCard(fileData: FileInfo[], artifact : ValidationTy
         clearTrustedIssuerDirectory();
     }
 
-    switch (artifact.toLocaleLowerCase()) {
+    switch ((artifact as string).toLocaleLowerCase()) {
 
         case "qr":
             result = await image.validate(fileData, options);
@@ -78,7 +78,7 @@ export async function validateCard(fileData: FileInfo[], artifact : ValidationTy
             break;
 
         default:
-            return Promise.reject(`Invalid type : ${artifact}`);
+            return Promise.reject(`Invalid type : ${(artifact as string)}`);
     }
 
     return result;

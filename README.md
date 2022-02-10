@@ -97,6 +97,7 @@ To validate health card artifacts, use the `shc-validator.ts` script, or simply 
                                    (choices: "fhirbundle", "jwspayload", "jws", "healthcard", "fhirhealthcard", "qrnumeric", "qr", "jwkset")
       -l, --loglevel <loglevel>    set the minimum log level (choices: "debug", "info", "warning", "error", "fatal", default: "warning")
       -P, --profile <profile>      vaccination profile to validate (choices: "any", "usa-covid19-immunization", default: "any")
+      -V, --validator <validator>  FHIR bundle validator (choices: "default", "fhirvalidator" (requires Java runtime or Docker)) 
       -d, --directory <directory>  trusted issuer directory to validate against
       -o, --logout <path>          output path for log (if not specified log will be printed on console)
       -f, --fhirout <path>         output path for the extracted FHIR bundle
@@ -149,6 +150,8 @@ To validate a QR image `QR.png` file, call:
 
       node . --path issuerPublicKeys.json --type jwkset
 
+` `  
+` `  
 ## Programmatic API
 
 The tool can be invoked programmatically from a Node.js app (*note: browser-based environments are not currently supported*). First, install the tool in your own project, either from  GitHub via `npm install smart-on-fhir/health-cards-dev-tools`, or from a local .tgz file resulting from `npm pack` as described above. Then import `src/api.js` and call the right `validate.<artifact-type>` method, where `<artifact-type>` can be one of `qrnumeric`, `healthcard`, `fhirhealthcard`, `jws`, `jwspayload`, `fhirbundle`, or `keyset`. The validation results, if any, are returned in Promise-wrapped array. For example you could check a JWS via:
@@ -158,11 +161,41 @@ import { validate } from 'health-cards-dev-tools/js/src/api.js'
 const jwsString = 'eyJ6aXAiOiJ...';
 const results = validate.jws(jwsString);
 results.then(console.log)
+```  
+
+
+The validation methods will take an optional __options__ object to pass additional parameters mirroring the command line options:
+```js
+const results = validate.jws(jwsString, {logOutputPath: '/mypath/mylogfile.json' /*write log to this file*/});
+```  
+ 
+| option                | example                                        |                                                                                                                    |
+| :-------------------- | :--------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
+| **logLevel**:         | LogLevel.Debug                                 | set the minimum log level to Debug                                                                                 |
+| **profile**:          | ValidationProfiles['usa-covid19-immunization'] | vaccination profile to validate                                                                                    |
+| **issuerDirectory**:  | issuerDirectory: 'VCI'                         | trusted issuer directory to validate against                                                                       |
+| **clearKeyStore**:    | true                                           | clears the keystore of keys from previous API calls                                                                |
+| **cascade**:          | false                                          | stops validating child artifacts (e.g. validating a 'jwspayload' will not also validate the contained FHIR bundle) |
+| **logOutputPath**:    | '/somepath/mylog.json'                         | where to output the logfile                                                                                        |
+| **skipJwksDownload**: | false                                          | prevents JWK key download from the issuer                                                                          |
+| **jwkset**:           | '/somepath/mykeys.json'                        | path to import a JWK keyset                                                                                        |
+| **validator**:        | Validators.fhirvalidator                       | optionally validate the fhirbundle with the HL7 FHIR Validator                                                     |
+
+` `  
+` `  
+## HL7 FHIR Validation (experimental)
+
+Validation of the FHIR bundle is currently not comprehensive. The tool validates a subset of the full FHIR schema; the behavior can be scoped by using the `--profile` option, or changed by modifying the `src/prune-fhir-schema.ts` script. Extensive tests and conformance to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/) can be performed using the [FHIR validator](https://wiki.hl7.org/Using_the_FHIR_Validator) tool.
+
+__This tool can now apply the HL7 FHIR Validator__, in place of the limited default validator, with the use of the `--validator fhirvalidator` option.  The HL7 FHIR Validator is a Java application and so requires a Java runtime (JRE), or alternatively, Docker to be installed on your system. 
+This tool will attempt to run it with an installed JRE first, if available. If not, it will attempt to instantiate a Docker image (with a JRE). If neither method succeeds, an error will be returned.
+
+__Note__: The HL7 FHIR Validator runs in another process, using the installed Java runtime, and downloads several files while initializing. These operations may not succeed on all platforms and configurations. So for now, this feature is considered __experimental__.
+
+__Note__: The HL7 FHIR Validator can take up to 30-seconds to complete its analysis.
+
+__Note__: Docker may require elevated permissions to execute docker commands, requiring this tool to also run with elevated permissions when attempting to use a Docker image. For example:
 ```
-
-## Notes
-
-Validation of the FHIR bundle is currently limited. The tool validates a subset of the full FHIR schema; the behavior can be scoped by using the profile option, or  changed by modifying the `src/prune-fhir-schema.ts` script. Extensive tests and conformance to the [Vaccination & Testing Implementation Guide](http://build.fhir.org/ig/dvci/vaccine-credential-ig/branches/main/) can be performed using the [FHIR validator](https://wiki.hl7.org/Using_the_FHIR_Validator) tool.
-
-
-
+# Run shc-validator as sudo ('-E env "PATH=$PATH"' preserves the environment of the current user)
+sudo -E env "PATH=$PATH" shc-validator --path myfhirbundle.json --type fhirbundle --validator fhirvalidator
+```

@@ -1,8 +1,8 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import execa from 'execa';
 import fs from 'fs';
+import { runCommandSync } from '../src/command';
 import { ErrorCode as ec } from '../src/error';
 import { LogItem } from '../src/logger';
 import { CliOptions } from '../src/shc-validator';
@@ -16,17 +16,6 @@ interface LogEntry {
     log: LogItem[]
 }
 
-function runCommand(command: string) {
-    try {
-        return execa.commandSync(command);
-
-    } catch (error) {
-        // if exitCode !== 0 this error will be thrown
-        // this error object is similar to the result object that would be returned if successful. 
-        // we'll return it an sort out the errors there.
-        return error as execa.ExecaSyncError;
-    }
-}
 
 
 // Puts the standard output into an array of line, 
@@ -81,7 +70,7 @@ function testLogFile(logPath: string, deleteLog = true): LogEntry[] {
 }
 
 function testCliCommand(command: string): number {
-    const commandResult = runCommand(command);
+    const commandResult = runCommandSync(command);
     const out = parseStdout(commandResult.stdout);
     console.log(out.join('\n'));
     return commandResult.exitCode;
@@ -133,7 +122,7 @@ test("Logs: valid 00-e health card single log file", () => {
     const expectedEntries = 1;
     const expectedLogItems = 8 + (OPENSSL_AVAILABLE ? 0 : 1);
 
-    runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
+    runCommandSync(`node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ${logFile}`);
 
     const logs: LogEntry[] = testLogFile(logFile);
 
@@ -148,8 +137,8 @@ test("Logs: valid 00-e health card append log file", () => {
     const expectedEntries = 2;
     const expectedLogItems = [8 + (OPENSSL_AVAILABLE ? 0 : 1), 8 + (OPENSSL_AVAILABLE ? 0 : 1)];
 
-    runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
-    runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
+    runCommandSync(`node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ${logFile}`);
+    runCommandSync(`node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ${logFile}`);
 
     const logs: LogEntry[] = testLogFile(logFile);
 
@@ -160,21 +149,21 @@ test("Logs: valid 00-e health card append log file", () => {
 
 test("Logs: valid 00-e health card bad log path", () => {
     const logFile = '../foo/log.txt';
-    const commandResult = runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ' + logFile);
+    const commandResult = runCommandSync(`node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info --logout ${logFile}`);
     expect(commandResult.exitCode).toBe(ec.LOG_PATH_NOT_FOUND);
 });
 
 test("Logs: valid 00-e health card fhir bundle log file", () => {
     const logFile = 'fhirout.json.log'; // .log to be gitignored
-    runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --fhirout ' + logFile);
+    runCommandSync(`node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info --fhirout ${logFile}`);
     // try parsing FHIR output log as a fhir bundle
     expect(testCliCommand(`node . --path ${logFile} --type fhirbundle`)).toBe(0);
-    fs.rmSync(logFile);
+    fs.rmSync(logFile, {force: true});
 });
 
 test("Logs: valid 00-e health card bad log path", () => {
     const logFile = '../foo/log.txt';
-    const commandResult = runCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --fhirout ' + logFile);
+    const commandResult = runCommandSync(`node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info --logout ${logFile}`);
     expect(commandResult.exitCode).toBe(ec.LOG_PATH_NOT_FOUND);
 });
 

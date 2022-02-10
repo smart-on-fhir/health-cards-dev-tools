@@ -7,14 +7,16 @@ import { getFileData } from '../src/file';
 import { ErrorCode as ec } from '../src/error';
 import Log, { LogLevels } from '../src/logger';
 import { isOpensslAvailable } from '../src/utils';
+import { jreOrDockerAvailable } from '../src/fhirValidator';
 import { IOptions, setOptions } from '../src/options';
-import { ValidationProfiles } from '../src/fhirBundle';
+import { ValidationProfiles, Validators } from '../src/fhirBundle';
 
 const testdataDir = './testdata/';
 
 
 // wrap testcard with a function that returns a function - now we don't need all 'async ()=> await' for every test case
-function testCard(fileName: string | string[],
+function testCard(
+    fileName: string | string[],
     fileType: ValidationType = 'healthcard',
     expected: (number | null | undefined | ec[])[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
     options: Partial<IOptions> = {}) {
@@ -32,14 +34,15 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
         files.push(await getFileData(path.join(testdataDir, fn)));
     }
 
-    const log = (await validateCard(files, fileType, setOptions(options))).flatten();
+    const log = await validateCard(files, fileType, setOptions(options));
+    const flatLog = log.flatten();
 
     const errors = [
-        log.filter(i => i.level >= LogLevels.ERROR),
-        log.filter(i => i.level === LogLevels.WARNING),
-        log.filter(i => i.level === LogLevels.INFO),
-        log.filter(i => i.level === LogLevels.DEBUG),
-        log.filter(i => i.level === LogLevels.FATAL)
+        flatLog.filter(i => i.level >= LogLevels.ERROR),
+        flatLog.filter(i => i.level === LogLevels.WARNING),
+        flatLog.filter(i => i.level === LogLevels.INFO),
+        flatLog.filter(i => i.level === LogLevels.DEBUG),
+        flatLog.filter(i => i.level === LogLevels.FATAL)
     ];
 
     const errorLevelMap = [LogLevels.ERROR, LogLevels.WARNING, LogLevels.INFO, LogLevels.DEBUG, LogLevels.FATAL];
@@ -59,7 +62,13 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
                     console.debug(`    ${ec[e.code]}|${e.code}|${e.message}`);
                 });
             }
+
+            if(err.length !== exp) {
+                console.debug(log.toString(LogLevels.DEBUG));
+            }
+
             expect(err.length).toBe(exp);
+
         }
 
         if (exp instanceof Array) {
@@ -386,3 +395,18 @@ test("Cards: unknown VC types", testCard('test-example-00-b-jws-payload-expanded
 test("Cards: mismatch kid/issuer", testCard(['test-example-00-d-jws-issuer-kid-mismatch.txt'], "jws", [[ec.ISSUER_KID_MISMATCH]], { jwkset: 'testdata/issuer.jwks.public.not.smart.json' }));
 
 test("Cards: immunization status not 'completed'", testCard('test-example-00-a-fhirBundle-status-not-completed.json', 'fhirbundle', [[ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR]]));
+
+
+// Tests using the HL7 FHIR Validator
+// Since these tests require a Java runtime (JRE) or Docker to be installed, they are conditionally executed.
+// These tests can also take a longer as they have to spin up a Docker image 
+describe('FHIR validator tests', () => {
+
+    const testif = (condition: boolean) => condition ? it : it.skip;
+    const canRunFhirValidator = jreOrDockerAvailable();
+    // shc-validator -p ./testdata/test-example-00-a-fhirBundle-profile-usa.json -t fhirbundle -l debug -V fhirvalidator
+    testif(canRunFhirValidator)("Cards: fhir x validator test", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
+        [8, 1], {  validator: Validators.fhirvalidator, logLevel: LogLevels.DEBUG }), 1000 * 60 * 5 /*5 minutes*/);
+
+});
+

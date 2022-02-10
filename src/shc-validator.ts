@@ -14,10 +14,10 @@ import { ErrorCode, ExcludableErrors, getExcludeErrorCodes } from './error';
 import * as utils from './utils'
 import npmpackage from '../package.json';
 import { KeySet } from './keys';
-import { ValidationProfiles } from './fhirBundle';
+import { ValidationProfiles, Validators } from './fhirBundle';
 import * as versions from './check-for-update';
 import semver from 'semver';
-import {  } from './jws-compact';
+import { } from './jws-compact';
 import color from 'colors';
 import { setTrustedIssuerDirectory } from './issuerDirectory';
 import { setOptions } from './options';
@@ -44,6 +44,7 @@ program.option('-k, --jwkset <key>', 'path to trusted issuer key set');
 program.option('-e, --exclude <error>', 'error to exclude, can be repeated, can use a * wildcard. Valid options:' +
     ExcludableErrors.map(e => ` "${e.error}"`).join(),
     (e: string, errors: string[]) => errors.concat([e]), []);
+program.addOption(new Option('-V, --validator <validator>', 'the choice of FHIR validator to use (cannot be used with non-default --profile)').choices(Object.keys(Validators).filter(x => Number.isNaN(Number(x)))));
 program.parse(process.argv);
 
 export interface CliOptions {
@@ -57,6 +58,7 @@ export interface CliOptions {
     fhirout: string;
     exclude: string[];
     clearKeyStore?: boolean;
+    validator: string;
 }
 
 
@@ -113,11 +115,28 @@ async function processOptions(cliOptions: CliOptions) {
     }
 
 
-    // set the validation profile
+    options.validator =
+        cliOptions.validator ?
+            Validators[cliOptions.validator as keyof typeof Validators] :
+            Validators.default;
+
+
     options.profile =
         cliOptions.profile ?
             ValidationProfiles[cliOptions.profile as keyof typeof ValidationProfiles] :
             ValidationProfiles.any;
+
+
+    // --profile usa-covid19-immunization & --validator fhirvalidator are mutually exclusive
+    if (
+        options.validator === Validators.fhirvalidator &&
+        options.profile === ValidationProfiles['usa-covid19-immunization']
+    ) {
+        console.log("Invalid option combination, cannot specify both --profile usa-covid19-immunization and --validator fhirvalidator");
+        console.log(options);
+        program.help();
+        return;
+    }
 
 
     // requires both --path and --type properties

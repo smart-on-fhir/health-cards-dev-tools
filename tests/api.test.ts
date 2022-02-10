@@ -1,8 +1,8 @@
 import * as api from '../src/api';
-import {IOptions} from '../src/options';
 import fs from 'fs';
 import path from 'path';
-import { ErrorCode as ec, LogLevels } from '../src/api';
+import { ErrorCode as ec, LogLevels, Validators, IOptions } from '../src/api';
+import { jreOrDockerAvailable } from '../src/fhirValidator';
 
 const testdataDir = './testdata/';
 
@@ -68,12 +68,10 @@ async function _validateApi(filePath: string[] | string, type: string, expected:
 
     if (!log) return;
 
-    // no error occured when error was expected
+    // no error occurred when error was expected
     if (expected[0] instanceof Error) {
         throw new Error('Error not thrown');
     }
-
-    log.length !== 0 && console.log(JSON.stringify(log));
 
     // skip the no-openssl warning
     log = log.filter(e => e.code !== api.ErrorCode.OPENSSL_NOT_AVAILABLE);
@@ -97,10 +95,20 @@ async function _validateApi(filePath: string[] | string, type: string, expected:
         const err = errors[i];
 
         if (Number.isInteger(exp)) {
+
+            if(err.length !== exp) {
+                console.debug(JSON.stringify(log));
+            }
+
             expect(err.length).toBe(exp);
         }
 
         if (exp instanceof Array) {
+
+            if(err.length !== exp.length) {
+                console.debug(JSON.stringify(log));
+            }
+
             // then number of expected errors should equal the number of actual errors
             expect(err).toHaveLength(exp.length);
             for (let j = 0; j < err.length; j++) {
@@ -131,7 +139,7 @@ test('fhirhealthcard', validateApi(['test-example-00-fhirhealthcard.json'], 'fhi
 
 test('keyset', validateApi(['valid_keys.json'], 'keyset'));
 
-test('options: with-usa-profile', validateApi(
+test('fhirbundle: profile=usa-covid19-immunization', validateApi(
     ['test-example-00-a-fhirBundle-profile-usa.json'],
     'fhirbundle',
     [[ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.PROFILE_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR]],
@@ -171,6 +179,16 @@ test('jws: valid directory', validateApi('https://spec.smarthealth.cards/example
 // Without the clearKeyStore option, this test should fail as it will use an existing key store key from a previous test and get
 // the 'kid mismatch' error instead of the expected 'missing key' error
 test('jws: clear key store', validateApi(['test-example-00-d-jws-issuer-not-valid-with-smart-key.txt'], 'jws', [[ec.ISSUER_KEY_DOWNLOAD_ERROR, ec.JWS_VERIFICATION_ERROR]], { clearKeyStore: true }));
+
+
+// Tests using the HL7 FHIR Validator
+// Since these tests require a Java runtime (JRE) or Docker to be installed, they are conditionally executed.
+// These tests can also take a longer as they have to spin up a Docker image 
+describe('FHIR validator tests', () => {
+    const testif = (condition: boolean) => condition ? it : it.skip;
+    const canRunFhirValidator = jreOrDockerAvailable();
+    testif(canRunFhirValidator)('fhirbundle: validator=fhirvalidator', validateApi(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle', [Array(8).fill(ec.FHIR_VALIDATOR_ERROR), [ec.FHIR_VALIDATOR_ERROR]], { validator: Validators.fhirvalidator }), 1000 * 60 * 5 /*5 minutes*/);
+});
 
 
 // The jws contains a fhir-bundle warning. The first test with 'cascade' should encounter the warning and the second test should not.

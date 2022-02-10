@@ -67,7 +67,6 @@ export async function setTrustedIssuerDirectory(directory: string, log?: Log): P
             // found a match
             TrustedIssuerDirectory.directoryName = d.name;
             TrustedIssuerDirectory.directoryURL = d.URL;
-            console.log(`Using "${d.name}" trusted issuers directory from: ${d.URL}`);
         }
     });
 
@@ -84,9 +83,7 @@ export async function setTrustedIssuerDirectory(directory: string, log?: Log): P
 
     } catch (err) {
         const msg = `Error downloading the trusted issuer directory: ${(err as Error)?.message}`;
-
         log && log.error(msg, ErrorCode.ISSUER_DIRECTORY_NOT_FOUND);
-        console.log(msg);
     }
 
 }

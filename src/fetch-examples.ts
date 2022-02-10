@@ -94,15 +94,44 @@ async function fetchKeys(outdir: string, force = false): Promise<void> {
     }
 }
 
+async function getFileDataWithTimeout(fileDir: string): Promise<FileInfo> {
+    return new Promise((resolve, reject) => {
+        getFileData(fileDir)
+            .then((fi) => {
+                resolve(fi);
+            }, reject);
+
+        setTimeout(() => {
+            reject(`getFileData timeout ${fileDir}`);
+        }, 10000);
+    });
+}
+
+async function svgToQRImageWithTimeout(fi: FileInfo): Promise<void> {
+    return new Promise((resolve, reject) => {
+        svgToQRImage(fi)
+            .then(() => {
+                resolve();
+            }, reject);
+
+        setTimeout(() => {
+            reject(`svgToQRImage timeout ${fi.path}`);
+        }, 10000);
+    });
+}
 
 // for each .svg file, generate a png, jpg, and bmp QR image
-async function generateImagesFromSvg(dir: string, force = false) {
+async function generateImagesFromSvg(dir: string): Promise<void> {
 
     const svgFiles = fs.readdirSync(dir).filter(f => path.extname(f) === '.svg');
-    const svgFileInfo: FileInfo[] = await Promise.all(svgFiles.map(f => getFileData(path.join(dir, f))));
 
-    for(const fi of svgFileInfo) {
-        await svgToQRImage(fi);
+    for (let i = 0; i < svgFiles.length; i++) {
+        const filename = svgFiles[i];
+        const fileDir = path.join(dir, filename);
+
+        const fi = await getFileDataWithTimeout(fileDir).catch(error => console.log(error));
+        if (!fi) return;
+        await svgToQRImageWithTimeout(fi).catch(error => console.log(error));
     }
 }
 

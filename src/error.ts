@@ -50,7 +50,14 @@ export enum ErrorCode {
     INVALID_KEY_UNKNOWN,
 
     // config errors
-    OPENSSL_NOT_AVAILABLE = 300
+    OPENSSL_NOT_AVAILABLE = 300,
+
+    // FHIR validator errors
+    FHIR_VALIDATOR_ERROR = 400,
+    JRE_OR_DOCKER_NOT_AVAILABLE,
+    DOCKER_ERROR,
+    DOCKER_PERMISSIONS,
+    DOCKER_DAEMON_NOT_RUNNING
 }
 
 class ExcludableError {
