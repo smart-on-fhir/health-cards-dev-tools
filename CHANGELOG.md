@@ -1,5 +1,9 @@
 # CHANGE LOG
 
+## v1.2.1-1
+- Add HL7 FHIR validator support
+- Dependecies update
+
 ## v1.2.1-0
  - Add support for SHC expiration
  - Minor updates to logger
