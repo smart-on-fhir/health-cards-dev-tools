@@ -49,6 +49,7 @@ interface CertFields {
 interface EcPublicJWK extends JWK.Key {
     x: string,
     y: string,
+    crv: string,
     x5c?: string[]
 }
 
@@ -172,7 +173,7 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
 
     for (let i = 0; i < keySet.keys.length; i++) {
 
-        let key: JWK.Key = keySet.keys[i];
+        let key: EcPublicJWK = (keySet.keys as EcPublicJWK[])[i];
 
         const keyName = 'key[' + (key.kid || i.toString()) + ']';
 
@@ -183,7 +184,7 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
         // check for private key material (as to happen before the following store.add, because the returned
         // value will be the corresponding public key)
         // Note: this is RSA/ECDSA specific, but ok since ECDSA is mandated
-        if ((key as (JWK.Key & { d: string })).d) {
+        if ((key as (EcPublicJWK & { d: string })).d) {
             log.error(keyName + ': ' + "key contains private key material.", ErrorCode.INVALID_KEY_PRIVATE);
         }
 
