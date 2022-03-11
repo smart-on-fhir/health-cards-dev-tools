@@ -41,7 +41,7 @@ test("Keys: wrong key identifier (kid)", async () => {
 });
 
 test("Keys: wrong elliptic curve", async () => {
-    expect(await testKey('wrong_curve_key.json')).toContain(ErrorCode.INVALID_KEY_WRONG_ALG);
+    expect(await testKey('wrong_curve_key.json')).toContain(ErrorCode.INVALID_KEY_WRONG_CRV);
 });
 
 test("Keys: wrong key use (use)", async () => {
