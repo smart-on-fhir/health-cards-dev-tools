@@ -36,7 +36,7 @@ void generateAndStoreKey('valid_key.json', { kty: 'EC', size: 'P-256', props: { 
 void generateAndStoreKey('private_key.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256', crv: 'P-256', use: 'sig' }}, 1, true);
 void generateAndStoreKey('valid_keys.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256', crv: 'P-256', use: 'sig' } }, 3);
 void generateAndStoreKey('wrong_kid_key.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256', crv: 'P-256', use: 'sig', kid: 'ThisIsNotTheThumbprintOfTheKey' } });
-void generateAndStoreKey('wrong_curve_key.json', { kty: 'EC', size: 'P-384', props: { alg: 'ES384', crv: 'P-384', use: 'sig' } });
+void generateAndStoreKey('wrong_curve_key.json', { kty: 'EC', size: 'P-384', props: { alg: 'ES256', crv: 'P-384', use: 'sig' } });
 void generateAndStoreKey('wrong_use_key.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256', crv: 'P-256', use: 'enc' } });
 void generateAndStoreKey('wrong_alg_key.json', { kty: 'EC', size: 'P-256', props: { alg: 'ES256K', crv: 'P-256', use: 'sig' } });
 void generateAndStoreKey('wrong_kty_key.json', { kty: 'RSA', size: 2048 });

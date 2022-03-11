@@ -237,8 +237,11 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
             }
         }
 
+        let addKey : JWK.Key;
         try {
-            key = await keys.add(key, issuerURL);
+            // Note: keys.add() returns a key that no longer has a .crv property - so the .crv test below was failing
+            // We assign this key to its own variable and do the key property checks on the original key variable below
+            addKey = await keys.add(key, issuerURL);
         } catch (error) {
             return log.error('Error adding key to keyStore : ' + (error as Error).message, ErrorCode.INVALID_KEY_UNKNOWN);
         }
@@ -248,12 +251,12 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
             log.error(keyName + ': ' + "'kid' missing in issuer key", ErrorCode.INVALID_KEY_SCHEMA);
         } else {
 
-            await key.thumbprint('SHA-256')
+            await addKey.thumbprint('SHA-256')
                 .then(tpDigest => {
                     const thumbprint = jose.util.base64url.encode(tpDigest);
-                    if (key.kid !== thumbprint) {
+                    if (addKey.kid !== thumbprint) {
                         log.error(keyName + ': ' + "'kid' does not match thumbprint in issuer key. expected: "
-                            + thumbprint + ", actual: " + key.kid, ErrorCode.INVALID_KEY_WRONG_KID);
+                            + thumbprint + ", actual: " + addKey.kid, ErrorCode.INVALID_KEY_WRONG_KID);
                     }
                 })
                 .catch(err => {
@@ -280,6 +283,13 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
             log.error(keyName + ': ' + "'use' missing in issuer key", ErrorCode.INVALID_KEY_SCHEMA);
         } else if (key.use !== 'sig') {
             log.warn(keyName + ': ' + "wrong usage in issuer key. expected: 'sig', actual: " + key.use, ErrorCode.INVALID_KEY_WRONG_USE);
+        }
+
+        // check that curve is 'P-256'
+        if (!key.crv) {
+            log.error(keyName + ': ' + "'crv' missing in issuer key", ErrorCode.INVALID_KEY_SCHEMA);
+        } else if (key.crv !== 'P-256') {
+            log.warn(keyName + ': ' + "wrong curve in issuer key. expected: 'P-256', actual: " + key.crv, ErrorCode.INVALID_KEY_WRONG_CRV);
         }
     }
 
