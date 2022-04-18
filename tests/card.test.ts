@@ -5,7 +5,7 @@ import path from 'path';
 import { validateCard } from '../src/validate';
 import { getFileData } from '../src/file';
 import { ErrorCode as ec } from '../src/error';
-import Log, { LogLevels } from '../src/logger';
+import Log, { LogItem, LogLevels } from '../src/logger';
 import { isOpensslAvailable } from '../src/utils';
 import { jreOrDockerAvailable } from '../src/fhirValidator';
 import { IOptions, setOptions } from '../src/options';
@@ -35,6 +35,7 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
     }
 
     const log = await validateCard(files, fileType, setOptions(options));
+    if(print) console.info(log.toString(LogLevels.DEBUG));
     const flatLog = log.flatten();
 
     const errors = [
@@ -397,11 +398,14 @@ test("Cards: mismatch kid/issuer", testCard(['test-example-00-d-jws-issuer-kid-m
 test("Cards: immunization status not 'completed'", testCard('test-example-00-a-fhirBundle-status-not-completed.json', 'fhirbundle', [[ec.FHIR_SCHEMA_ERROR, ec.FHIR_SCHEMA_ERROR]]));
 
 
+let print = false;
+
 // Tests using the HL7 FHIR Validator
 // Since these tests require a Java runtime (JRE) or Docker to be installed, they are conditionally executed.
 // These tests can also take a longer as they have to spin up a Docker image 
 describe('FHIR validator tests', () => {
 
+    print = true;
     const testif = (condition: boolean) => condition ? it : it.skip;
     const canRunFhirValidator = jreOrDockerAvailable();
     // shc-validator -p ./testdata/test-example-00-a-fhirBundle-profile-usa.json -t fhirbundle -l debug -V fhirvalidator
