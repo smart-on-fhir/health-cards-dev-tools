@@ -35,7 +35,7 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
     }
 
     const log = await validateCard(files, fileType, setOptions(options));
-    if(print) console.info(log.toString(LogLevels.DEBUG));
+    if (print) console.info(log.toString(LogLevels.DEBUG));
     const flatLog = log.flatten();
 
     const errors = [
@@ -64,7 +64,7 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
                 });
             }
 
-            if(err.length !== exp) {
+            if (err.length !== exp) {
                 console.debug(log.toString(LogLevels.DEBUG));
             }
 
@@ -410,7 +410,7 @@ describe('FHIR validator tests', () => {
     const canRunFhirValidator = jreOrDockerAvailable();
     // shc-validator -p ./testdata/test-example-00-a-fhirBundle-profile-usa.json -t fhirbundle -l debug -V fhirvalidator
     testif(canRunFhirValidator)("Cards: fhir x validator test", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
-        [8, 1], {  validator: Validators.fhirvalidator, logLevel: LogLevels.DEBUG }), 1000 * 60 * 5 /*5 minutes*/);
-
+        [8, 1], { validator: Validators.fhirvalidator, logLevel: LogLevels.DEBUG }), 1000 * 60 * 5 /*5 minutes*/);
+    print = false;
 });
 
