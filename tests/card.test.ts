@@ -63,7 +63,7 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
                 });
             }
 
-            if(err.length !== exp) {
+            if (err.length !== exp) {
                 console.debug(log.toString(LogLevels.DEBUG));
             }
 
@@ -264,6 +264,7 @@ test("Cards: JWS Payload with BOM UTF-8 prefix",
 
 test("Cards: CRL with invalid method", testCard(['badcrl/invalid-method/jws-crl-invalid-method.txt'], 'jws', [[ec.REVOCATION_ERROR]]));
 test("Cards: CRL with invalid rid (base64)", testCard(['badcrl/non-base64url-rid/jws-crl-non-base64url-rid.txt'], 'jws', [[ec.REVOCATION_ERROR]]));
+test("Cards: CRL with invalid rid (duplicate)", testCard(['badcrl/duplicate-rid/jws-crl-duplicate-rid.txt'], 'jws', [[ec.REVOCATION_ERROR, ec.REVOCATION_ERROR]]));
 test("Cards: CRL with invalid rid (too long)", testCard(['badcrl/too-long-rid/jws-crl-too-long-rid.txt'], 'jws', [[ec.REVOCATION_ERROR]]));
 test("Cards: CRL with version mismatch", testCard(['badcrl/version-mismatch/jws-crl-version-mismatch.txt'], 'jws', [[ec.REVOCATION_ERROR]]));
 
@@ -406,7 +407,7 @@ describe('FHIR validator tests', () => {
     const canRunFhirValidator = jreOrDockerAvailable();
     // shc-validator -p ./testdata/test-example-00-a-fhirBundle-profile-usa.json -t fhirbundle -l debug -V fhirvalidator
     testif(canRunFhirValidator)("Cards: fhir x validator test", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
-        [8, 1], {  validator: Validators.fhirvalidator, logLevel: LogLevels.DEBUG }), 1000 * 60 * 5 /*5 minutes*/);
+        [8, 1], { validator: Validators.fhirvalidator, logLevel: LogLevels.DEBUG }), 1000 * 60 * 5 /*5 minutes*/);
 
 });
 
