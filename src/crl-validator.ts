@@ -59,7 +59,12 @@ export async function downloadAndValidateCRL(issuerURL: string, kid: string, crl
             if (crl.ctr !== crlVersion) {
                 log.error(`CRL's ctr doesn't match the key crlVersion: ctr = ${crl.ctr}, crlVersion = ${crlVersion}`, ErrorCode.REVOCATION_ERROR);
             }
-            if (!crl.rids || crl.rids.length === 0) {
+            const ridsWithoutTimestamps: string[] = crl.rids.map(rid => rid.split('.')[0]);
+            crl.rids.forEach((rid, i) => {
+                const [r] = rid.split('.');
+                if (ridsWithoutTimestamps.includes(r, i + 1)) log.error(`Duplicate rid ${r} in CRL`, ErrorCode.REVOCATION_ERROR);
+            });
+            if (!crl.rids || !crl.rids?.length) {
                 log.warn(`CRL's rids array is empty`, ErrorCode.REVOCATION_ERROR);
             } else {
                 const badRids = crl.rids.filter(rid => { return !isRidValid(rid) });
