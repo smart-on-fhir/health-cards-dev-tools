@@ -1,8 +1,13 @@
 # CHANGE LOG
 
+## v1.2.1-2
+- Check for duplicated RID in revocation lists
+- Check JWK curve
+- Dependencies update
+
 ## v1.2.1-1
 - Add HL7 FHIR validator support
-- Dependecies update
+- Dependencies update
 
 ## v1.2.1-0
  - Add support for SHC expiration
