@@ -1,5 +1,9 @@
 # CHANGE LOG
 
+## v1.2.1-3
+- Added validation time option for SHC and X.509 certs
+- Dependencies update
+
 ## v1.2.1-2
 - Check for duplicated RID in revocation lists
 - Check JWK curve

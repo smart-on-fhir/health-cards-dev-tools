@@ -215,7 +215,7 @@ export async function validate(jws: JWS, options: IOptions, index = ''): Promise
 
             // download the keys into the keystore. if it fails, continue an try to use whatever is in the keystore.
             if (!options.skipJwksDownload) {
-                await downloadAndImportKey(payload.iss, log);
+                await downloadAndImportKey(payload.iss, log, options.validationTime);
             } else {
                 log.info("skipping issuer JWK set download");
             }
@@ -241,7 +241,7 @@ export async function validate(jws: JWS, options: IOptions, index = ''): Promise
 }
 
 
-async function downloadAndImportKey(issuerURL: string, log: Log): Promise<KeySet | undefined> {
+async function downloadAndImportKey(issuerURL: string, log: Log, validationTime: string): Promise<KeySet | undefined> {
 
     const jwkURL = issuerURL + '/.well-known/jwks.json';
     log.info("Retrieving issuer key from " + jwkURL);
@@ -262,7 +262,7 @@ async function downloadAndImportKey(issuerURL: string, log: Log): Promise<KeySet
                 throw "Failed to parse JSON KeySet schema";
             }
             log.debug("Downloaded issuer key(s) : ");
-            await verifyAndImportHealthCardIssuerKey(keySet, log, issuerURL);
+            await verifyAndImportHealthCardIssuerKey(keySet, validationTime, log, issuerURL);
             return keySet;
         } catch (err) {
             log.error("Can't parse downloaded issuer JWK set: " + (err as Error).toString(), ErrorCode.ISSUER_KEY_DOWNLOAD_ERROR);

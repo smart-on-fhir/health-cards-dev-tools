@@ -9,6 +9,10 @@ import { CliOptions } from '../src/shc-validator';
 import { isOpensslAvailable } from '../src/utils';
 
 const OPENSSL_AVAILABLE = isOpensslAvailable();
+// NOTE: The X.509 cert corresponding to SHC spec's 2nd example key has expired (following the spec guidance on validity period)
+//       Many test files have been generated using that key, and we set a global validation time corresponding to before the
+//       cert expiration on June 1st, 2022, to avoid many cert expiration errors.
+const validationTime = "1653955200"; /* 2022-05-31 */
 
 interface LogEntry {
     time: string,
@@ -77,35 +81,35 @@ function testCliCommand(command: string): number {
 }
 
 // Valid calls to examples
-test("Cards: valid 00 health card", () => expect(testCliCommand('node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info --jwkset testdata/issuer.jwks.public.json')).toBe(0));
-test("Cards: valid 00 jws", () => expect(testCliCommand('node . --path testdata/example-00-d-jws.txt --type jws --loglevel info')).toBe(0));
-test("Cards: valid 00 jws-payload", () => expect(testCliCommand('node . --path testdata/example-00-c-jws-payload-minified.json --type jwspayload --loglevel info')).toBe(0));
-test("Cards: valid 00 fhirBundle", () => expect(testCliCommand('node . --path testdata/example-00-a-fhirBundle.json --type fhirbundle --loglevel info')).toBe(0));
-test("Cards: valid 00 qr-code-numeric", () => expect(testCliCommand('node . --path testdata/example-00-f-qr-code-numeric-value-0.txt --type qrnumeric --loglevel info')).toBe(0));
-test("Cards: valid 00 qr-code.svg", () => expect(testCliCommand('node . --path testdata/example-00-g-qr-code-0.svg --type qr --loglevel info')).toBe(0));
-test("Cards: valid 00 qr-code scaling", () => expect(testCliCommand('node . --path testdata/test-example-00-g-qr-code-0-scaled-23.jpg --type qr --loglevel info')).toBe(0));
+test("Cards: valid 00 health card", () => expect(testCliCommand(`node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info --jwkset testdata/issuer.jwks.public.json --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 00 jws", () => expect(testCliCommand(`node . --path testdata/example-00-d-jws.txt --type jws --loglevel info --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 00 jws-payload", () => expect(testCliCommand(`node . --path testdata/example-00-c-jws-payload-minified.json --type jwspayload --loglevel info --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 00 fhirBundle", () => expect(testCliCommand(`node . --path testdata/example-00-a-fhirBundle.json --type fhirbundle --loglevel info --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 00 qr-code-numeric", () => expect(testCliCommand(`node . --path testdata/example-00-f-qr-code-numeric-value-0.txt --type qrnumeric --loglevel info --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 00 qr-code.svg", () => expect(testCliCommand(`node . --path testdata/example-00-g-qr-code-0.svg --type qr --loglevel info --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 00 qr-code scaling", () => expect(testCliCommand(`node . --path testdata/test-example-00-g-qr-code-0-scaled-23.jpg --type qr --loglevel info --valTime ${validationTime}`)).toBe(0));
 
-test("Cards: valid 01 health card", () => expect(testCliCommand('node . --path testdata/example-01-e-file.smart-health-card --type healthcard --loglevel warning')).toBe(0));
-test("Cards: valid 01 jws", () => expect(testCliCommand('node . --path testdata/example-01-d-jws.txt --type jws --loglevel warning')).toBe(0));
-test("Cards: valid 01 jws-payload", () => expect(testCliCommand('node . --path testdata/example-01-c-jws-payload-minified.json --type jwspayload --loglevel warning')).toBe(0));
-test("Cards: valid 01 fhirBundle", () => expect(testCliCommand('node . --path testdata/example-01-a-fhirBundle.json --type fhirbundle --loglevel warning')).toBe(0));
-test("Cards: valid 01 qr-code-numeric", () => expect(testCliCommand('node . --path testdata/example-01-f-qr-code-numeric-value-0.txt --type qrnumeric --loglevel info')).toBe(0));
-test("Cards: valid 01 qr-code.svg", () => expect(testCliCommand('node . --path testdata/example-01-g-qr-code-0.svg --type qr --loglevel info')).toBe(0));
+test("Cards: valid 01 health card", () => expect(testCliCommand(`node . --path testdata/example-01-e-file.smart-health-card --type healthcard --loglevel warning --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 01 jws", () => expect(testCliCommand(`node . --path testdata/example-01-d-jws.txt --type jws --loglevel warning --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 01 jws-payload", () => expect(testCliCommand(`node . --path testdata/example-01-c-jws-payload-minified.json --type jwspayload --loglevel warning --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 01 fhirBundle", () => expect(testCliCommand(`node . --path testdata/example-01-a-fhirBundle.json --type fhirbundle --loglevel warning --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 01 qr-code-numeric", () => expect(testCliCommand(`node . --path testdata/example-01-f-qr-code-numeric-value-0.txt --type qrnumeric --loglevel info --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 01 qr-code.svg", () => expect(testCliCommand(`node . --path testdata/example-01-g-qr-code-0.svg --type qr --loglevel info --valTime ${validationTime}`)).toBe(0));
 
-test("Cards: valid 02 health card", () => expect(testCliCommand('node . --path testdata/example-02-e-file.smart-health-card --type healthcard --loglevel warning')).toBe(0));
-test("Cards: valid 02 jws", () => expect(testCliCommand('node . --path testdata/example-02-d-jws.txt --type jws --loglevel warning')).toBe(0));
-test("Cards: valid 02 jws-payload", () => expect(testCliCommand('node . --path testdata/example-02-c-jws-payload-minified.json --type jwspayload --loglevel warning')).toBe(0));
-test("Cards: valid 02 fhirBundle", () => expect(testCliCommand('node . --path testdata/example-02-a-fhirBundle.json --type fhirbundle --loglevel warning')).toBe(0));
-test("Cards: valid 02 qr-code-numeric", () => expect(testCliCommand('node . --path testdata/example-02-f-qr-code-numeric-value-0.txt --path testdata/example-02-f-qr-code-numeric-value-1.txt --path testdata/example-02-f-qr-code-numeric-value-2.txt --type qrnumeric --loglevel info')).toBe(0));
-test("Cards: valid 02 qr-code.svg", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.svg --path testdata/example-02-g-qr-code-1.svg --path testdata/example-02-g-qr-code-2.svg --type qr --loglevel info')).toBe(0));
-test("Cards: valid 02 qr-code.png", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.png --path testdata/example-02-g-qr-code-1.png --path testdata/example-02-g-qr-code-2.png --type qr --loglevel info')).toBe(0));
-test("Cards: valid 02 qr-code.jpg", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.jpg --path testdata/example-02-g-qr-code-1.jpg --path testdata/example-02-g-qr-code-2.jpg --type qr --loglevel info')).toBe(0));
-test("Cards: valid 02 qr-code.bmp", () => expect(testCliCommand('node . --path testdata/example-02-g-qr-code-0.bmp --path testdata/example-02-g-qr-code-1.bmp --path testdata/example-02-g-qr-code-2.bmp --type qr --loglevel info')).toBe(0));
+test("Cards: valid 02 health card", () => expect(testCliCommand(`node . --path testdata/example-02-e-file.smart-health-card --type healthcard --loglevel warning --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 02 jws", () => expect(testCliCommand(`node . --path testdata/example-02-d-jws.txt --type jws --loglevel warning --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 02 jws-payload", () => expect(testCliCommand(`node . --path testdata/example-02-c-jws-payload-minified.json --type jwspayload --loglevel warning --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 02 fhirBundle", () => expect(testCliCommand(`node . --path testdata/example-02-a-fhirBundle.json --type fhirbundle --loglevel warning --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 02 qr-code-numeric", () => expect(testCliCommand(`node . --path testdata/example-02-f-qr-code-numeric-value-0.txt --path testdata/example-02-f-qr-code-numeric-value-1.txt --path testdata/example-02-f-qr-code-numeric-value-2.txt --type qrnumeric --loglevel info --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 02 qr-code.svg", () => expect(testCliCommand(`node . --path testdata/example-02-g-qr-code-0.svg --path testdata/example-02-g-qr-code-1.svg --path testdata/example-02-g-qr-code-2.svg --type qr --loglevel info --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 02 qr-code.png", () => expect(testCliCommand(`node . --path testdata/example-02-g-qr-code-0.png --path testdata/example-02-g-qr-code-1.png --path testdata/example-02-g-qr-code-2.png --type qr --loglevel info --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 02 qr-code.jpg", () => expect(testCliCommand(`node . --path testdata/example-02-g-qr-code-0.jpg --path testdata/example-02-g-qr-code-1.jpg --path testdata/example-02-g-qr-code-2.jpg --type qr --loglevel info --valTime ${validationTime}`)).toBe(0));
+test("Cards: valid 02 qr-code.bmp", () => expect(testCliCommand(`node . --path testdata/example-02-g-qr-code-0.bmp --path testdata/example-02-g-qr-code-1.bmp --path testdata/example-02-g-qr-code-2.bmp --type qr --loglevel info --valTime ${validationTime}`)).toBe(0));
 
-test("Cards: valid fhir api health card", () => expect(testCliCommand('node . --path testdata/test-example-00-fhirhealthcard.json --type fhirhealthcard --loglevel info --jwkset testdata/issuer.jwks.public.json')).toBe(0));
+test("Cards: valid fhir api health card", () => expect(testCliCommand(`node . --path testdata/test-example-00-fhirhealthcard.json --type fhirhealthcard --loglevel info --jwkset testdata/issuer.jwks.public.json --valTime ${validationTime}`)).toBe(0));
 
 // valid key example
-test("Cards: valid key set", () => expect(testCliCommand('node . --path testdata/issuer.jwks.public.json --type jwkset --loglevel info')).toBe(0));
+test("Cards: valid key set", () => expect(testCliCommand(`node . --path testdata/issuer.jwks.public.json --type jwkset --loglevel info --valTime ${validationTime}`)).toBe(0));
 
 // Bad paths to data files
 test("Cards: missing healthcard", () => expect(testCliCommand('node . --path bogus-path/bogus-file.json --type healthcard --loglevel info')).toBe(ec.DATA_FILE_NOT_FOUND));
@@ -122,7 +126,7 @@ test("Logs: valid 00-e health card single log file", () => {
     const expectedEntries = 1;
     const expectedLogItems = 8 + (OPENSSL_AVAILABLE ? 0 : 1);
 
-    runCommandSync(`node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ${logFile}`);
+    runCommandSync(`node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ${logFile} --valTime ${validationTime}`);
 
     const logs: LogEntry[] = testLogFile(logFile);
 
@@ -137,8 +141,8 @@ test("Logs: valid 00-e health card append log file", () => {
     const expectedEntries = 2;
     const expectedLogItems = [8 + (OPENSSL_AVAILABLE ? 0 : 1), 8 + (OPENSSL_AVAILABLE ? 0 : 1)];
 
-    runCommandSync(`node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ${logFile}`);
-    runCommandSync(`node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ${logFile}`);
+    runCommandSync(`node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ${logFile} --valTime ${validationTime}`);
+    runCommandSync(`node . --path testdata/example-00-e-file.smart-health-card --type healthcard --loglevel info  --logout ${logFile} --valTime ${validationTime}`);
 
     const logs: LogEntry[] = testLogFile(logFile);
 

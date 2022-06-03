@@ -90,24 +90,23 @@ To validate health card artifacts, use the `shc-validator.ts` script, or simply 
 
     Usage: health-cards-dev-tools [options]
     
-    Options:
-      -v, --version                display specification and tool version
-      -p, --path <path>            path of the file(s) to validate. Can be repeated for the qr and qrnumeric types, to provide multiple file chunks (default: [])
-      -t, --type <type>            type of file to validate
-                                   (choices: "fhirbundle", "jwspayload", "jws", "healthcard", "fhirhealthcard", "qrnumeric", "qr", "jwkset")
-      -l, --loglevel <loglevel>    set the minimum log level (choices: "debug", "info", "warning", "error", "fatal", default: "warning")
-      -P, --profile <profile>      vaccination profile to validate (choices: "any", "usa-covid19-immunization", default: "any")
-      -V, --validator <validator>  FHIR bundle validator (choices: "default", "fhirvalidator" (requires Java runtime or Docker)) 
-      -d, --directory <directory>  trusted issuer directory to validate against
-      -o, --logout <path>          output path for log (if not specified log will be printed on console)
-      -f, --fhirout <path>         output path for the extracted FHIR bundle
-      -k, --jwkset <key>           path to trusted issuer key set
-      -e, --exclude <error>        error to exclude, can be repeated, can use a * wildcard. Valid options: "openssl-not-available", "invalid-issuer-url", 
-                                   "invalid-key-x5c", "invalid-key-wrong-kty", "invalid-key-wrong-alg",
-                                   "invalid-key-wrong-use", "invalid-key-wrong-kid", "invalid-key-schema", "not-yet-valid", "fhir-schema-error", 
-                                   "issuer-key-download-error", "unbalanced-qr-chunks", "jws-too-long",
-                                   "invalid-file-extension", "trailing-characters", "issuer-wellknown-endpoint-cors" (default: [])
-      -h, --help                   display help for command
+  Options:
+    -v, --version                display specification and tool version
+    -p, --path <path>            path of the file(s) to validate. Can be repeated for the qr and qrnumeric types, to provide multiple file chunks (default: [])
+    -t, --type <type>            type of file to validate
+                                 (choices: "fhirbundle", "jwspayload", "jws", "healthcard", "fhirhealthcard", "qrnumeric", "qr", "jwkset")
+    -l, --loglevel <loglevel>    set the minimum log level (choices: "debug", "info", "warning", "error", "fatal", default: "warning")
+    -P, --profile <profile>      vaccination profile to validate (choices: "any", "usa-covid19-immunization", default: "any")
+    -d, --directory <directory>  trusted issuer directory to validate against
+    -o, --logout <path>          output path for log (if not specified log will be printed on console)
+    -f, --fhirout <path>         output path for the extracted FHIR bundle
+    -k, --jwkset <key>           path to trusted issuer key set
+    -e, --exclude <error>        error to exclude, can be repeated, can use a * wildcard. Valid options: "openssl-not-available", "invalid-issuer-url",
+                                 "invalid-key-x5c", "invalid-key-wrong-kty", "invalid-key-wrong-alg", "invalid-key-wrong-use", "invalid-key-wrong-kid", "invalid-key-wrong-crv", "invalid-key-schema", "not-yet-valid", "fhir-schema-error", "issuer-key-download-error",
+                                 "unbalanced-qr-chunks", "jws-too-long", "invalid-file-extension", "trailing-characters", "issuer-wellknown-endpoint-cors" (default: [])
+    -V, --validator <validator>  the choice of FHIR validator to use (cannot be used with non-default --profile) (choices: "default", "fhirvalidator")
+    -T, --valTime <valtime>      validation time for SHC and certificates (in seconds from UNIX epoch)
+    -h, --help                   display help for command
 
 ### Examples
 

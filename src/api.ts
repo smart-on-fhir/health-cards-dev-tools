@@ -32,7 +32,7 @@ async function validateKeySet(text: string, options: Partial<IOptions> = {}): Pr
         return [{ message: "Unable to parse as JSON", code: ErrorCode.JSON_PARSE_ERROR, level: LogLevels.ERROR }];
     }
 
-    const keySetLog = await verifyAndImportHealthCardIssuerKey(keySet);
+    const keySetLog = await verifyAndImportHealthCardIssuerKey(keySet, options.validationTime);
     return formatOutput(keySetLog, fullOptions.logLevel);
 }
 
