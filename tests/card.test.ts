@@ -22,7 +22,11 @@ function testCard(
     options: Partial<IOptions> = {}) {
 
     return async () => {
-        await _testCard(fileName, fileType, expected, options);
+        // NOTE: The X.509 cert corresponding to SHC spec's 2nd example key has expired (following the spec guidance on validity period)
+        //       Many test files have been generated using that key, and we set a global validation time corresponding to before the
+        //       cert expiration on June 1st, 2022, to avoid many cert expiration errors.
+        const combinedOptions: Partial<IOptions> = {validationTime: "1653955200" /* 2022-05-31 */, ...options }
+        await _testCard(fileName, fileType, expected, combinedOptions);
     }
 }
 

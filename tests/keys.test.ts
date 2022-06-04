@@ -16,7 +16,9 @@ const OPENSSL_AVAILABLE = utils.isOpensslAvailable();
 
 async function testKey(fileName: string, subjectAltName = ''): Promise<ErrorCode[]> {
     const filePath = path.join(testdataDir, fileName);
-    const result = (await verifyAndImportHealthCardIssuerKey(utils.loadJSONFromFile(filePath), undefined ,subjectAltName));
+    // fix cert validation to avoid cert expiration errors for pregenerated certs
+    const validationTime = "1653955200"; // May 31, 2022 12:00:00 AM
+    const result = (await verifyAndImportHealthCardIssuerKey(utils.loadJSONFromFile(filePath), validationTime, undefined ,subjectAltName));
     return result.flatten(LogLevels.WARNING).map(item => item.code);
 }
 

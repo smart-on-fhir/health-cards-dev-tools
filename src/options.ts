@@ -10,7 +10,8 @@ interface IOptions {
     logOutputPath: string,
     skipJwksDownload: boolean,
     jwkset: string,
-    validator: Validators
+    validator: Validators,
+    validationTime: string
 }
 
 const defaultOptions: IOptions = {
@@ -22,7 +23,8 @@ const defaultOptions: IOptions = {
     logOutputPath: '',
     skipJwksDownload: false,
     jwkset: '',
-    validator: Validators.default
+    validator: Validators.default,
+    validationTime: ''
 }
 
 const setOptions = function (options: Partial<IOptions> = {}): IOptions {

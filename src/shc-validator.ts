@@ -45,6 +45,7 @@ program.option('-e, --exclude <error>', 'error to exclude, can be repeated, can 
     ExcludableErrors.map(e => ` "${e.error}"`).join(),
     (e: string, errors: string[]) => errors.concat([e]), []);
 program.addOption(new Option('-V, --validator <validator>', 'the choice of FHIR validator to use (cannot be used with non-default --profile)').choices(Object.keys(Validators).filter(x => Number.isNaN(Number(x)))));
+program.option('-T, --valTime <valTime>', 'validation time for SHC and certificates (in seconds from UNIX epoch)');
 program.parse(process.argv);
 
 export interface CliOptions {
@@ -59,6 +60,7 @@ export interface CliOptions {
     exclude: string[];
     clearKeyStore?: boolean;
     validator: string;
+    valTime: string;
 }
 
 
@@ -138,6 +140,14 @@ async function processOptions(cliOptions: CliOptions) {
         return;
     }
 
+    // set the validation time
+    if (cliOptions.valTime) {
+        if (parseInt(cliOptions.valTime) < 0) {
+            console.log("Invalid validation time: " + cliOptions.valTime);
+            return;
+        }
+        options.validationTime = cliOptions.valTime;
+    }
 
     // requires both --path and --type properties
     if (cliOptions.path.length === 0 || !cliOptions.type) {
@@ -177,7 +187,7 @@ async function processOptions(cliOptions: CliOptions) {
     }
 
 
-    // if we have a key option, validate is and add it to the global key store
+    // if we have a key option, validate it and add it to the global key store
     if (cliOptions.jwkset) {
 
         let keys;
@@ -189,7 +199,7 @@ async function processOptions(cliOptions: CliOptions) {
         }
 
         // validate the key/keyset
-        const output = await validator.validateKey(keys);
+        const output = await validator.validateKey(keys, cliOptions.valTime);
         process.exitCode = output.exitCode;
 
 
@@ -206,7 +216,7 @@ async function processOptions(cliOptions: CliOptions) {
         const keys = JSON.parse(fileData[0].buffer.toString('utf-8')) as KeySet;
 
         // validate the key/keyset
-        const output = await validator.validateKey(keys);
+        const output = await validator.validateKey(keys, cliOptions.valTime);
         process.exitCode = output.exitCode;
 
         // if a logfile is specified, append to the specified logfile

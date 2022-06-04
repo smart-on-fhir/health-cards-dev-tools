@@ -19,8 +19,8 @@ import { IOptions } from './options';
 
 
 /** Validate the issuer key */
-export async function validateKey(keySet: KeySet, log: Log = new Log('Validate Key-Set')): Promise<Log> {
-    return (await verifyAndImportHealthCardIssuerKey(keySet, log));
+export async function validateKey(keySet: KeySet, validationTime: string = '', log: Log = new Log('Validate Key-Set')): Promise<Log> {
+    return (await verifyAndImportHealthCardIssuerKey(keySet, validationTime, log));
 }
 
 
@@ -35,7 +35,7 @@ export async function validateCard(fileData: FileInfo[], artifact : ValidationTy
 
     if (options.jwkset) {
         const keys = utils.loadJSONFromFile<KeySet>(options.jwkset);
-        await validateKey(keys);
+        await validateKey(keys, options.validationTime);
     }
 
     if (options.issuerDirectory) {

@@ -54,7 +54,7 @@ interface EcPublicJWK extends JWK.Key {
 }
 
 // validate a JWK certificate chain (x5c value)
-function validateX5c(x5c: string[], log: Log): CertFields | undefined {
+function validateX5c(x5c: string[], log: Log, validationTime: string = ""): CertFields | undefined {
     // we use OpenSSL to validate the certificate chain, first check if present
     if (!isOpensslAvailable()) {
         log.warn('OpenSSL not available to validate the X.509 certificate chain; skipping validation', ErrorCode.OPENSSL_NOT_AVAILABLE);
@@ -97,7 +97,9 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
         //
         // validate the chain with OpenSSL (should work with v1.0.2, v1.1.1, and libressl v3.x)
         //
-        const opensslVerifyCommand = "openssl verify " + rootCaArg + caArg + issuerCert;
+        // set the time at which to validate the cert chain (openssl doesn't parse fractional values, so only keep the integral value)
+        const validationTimeArg = validationTime ? `-attime ${validationTime.split('.')[0]} `:  "";
+        const opensslVerifyCommand = "openssl verify " + validationTimeArg + rootCaArg + caArg + issuerCert;
         log.debug('Calling openssl for x5c validation: ' + opensslVerifyCommand);
         const result = runCommandSync(opensslVerifyCommand, log);
         if (result.exitCode != 0) {
@@ -161,7 +163,7 @@ function validateX5c(x5c: string[], log: Log): CertFields | undefined {
     }
 }
 
-export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = new Log('Validate Key-Set'), issuerURL = ''): Promise<Log> {
+export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, validationTime = '', log = new Log('Validate Key-Set'), issuerURL = ''): Promise<Log> {
 
     // check that keySet is valid
     if (!(keySet instanceof Object) || !keySet.keys || !(keySet.keys instanceof Array)) {
@@ -191,7 +193,7 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
         // check cert chain if present, if so, validate it
         const ecPubKey = key as EcPublicJWK;
         if (ecPubKey.x5c) {
-            const certFields = validateX5c(ecPubKey.x5c, log);
+            const certFields = validateX5c(ecPubKey.x5c, log, validationTime);
             if (certFields) {
                 const checkKeyValue = (v: 'x' | 'y') => {
                     if (ecPubKey[v]) {
@@ -209,11 +211,12 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, log = n
                     log.error("Subject Alternative Name extension in the issuer's cert (in x5c JWK value) doesn't match issuer URL.\n" +
                     `Expected: ${issuerURL}. Actual: ${certFields.subjectAltName.substring(4)}`, ErrorCode.INVALID_KEY_X5C);
                 }
-                const now = new Date();
-                if (certFields.notBefore && now < certFields.notBefore) {
+                // set cert validation to provided value or current time
+                const certValidationTime = validationTime ? Date.parse(validationTime) * 1000 : Date.now();
+                if (certFields.notBefore && certValidationTime < certFields.notBefore.getTime()) {
                     log.warn('issuer certificate (in x5c JWK value) is not yet valid', ErrorCode.INVALID_KEY_X5C);
                 }
-                if (certFields.notAfter && now > certFields.notAfter) {
+                if (certFields.notAfter && certValidationTime > certFields.notAfter.getTime()) {
                     log.warn('issuer certificate (in x5c JWK value) is expired', ErrorCode.INVALID_KEY_X5C);
                 }
             }

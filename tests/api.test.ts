@@ -7,15 +7,18 @@ import { jreOrDockerAvailable } from '../src/fhirValidator';
 const testdataDir = './testdata/';
 
 
-// wrap testcard with a function that returns a function - now we don't need all 'async ()=> await' for every test case
+// wrap validateApi with a function that returns a function - now we don't need all 'async ()=> await' for every test case
 function validateApi(
     filePath: string[] | string,
     type: string,
     expected: (number | null | undefined | ec[] | Error)[] = [/*ERROR+FATAL*/0, /*WARNING*/0,/*INFO*/null,/*DEBUG*/null,/*FATAL*/null],
     options: Partial<IOptions> = {}) {
-
     return async () => {
-        await _validateApi(filePath, type, expected, options);
+        // NOTE: The X.509 cert corresponding to SHC spec's 2nd example key has expired (following the spec guidance on validity period)
+        //       Many test files have been generated using that key, and we set a global validation time corresponding to before the
+        //       cert expiration on June 1st, 2022, to avoid many cert expiration errors.
+        const combinedOptions: Partial<IOptions> = {validationTime: "1653955200" /* 2022-05-31 */, ...options }
+        await _validateApi(filePath, type, expected, combinedOptions);
     }
 }
 
