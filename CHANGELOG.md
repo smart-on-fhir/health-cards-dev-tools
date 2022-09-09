@@ -2,6 +2,7 @@
 
 ## v1.2.1-3
 - Added validation time option for SHC and X.509 certs
+- Updated CVX Covid19 codes
 - Dependencies update
 
 ## v1.2.1-2
