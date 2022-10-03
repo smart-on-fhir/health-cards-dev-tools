@@ -11,7 +11,10 @@ interface IOptions {
     skipJwksDownload: boolean,
     jwkset: string,
     validator: Validators,
-    validationTime: string
+    validationTime: string,
+    passCode: string,
+    decryptionKey: string,
+    index: number
 }
 
 const defaultOptions: IOptions = {
@@ -24,7 +27,10 @@ const defaultOptions: IOptions = {
     skipJwksDownload: false,
     jwkset: '',
     validator: Validators.default,
-    validationTime: ''
+    validationTime: '',
+    passCode: '',
+    decryptionKey: '',
+    index: 0
 }
 
 const setOptions = function (options: Partial<IOptions> = {}): IOptions {
@@ -35,7 +41,7 @@ const setOptions = function (options: Partial<IOptions> = {}): IOptions {
     });
 
     if (options) {
-        /* Apparently TS does not consider 'isInteger()' as typeguard so we need the ' ?? -n' to coerce not-really-undefined to an invalid integer*/
+        /* Apparently TS does not consider 'isInteger()' as type-guard so we need the ' ?? -n' to coerce not-really-undefined to an invalid integer*/
         if ('logLevel' in options && (!Number.isInteger(options.logLevel) || !((options.logLevel ?? -2) in LogLevels))) throw new Error(`Invalid logLevel ${options.logLevel ?? ''}`);
         if ('profile' in options && (!Number.isInteger(options.profile)  || !((options.profile ?? -1)in ValidationProfiles))) throw new Error(`Invalid profile ${options.profile ?? ''}`);
         if ('issuerDirectory' in options && typeof options.issuerDirectory !== 'string') throw new Error(`Invalid issuerDirectory ${options.issuerDirectory ?? ''}`);

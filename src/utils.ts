@@ -1,24 +1,23 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT license.
 
-import fs from 'fs';
-import path from 'path';
-import pako from 'pako';
-import jose from 'node-jose';
-import { runCommandSync } from './command';
+import fs from "fs";
+import path from "path";
+import pako from "pako";
+import jose from "node-jose";
+import { runCommandSync } from "./command";
+import * as j from "../testdata/shlTestResponses.json";
 
-export function parseJson<T>(json: string): T | undefined  {
+export function parseJson<T>(json: unknown): T | undefined {
     try {
-        return JSON.parse(json) as T;
+        return JSON.parse(json as string) as T;
     } catch {
         return undefined;
     }
 }
 
-
 export function loadJSONFromFile<T>(filePath: string): T {
-
-    // get absolute file path 
+    // get absolute file path
     // just to make it easier to figure out why the file is missing
     filePath = path.resolve(filePath);
 
@@ -26,7 +25,7 @@ export function loadJSONFromFile<T>(filePath: string): T {
         throw new Error("File not found : " + filePath);
     }
 
-    const fileContent: string = fs.readFileSync(filePath, 'utf8');
+    const fileContent: string = fs.readFileSync(filePath, "utf8");
 
     let output: T;
 
@@ -37,16 +36,14 @@ export function loadJSONFromFile<T>(filePath: string): T {
         throw new Error("File not valid JSON : " + filePath);
     }
     return output;
-
 }
 
 export function inflatePayload(verificationResult: jose.JWS.VerificationResult): Buffer {
-
     // keep typescript happy by extending object with a 'zip' property
-    const header = verificationResult.header as {zip: string };
+    const header = verificationResult.header as { zip: string };
     let payload = verificationResult.payload;
 
-    if (header.zip && header.zip === 'DEF') {
+    if (header.zip && header.zip === "DEF") {
         try {
             payload = Buffer.from(pako.inflateRaw(payload));
         } catch (error) {
@@ -60,7 +57,7 @@ export function inflatePayload(verificationResult: jose.JWS.VerificationResult):
 export function isOpensslAvailable(): boolean {
     try {
         const result = runCommandSync("openssl version");
-        return (result.exitCode == 0);
+        return result.exitCode == 0;
     } catch (err) {
         return false;
     }
@@ -70,11 +67,11 @@ export function isOpensslAvailable(): boolean {
 // get an object property using a string path
 //
 export function propPath(object: Record<string, unknown>, path: string): string | undefined {
-    const props = path.split('.');
+    const props = path.split(".");
     let val = object;
     for (let i = 1; i < props.length; i++) {
         val = val[props[i]] as Record<string, Record<string, unknown>>;
-        if(val instanceof Array) val = val.length === 0 ? val : val[0] as Record<string, Record<string, unknown>>;
+        if (val instanceof Array) val = val.length === 0 ? val : (val[0] as Record<string, Record<string, unknown>>);
         if (val === undefined) return val;
     }
     return val as unknown as string;
@@ -83,8 +80,11 @@ export function propPath(object: Record<string, unknown>, path: string): string 
 //
 // walks through an objects properties calling a callback with a path for each.
 //
-export function walkProperties(obj: Record<string, unknown>, path: string[], callback: (o: Record<string, unknown>, p: string[]) => void): void {
-
+export function walkProperties(
+    obj: Record<string, unknown>,
+    path: string[],
+    callback: (o: Record<string, unknown>, p: string[]) => void
+): void {
     if (obj instanceof Array) {
         for (let i = 0; i < obj.length; i++) {
             const element = obj[i] as Record<string, unknown>;
@@ -92,7 +92,7 @@ export function walkProperties(obj: Record<string, unknown>, path: string[], cal
                 walkProperties(element, path.slice(0), callback);
             }
         }
-        if(obj.length === 0) callback(obj, path);
+        if (obj.length === 0) callback(obj, path);
         return;
     }
 
@@ -115,6 +115,57 @@ export function walkProperties(obj: Record<string, unknown>, path: string[], cal
 //
 // verifies a value is a number
 //
-export function isNumeric(n : unknown) : boolean {
+export function isNumeric(n: unknown): boolean {
     return !isNaN(parseFloat(n as string)) && isFinite(n as number);
+}
+
+//
+// checks object for unexpected properties
+//
+export function unexpectedProperties(object: Record<string, unknown>, expected: string[]): string[] {
+    let property: keyof typeof object;
+
+    const unexpected: string[] = [];
+
+    for (property in object) {
+        if (!expected.includes(property)) {
+            unexpected.push(property);
+        }
+        const _value = object[property];
+    }
+
+    return unexpected;
+}
+
+import got from "got";
+
+//
+// get request from url
+//
+export async function post(url: string, data: Record<string, unknown>): Promise<string> {
+    const testData = j as unknown as Record<string, Record<string, string> | string>;
+
+    const testResponse = testData[url];
+
+    if ((testResponse as Record<string, string>)["error"]) {
+        return Promise.reject((testResponse as Record<string, string>)["error"]);
+    } else if (testResponse) {
+        return typeof testResponse === "string" ? testResponse : JSON.stringify(testResponse);
+    }
+
+    return got.post(url, { json: data }).text();
+}
+
+export async function get(url: string): Promise<string> {
+    const testData = j as unknown as Record<string, Record<string, string> | string>;
+
+    const testResponse = testData[url];
+
+    if ((testResponse as Record<string, string>)["error"]) {
+        return Promise.reject((testResponse as Record<string, string>)["error"]);
+    } else if (testResponse) {
+        return typeof testResponse === "string" ? testResponse : JSON.stringify(testResponse);
+    }
+
+    return await got.get(url).text();
 }

@@ -28,7 +28,7 @@ import { setOptions } from './options';
  *  -h/--help auto-generated
  */
 const loglevelChoices = ['debug', 'info', 'warning', 'error', 'fatal'];
-const artifactTypes = ['fhirbundle', 'jwspayload', 'jws', 'healthcard', 'fhirhealthcard', 'qrnumeric', 'qr', 'jwkset'];
+const artifactTypes = ['fhirbundle', 'jwspayload', 'jws', 'healthcard', 'fhirhealthcard', 'qrnumeric', 'qr', 'jwkset', 'shlink', 'shlpayload', 'shlmanifest'];
 const profileChoices = ['any', 'usa-covid19-immunization'];
 const program = new Command();
 program.version(npmpackage.version, '-v, --version', 'display specification and tool version');
@@ -46,6 +46,7 @@ program.option('-e, --exclude <error>', 'error to exclude, can be repeated, can 
     (e: string, errors: string[]) => errors.concat([e]), []);
 program.addOption(new Option('-V, --validator <validator>', 'the choice of FHIR validator to use (cannot be used with non-default --profile)').choices(Object.keys(Validators).filter(x => Number.isNaN(Number(x)))));
 program.option('-T, --valTime <valTime>', 'validation time for SHC and certificates (in seconds from UNIX epoch)');
+program.option('-c, --passcode <code>', 'passcode for shlink');
 program.parse(process.argv);
 
 export interface CliOptions {
@@ -61,6 +62,7 @@ export interface CliOptions {
     clearKeyStore?: boolean;
     validator: string;
     valTime: string;
+    passcode: string;
 }
 
 
@@ -148,7 +150,12 @@ async function processOptions(cliOptions: CliOptions) {
         }
         options.validationTime = cliOptions.valTime;
     }
-
+    
+    // set the validation time
+    if (cliOptions.passcode) {
+        options.passCode = cliOptions.passcode;
+    }
+        
     // requires both --path and --type properties
     if (cliOptions.path.length === 0 || !cliOptions.type) {
         console.log("Invalid option, missing '--path' or '--type'");
@@ -157,12 +164,10 @@ async function processOptions(cliOptions: CliOptions) {
         return;
     }
 
-
     // only 'qr' and 'qrnumeric' --type supports multiple --path arguments
     if (cliOptions.path.length > 1 && !(cliOptions.type === 'qr') && !(cliOptions.type === 'qrnumeric')) {
         return exit("Only the 'qr' and 'qrnumeric' types can have multiple --path options");
     }
-
 
     // check the trusted issuer directory
     if (cliOptions.directory) {

@@ -1,0 +1,19 @@
+{
+    "https://test-link/KB8tB4Is_lMI4yeVvtNRrMasLpIGW3C1MWFcC3XsVMc": {
+        "files": [
+            {
+                "contentType": "application/smart-health-card",
+                "location": "https://test-link/shl/KB8tB4Is_lMI4yeVvtNRrMasLpIGW3C1MWFcC3XsVMc/file/7ERczgx0UEWX5BEFAIf2a5WzGKVMRyyU2sKGNVABVqU?ticket=nz_Odbm_R1fhlbCkkpf-IPArtuBbOZzDNsY1m93_TZI"
+            }
+        ]
+    },
+    "https://test-link/shl/KB8tB4Is_lMI4yeVvtNRrMasLpIGW3C1MWFcC3XsVMc/file/7ERczgx0UEWX5BEFAIf2a5WzGKVMRyyU2sKGNVABVqU?ticket=nz_Odbm_R1fhlbCkkpf-IPArtuBbOZzDNsY1m93_TZI": "eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIiwiY29udGVudFR5cGUiOiJhcHBsaWNhdGlvbi9zbWFydC1oZWFsdGgtY2FyZCJ9..40KVFArVWsNH598c.vXh21L_Y2UpODowrY3BelzxK4-4TXqheKN1EXrsrBmnCy9hYcltbuh1usSCYLEH8gqSj9K0Qv6FIhY8euFBx7R6-g6sZP34a01jQNjjUWLSxPoENQB8J4kLcoOSIaFxExoP6ohG4nLx-W73yaTcBihMuUUb3ocLZ6ihIfRsQssfqRcsGBqNqi0Un5XNHGAIdaQmIjhx4WekXE4HPysnlvXDp9DLtNPwET31muB3skWafjhi-ybpC6Mr7m2xPU2ixKNbchwZAa-HVB9d6U5dW3netJr9lzIFqFMBFd1YjEzqp908Jho2-vfcTjUrmnarOBx9PQGA9B7oWP-JTy0rBNoPID9FjxQFf1wf6p6dPe5ZRXQXa4K7dqnKSLhP9tfdlFpqLiWonJD_UwSUg33ooHzOlLjpQptg7qH1NMRy9K35wOBRLC6a3RrHSWMcDIUgJ18bW41s4dAHOVRB6DcSJXuXrGHJlk7hdEkPkKfWkMTlajMAQhgKiiyGE5FyfrvIYzw8Lt7a62_yMcg5DvGJwYPxhFMX8N2MsxUwWFzhkzpPym-kP0txwhVyObjMve2zJ23TyooUgviOP7SytLKIkjEtskwYhUBgzS6PHrEEXGkroZKtC7Q4uBWeRAVViGQ6csuEzPqeMvgJ9ihFK57xu3UrxTIzk0kyPq3kwZvTQePkQ_0I19MnOzbN2pJgKEVlRBezx2KoGgjisZfE3nyn81RPKEC63nazVUhFNkQ4i2f_phO-4yjbGF8YvCoKkjIlbNJkdFcIDdeyUBobpeF6VD8Pe1Vah_xNJ3QTOtlBOogP3IrxkXBnujsGucN4p2LtAIUU3SV27zditiy4fqjwVg4YgIc8lj7CgW6gv6oBrvZwtJt2T6Kns5vmV4F5jhDrWN1q1EPJpe1J1av6uWrKcM7x-VbQpDS0aSfaN0TMdimIBJS3_nOanLZvG-Gcwwwv4IFgQ5s2nepATIYrLHfoYHwYVqCSg_NMNP9KFgWU0oyYjv6CIZkM.L9qmVrOWE64mCzl687honQ",
+    "https://test-link/KB8tB4Is_lMI4yeVvtNRrMasLpIGW3C1MWFcC3XsVM1": {
+        "error": {
+            "response": {
+                "body": "{\"remainingAttempts\":2}",
+                "statusCode" : 401
+            }
+        }
+    }
+}
