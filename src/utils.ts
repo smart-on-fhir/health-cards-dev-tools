@@ -2,6 +2,7 @@
 // Licensed under the MIT license.
 
 import fs from "fs";
+import got from "got";
 import path from "path";
 import pako from "pako";
 import jose from "node-jose";
@@ -131,13 +132,12 @@ export function unexpectedProperties(object: Record<string, unknown>, expected: 
         if (!expected.includes(property)) {
             unexpected.push(property);
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const _value = object[property];
     }
 
     return unexpected;
 }
-
-import got from "got";
 
 //
 // get request from url
@@ -147,7 +147,7 @@ export async function post(url: string, data: Record<string, unknown>): Promise<
 
     const testResponse = testData[url];
 
-    if ((testResponse as Record<string, string>)["error"]) {
+    if ((testResponse as Record<string, string>)?.["error"]) {
         return Promise.reject((testResponse as Record<string, string>)["error"]);
     } else if (testResponse) {
         return typeof testResponse === "string" ? testResponse : JSON.stringify(testResponse);
@@ -161,7 +161,7 @@ export async function get(url: string): Promise<string> {
 
     const testResponse = testData[url];
 
-    if ((testResponse as Record<string, string>)["error"]) {
+    if ((testResponse as Record<string, string>)?.["error"]) {
         return Promise.reject((testResponse as Record<string, string>)["error"]);
     } else if (testResponse) {
         return typeof testResponse === "string" ? testResponse : JSON.stringify(testResponse);
