@@ -21,7 +21,7 @@ export async function validate(shlinkPayloadJson: string, options: IOptions): Pr
         );
     }
 
-    if (typeof payload?.decrypt !== "string" || !/^[0-9a-zA-Z-_]{43}$/.test(payload.decrypt)) {
+    if (typeof payload?.key !== "string" || !/^[0-9a-zA-Z-_]{43}$/.test(payload.key)) {
         log.error(
             `Required 'key' property invalid: key must be 43 character base64urlencoded string`,
             ErrorCode.SHLINK_VERIFICATION_ERROR
@@ -139,7 +139,7 @@ export async function validate(shlinkPayloadJson: string, options: IOptions): Pr
     }
 
     if (options.cascade) {
-        log.child.push(await shlManifest.validate(manifest, { ...options, decryptionKey: payload.decrypt }));
+        log.child.push(await shlManifest.validate(manifest, { ...options, decryptionKey: payload.key }));
     }
 
     return log;

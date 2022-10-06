@@ -105,7 +105,7 @@ interface CommandResult {
 
 interface ShlinkPayload {
     url: string;
-    decrypt: string;
+    key: string;
     exp?: number;
     flag?: "L" | "P" | "LP";
     label?: string;
