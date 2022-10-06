@@ -9,7 +9,7 @@ import { CliOptions } from './shc-validator';
 
 export class LogItem {
     constructor(public message: string, public code: ErrorCode = 0, public logLevel: LogLevels = LogLevels.INFO) { 
-        this.message = splitLines(message);
+        this.message = message;
     }
 }
 
@@ -135,12 +135,19 @@ export default class Log {
 }
 
 
-function list(title: string, items: LogItem[], color: (c: string) => string) {
+function list(title: string, items: LogItem[], color: (c: string) => string, width = 0) {
 
     const results: string[] = items.length ? [color(title)] : [];
 
     items.forEach(e => {
-        const lines = e.message.split('\n');
+
+        let message = e.message;
+
+        if(width) {
+            message = splitLines(message, width)
+        }
+
+        const lines = message.split('\n');
         lines.forEach((l, i) => results.push(color((i === 0 ? '  · ' : '    ') + l)));
     });
 
@@ -148,41 +155,41 @@ function list(title: string, items: LogItem[], color: (c: string) => string) {
 }
 
 
-function formatOutput(outputTree: Log, level: LogLevels): string[] {
+function formatOutput(outputTree: Log, level: LogLevels, width : number = Math.floor(process.stdout.columns * 0.9)): string[] {
 
     let results: string[][] = [];
 
     switch (level) {
 
         case LogLevels.DEBUG:
-            results.push(list("Debug", outputTree.get(LogLevels.DEBUG), color.gray));
+            results.push(list("Debug", outputTree.get(LogLevels.DEBUG), color.gray, width));
         // eslint-disable-next-line no-fallthrough
         case LogLevels.INFO:
-            results.push(list("Info", outputTree.get(LogLevels.INFO), color.white.dim));
+            results.push(list("Info", outputTree.get(LogLevels.INFO), color.white.dim, width));
         // eslint-disable-next-line no-fallthrough
         case LogLevels.WARNING:
-            results.push(list("Warning", outputTree.get(LogLevels.WARNING), color.yellow));
+            results.push(list("Warning", outputTree.get(LogLevels.WARNING), color.yellow, width));
         // eslint-disable-next-line no-fallthrough
         case LogLevels.ERROR:
-            results.push(list("Error", outputTree.get(LogLevels.ERROR), color.red));
+            results.push(list("Error", outputTree.get(LogLevels.ERROR), color.red, width));
         // eslint-disable-next-line no-fallthrough
         case LogLevels.FATAL:
-            results.push(list("Fatal", outputTree.get(LogLevels.FATAL), color.red.inverse));
+            results.push(list("Fatal", outputTree.get(LogLevels.FATAL), color.red.inverse, width));
     }
 
-    results.push(list("Note", outputTree.get(LogLevels.NOTE), color.green));
+    results.push(list("Note", outputTree.get(LogLevels.NOTE), color.green, width));
 
     // remove empty entries
     results = results.filter(r => r.length);
 
-    outputTree.child.forEach(c => results.push(formatOutput(c, level)));
+    outputTree.child.forEach(c => results.push(formatOutput(c, level, width -= (indentL.length + indentR.length))));
 
     return [color.bold(outputTree.title)].concat(results.map<string[]>((r, i) => {
-        const lastChild = (i === results.length - 1);
+        const isLastChild = (i === results.length - 1);
         return [lines[0]].concat(r.map((s, j) => {
-            if (j === 0 && lastChild) { return lines[1] + s; }
+            if (j === 0 && isLastChild) { return lines[1] + s; }
             if (j === 0) { return lines[2] + s; }
-            if (lastChild) { return lines[3] + s; }
+            if (isLastChild) { return lines[3] + s; }
             return lines[0] + s;
         }));
     }).flat());
@@ -190,7 +197,7 @@ function formatOutput(outputTree: Log, level: LogLevels): string[] {
 }
 
 
-const indentL = '   ';
+const indentL = '  ';
 const indentR = '  ';
 const lines = [
     color.dim(indentL + '│' + indentR),
@@ -229,7 +236,13 @@ export function note(message: string) : void {
 }
 
 // splits long lines using the width of the console
-function splitLines(text : string, width = Math.floor(process.stdout.columns * 0.9)) {
+function splitLines(text : string, width = process.stdout.columns) {
+
+    // if this is a property value
+    if(/^\s*"\w+"\s*:\s*"[^\r\n"]"/.test(text)) {
+        console.log(text)
+    }
+
     const regex = new RegExp(`([^\r\n]{1,${width}}(?=\\s|$)|[^\r\n]{${width}}|(?<=\n)\r?\n)`, 'g');
     const result = text.match(regex) || [text];
     return result.join('\n');
