@@ -28,7 +28,7 @@ import { setOptions } from './options';
  *  -h/--help auto-generated
  */
 const loglevelChoices = ['debug', 'info', 'warning', 'error', 'fatal'];
-const artifactTypes = ['fhirbundle', 'jwspayload', 'jws', 'healthcard', 'fhirhealthcard', 'qrnumeric', 'qr', 'jwkset', 'shlink', 'shlpayload', 'shlmanifest'];
+const artifactTypes = ['fhirbundle', 'jwspayload', 'jws', 'healthcard', 'fhirhealthcard', 'qrnumeric', 'qr', 'jwkset', 'shlink', 'shlpayload', 'shlmanifest', 'shlfile'];
 const profileChoices = ['any', 'usa-covid19-immunization'];
 const program = new Command();
 program.version(npmpackage.version, '-v, --version', 'display specification and tool version');
@@ -47,6 +47,7 @@ program.option('-e, --exclude <error>', 'error to exclude, can be repeated, can 
 program.addOption(new Option('-V, --validator <validator>', 'the choice of FHIR validator to use (cannot be used with non-default --profile)').choices(Object.keys(Validators).filter(x => Number.isNaN(Number(x)))));
 program.option('-T, --valTime <valTime>', 'validation time for SHC and certificates (in seconds from UNIX epoch)');
 program.option('-c, --passcode <code>', 'passcode for shlink');
+program.option('-K, --key <key>', 'key for shlink decryption');
 program.parse(process.argv);
 
 export interface CliOptions {
@@ -63,6 +64,7 @@ export interface CliOptions {
     validator: string;
     valTime: string;
     passcode: string;
+    key: string;
 }
 
 
@@ -151,9 +153,14 @@ async function processOptions(cliOptions: CliOptions) {
         options.validationTime = cliOptions.valTime;
     }
     
-    // set the validation time
+    // set the passcode
     if (cliOptions.passcode) {
         options.passCode = cliOptions.passcode;
+    }
+
+    // set the shlink decryption key
+    if (cliOptions.key) {
+        options.decryptionKey = cliOptions.key;
     }
         
     // requires both --path and --type properties

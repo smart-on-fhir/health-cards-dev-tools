@@ -43,16 +43,12 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<L
 
     if (!file.embedded) {
         log.info(`Retrieving file payload from location ${file.location as string}`);
+
         encrypted = await get(file.location as string).catch((err: Error) => {
             log.error(`Manifest file location download error : ${err.toString()}`, ErrorCode.SHLINK_VERIFICATION_ERROR);
         });
-        // if (typeof response?.body !== "string") {
-        //     return log.error(
-        //         `Manifest file location download result is not a string`,
-        //         ErrorCode.SHLINK_VERIFICATION_ERROR
-        //     );
-        // }
-        // encrypted = response.body;
+
+
         log.debug(`Encrypted\n${JSON.stringify(encrypted, null, 2)}`);
     } else {
         encrypted = file.embedded;
@@ -61,8 +57,6 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<L
     if (!encrypted || typeof encrypted !== "string") {
         return log.error(`Manifest file download invalid`, ErrorCode.SHLINK_VERIFICATION_ERROR);
     }
-
-
 
     const key = await jose.JWK.asKey({
         alg: "A256GCM",
@@ -77,7 +71,15 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<L
     if (key) {
         log.info(`Decrypting`);
         const decryptor = jose.JWE.createDecrypt(key);
-        const { payload } = await decryptor.decrypt(encrypted);
+
+        let payload;
+
+        try {
+            payload = (await decryptor.decrypt(encrypted)).payload;
+        } catch (_err) {
+            return log.fatal(`Decryption failed`, ErrorCode.SHLINK_VERIFICATION_ERROR);
+        }
+
         const shc = Buffer.from(payload).toString("utf-8");
 
         log.debug(`Decrypted\n${JSON.stringify(shc, null, 2)}`);

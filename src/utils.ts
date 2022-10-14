@@ -7,6 +7,7 @@ import path from "path";
 import pako from "pako";
 import jose from "node-jose";
 import { runCommandSync } from "./command";
+import { QRCodeErrorCorrectionLevel, toFile } from 'qrcode';
 import * as j from "../testdata/shlTestResponses.json";
 
 export function parseJson<T>(json: unknown): T | undefined {
@@ -168,4 +169,21 @@ export async function get(url: string): Promise<string> {
     }
 
     return await got.get(url).text();
+}
+
+export function createSHLink(url: string, key: string, flag?: string, label?: string, exp?: number, v?: number) : string {
+    const payload = {
+        url,
+        flag,
+        key,
+        label,
+        exp,
+        v,
+    };
+    const link = `shlink:/${Buffer.from(JSON.stringify(payload)).toString("base64url")}`;
+    return link;
+}
+
+export async function qrCode(path: string, data: string, errorCorrectionLevel = "low") : Promise<void> {
+    return toFile(path, data, { errorCorrectionLevel : errorCorrectionLevel as QRCodeErrorCorrectionLevel }) as Promise<void>;
 }

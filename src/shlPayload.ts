@@ -65,7 +65,7 @@ export async function validate(shlinkPayloadJson: string, options: IOptions): Pr
         "exp",
         "label",
         "flag",
-        "decrypt",
+        "key",
     ]);
     if (unexpectedProps.length) {
         log.warn(

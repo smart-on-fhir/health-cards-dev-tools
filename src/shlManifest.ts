@@ -19,15 +19,15 @@ export async function validate(shlinkManifestJson: string, options: IOptions): P
         return log.fatal(`manifest files property missing or not Array`, ErrorCode.SHLINK_VERIFICATION_ERROR);
     }
 
-    const unexpectedProps = unexpectedProperties(manifest as unknown as Record<string, unknown>, [
-        "files",
-    ]);
+    log.debug(`Manifest:\n${JSON.stringify(manifest, null, 2)}`);
+
+    const unexpectedProps = unexpectedProperties(manifest as unknown as Record<string, unknown>, ["files"]);
     if (unexpectedProps.length) {
         log.warn(
-            `Unexpected properties on manifest : ${unexpectedProps.join(',')}`,
+            `Unexpected properties on manifest : ${unexpectedProps.join(",")}`,
             ErrorCode.SHLINK_VERIFICATION_ERROR
         );
-    } 
+    }
 
     log.info(`${files.length} shlink files returned.`);
 

@@ -196,6 +196,14 @@ test("Cards: valid FHIR api health card with optional data", testCard(['test-exa
 test("Cards: issuer in trusted directory ref by name", testCard(['example-00-d-jws.txt'], 'jws', [0], { issuerDirectory: 'test' }));
 test("Cards: issuer in trusted directory ref by URL", testCard(['example-00-d-jws.txt'], 'jws', [0], { issuerDirectory: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-dev-tools/main/testdata/test-issuers.json' }));
 
+// SMART Health Link valid cases
+test("Cards: SHL QR", testCard(["shlink-qr.png"], "qr"));
+test("Cards: SHL Link", testCard(["shlink-link.txt"], "shlink"));
+test("Cards: SHL Link w/ Viewer", testCard(["shlink-link-with-viewer.txt"], "shlink"));
+test("Cards: SHL Payload", testCard(["shlink-payload.txt"], "shlpayload"));
+test("Cards: SHL Manifest", testCard(["shlink-manifest.txt"], "shlmanifest", [], {decryptionKey: "Es8Gv3aHMGeyuLW8PGdE-mlv-qOx_EuVc1qhN2AoSvs"}));
+test("Cards: SHL File", testCard(["shlink-manifest-file.txt"], "shlfile", [], {decryptionKey: "Es8Gv3aHMGeyuLW8PGdE-mlv-qOx_EuVc1qhN2AoSvs"}));
+
 // Warning cases
 
 test("Cards: fhir bundle w/ trailing chars", testCard(['test-example-00-a-fhirBundle-trailing_chars.json'], 'fhirbundle', [[ec.TRAILING_CHARACTERS]]));
@@ -414,4 +422,3 @@ describe('FHIR validator tests', () => {
         [8, 1], { validator: Validators.fhirvalidator, logLevel: LogLevels.DEBUG }), 1000 * 60 * 5 /*5 minutes*/);
 
 });
-

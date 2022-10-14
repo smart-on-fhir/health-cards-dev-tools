@@ -14,6 +14,8 @@ import * as qr from "./qr";
 import * as image from "./image";
 import * as shlink from "./shlink";
 import * as shlinkPayload from "./shlPayload";
+import * as shlManifest from "./shlManifest";
+import * as shlfile from "./shlManifestFile";
 import keys, { KeySet } from "./keys";
 import * as utils from "./utils";
 import { clearTrustedIssuerDirectory, setTrustedIssuerDirectory } from "./issuerDirectory";
@@ -91,7 +93,11 @@ export async function validateCard(fileData: FileInfo[], artifact: ValidationTyp
             break;
 
         case "shlmanifest":
-            result = await shlinkPayload.validate(fileData[0].buffer.toString(), options);
+            result = await shlManifest.validate(fileData[0].buffer.toString(), options);
+            break;
+
+        case "shlfile":
+            result = await shlfile.validate(fileData[0].buffer.toString(), options);
             break;
 
         default:

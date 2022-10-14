@@ -37,7 +37,7 @@ export async function validate(images: FileInfo[], options: IOptions): Promise<L
         const shlinkStrings = shcStrings.filter((str) => !isShc(str));
         shcStrings = shcStrings.filter((str) => isShc(str));
 
-        [].length && log.child.push(await qr.validate(shcStrings, options));
+        shcStrings.length && log.child.push(await qr.validate(shcStrings, options));
 
         for (const shlinkString of shlinkStrings) {
             log.child.push(await shlink.validate(shlinkString, options));

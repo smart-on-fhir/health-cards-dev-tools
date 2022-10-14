@@ -17,7 +17,8 @@ type ValidationType =
     | "jwkset"
     | "shlink"
     | "shlpayload"
-    | "shlmanifest";
+    | "shlmanifest"
+    | "shlfile";
 
 interface HealthCard {
     verifiableCredential: JWS[];
