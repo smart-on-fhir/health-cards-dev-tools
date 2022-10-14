@@ -2,7 +2,7 @@
 
 # SMART Health Cards Dev Tools
 
-This project provides tools to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) validate the artifacts they produce. The package's version number, currently `1.2.2-0`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
+This project provides tools to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) and [SMART Health Card Links](https://docs.smarthealthit.org/smart-health-links/) validate the artifacts they produce. The package's version number, currently `1.2.3-0`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
 
 **NOTE: The goal of the project is to help implementers verify that their implementations conform to the specification. It optimistically tries to validate as much of the input artifacts as it can, continuing validation after encountering errors in order to give a complete validation report. It is therefore _not_ meant to robustly validate actual SMART Health Cards; applications validating such cards must be thoroughly tested using an adversarial threat model.**
 
@@ -21,9 +21,9 @@ Install the latest version using:
 npm install github:smart-on-fhir/health-cards-dev-tools
 ```
 
-Install a specific version by specifying it as a parameter; for example, to obtain v1.2.2-0:
+Install a specific version by specifying it as a parameter; for example, to obtain v1.2.3-0:
 ```
-npm install github:smart-on-fhir/health-cards-dev-tools#v1.2.2-0
+npm install github:smart-on-fhir/health-cards-dev-tools#v1.2.3-0
 ```
 
   **Note : Performing an npm global install from GitHub _npm install -g github:smart-on-fhir/health-cards-dev-tools_ does not currently work correctly with the latest version of [npm](https://github.com/npm/cli/issues/3692#issue-981406464) (version 7.x).  
@@ -88,13 +88,13 @@ The tool can be packaged (and later installed into another npm project with `npm
 
 To validate health card artifacts, use the `shc-validator.ts` script, or simply call `node .` from the package root directory, using the desired options:
 
-    Usage: health-cards-dev-tools [options]
-    
+    Usage: shc-validator [options]
+```
   Options:
     -v, --version                display specification and tool version
     -p, --path <path>            path of the file(s) to validate. Can be repeated for the qr and qrnumeric types, to provide multiple file chunks (default: [])
     -t, --type <type>            type of file to validate
-                                 (choices: "fhirbundle", "jwspayload", "jws", "healthcard", "fhirhealthcard", "qrnumeric", "qr", "jwkset")
+                                 (choices: "fhirbundle", "jwspayload", "jws", "healthcard", "fhirhealthcard", "qrnumeric", "qr", "jwkset", 'shlink', 'shlpayload', 'shlmanifest', 'shlfile')
     -l, --loglevel <loglevel>    set the minimum log level (choices: "debug", "info", "warning", "error", "fatal", default: "warning")
     -P, --profile <profile>      vaccination profile to validate (choices: "any", "usa-covid19-immunization", default: "any")
     -d, --directory <directory>  trusted issuer directory to validate against
@@ -106,8 +106,10 @@ To validate health card artifacts, use the `shc-validator.ts` script, or simply 
                                  "unbalanced-qr-chunks", "jws-too-long", "invalid-file-extension", "trailing-characters", "issuer-wellknown-endpoint-cors" (default: [])
     -V, --validator <validator>  the choice of FHIR validator to use (cannot be used with non-default --profile) (choices: "default", "fhirvalidator")
     -T, --valTime <valtime>      validation time for SHC and certificates (in seconds from UNIX epoch)
+    -c, --passcode <code>        passcode for shlink
+    -K, --key <key>              key for shlink decryption as a base64urlencoded string
     -h, --help                   display help for command
-
+```
 ### Examples
 
 To validate a SMART Health Card `data.smart-health-card` file, call:
@@ -140,8 +142,13 @@ To validate a QR image `QR.png` file, call:
    - *healthcard*: a health card file
    - *fhirhealthcard*: response payload returned from a FHIR `$health-cards-issue` operation
    - *qrnumeric*: a numeric QR code encoding a health card
-   - *qr*: a QR code image encoding a health card
+   - *qr*: a QR code image encoding a health card or a SMART Health Link
    - *jwkset*: a JSON Web Key (JWK) Set, encoding the issuer public signing key. This supersedes downloading the key from the well-known location.
+   - *shlink*: a SMART Health Link
+   - *shlpayload*: a JSON-encoded a SMART Health Link payload
+   - *shlmanifest*: a JSON-encoded collection of SMART Health Link manifest files
+   - *shlfile*: a JSON-encoded collection of SMART Health Link file  
+<br>
 
 * The tool outputs validation information, depending on the verbosity level, in particular, the parsed FHIR bundle is printed at the `info` verbosity log level. The tool tries to continue parsing the artefact even if a warning or error occurred. Certain errors can be suppressed from the output using the `--exclude` option (using the full error name or a * wildcard character).
 
@@ -179,6 +186,8 @@ const results = validate.jws(jwsString, {logOutputPath: '/mypath/mylogfile.json'
 | **skipJwksDownload**: | false                                          | prevents JWK key download from the issuer                                                                          |
 | **jwkset**:           | '/somepath/mykeys.json'                        | path to import a JWK keyset                                                                                        |
 | **validator**:        | Validators.fhirvalidator                       | optionally validate the fhirbundle with the HL7 FHIR Validator                                                     |
+| **passCode**:         | '1234'                                         | set the SMART Health Link passcode                                                                                 |
+| **decryptionKey**:    | 'Es8Gv3aHMGeyuLW8PGdE-mlv-qOx_EuVc1qhN2AoSvs'  | key to decrypt a SMART Health Link file                                                                            |
 
 ` `  
 ` `  

@@ -190,7 +190,7 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
             // Include the SMART Logo on a white background over the center of the QR, scaled to occupy 15% of the image area
 
             // There does not appear to be a 'Error Correction Level' we can query from the decoder
-            // so we do nothing and continue asuming this is an shlink
+            // so we do nothing and continue assuming this is an shlink
         }
     }
 
