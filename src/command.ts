@@ -36,7 +36,7 @@ export function runCommandSync(command: string, log?: Log): CommandResult {
     } catch (failed) {
         result = failed as CommandResult;
     }
-
+    console.debug(resultToString(result, start));
     log?.debug(resultToString(result, start));
     return result;
 }
@@ -55,6 +55,7 @@ export async function runCommand(command: string, message?: string, log?: Log): 
     }
 
     animation.stop();
+    console.debug(resultToString(result, start));
     log?.debug(resultToString(result, start));
     return result;
 }
