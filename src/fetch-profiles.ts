@@ -47,7 +47,7 @@ async function fetchProfile(url: string, fileName: string): Promise<void> {
 }
 
 
-void (async () => {
-    await fetchProfile(patient_profile_dm_url, './schema/patient-dm.json');
-    await fetchProfile(immunization_profile_dm_url, './schema/immunization-dm.json');
-})();
+// void (async () => {
+//     await fetchProfile(patient_profile_dm_url, './schema/patient-dm.json');
+//     await fetchProfile(immunization_profile_dm_url, './schema/immunization-dm.json');
+// })();
