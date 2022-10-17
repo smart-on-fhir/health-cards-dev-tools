@@ -130,10 +130,14 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
         log.warn(formattedError, ErrorCode.FHIR_VALIDATOR_ERROR);
     });
 
+    // if(!errors && !warnings && result.exitCode) {
+    //     log.fatal(`Error executing FHIR validator : ${result.stderr}`);
+    // }
+
     // if there are no errors or warnings but the validation is not 'All OK'
     // something is wrong.
-    if (!errors && !warnings) {
-        log.error(`${fileName} : failed to find Errors or 'All OK'`);
+    if (!errors.length && !warnings.length) {
+        log.error(`${fileName} : failed to find Errors or 'All OK' : ${result.stderr}`);
     }
 
     return log;
