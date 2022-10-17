@@ -125,6 +125,7 @@ if (!OPENSSL_AVAILABLE) {
     Log.Exclusions.add(ec.OPENSSL_NOT_AVAILABLE);
 }
 
+test("Cards: valid 00 FHIR bundle", testCard(['example-00-a-fhirBundle.json'], "fhirbundle"));
 
 // Tests using the HL7 FHIR Validator
 // Since these tests require a Java runtime (JRE) or Docker to be installed, they are conditionally executed.
