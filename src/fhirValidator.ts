@@ -39,7 +39,7 @@ async function runValidatorJRE(artifactPath: string): Promise<CommandResult | nu
     //if (!fs.existsSync(validatorJarFile)) await downloadFHIRValidator();
     const tempJarFile = await downloadFHIRValidator();
 
-    if (!fs.existsSync(validatorJarFile)) {
+    if (!tempJarFile || !fs.existsSync(tempJarFile)) {
         log.error(`Failed to download FHIR Validator Jar file ${validatorJarFile} from ${validatorUrl}`);
         return null;
     }
@@ -50,12 +50,12 @@ async function runValidatorJRE(artifactPath: string): Promise<CommandResult | nu
     //fs.copyFileSync(`./${validatorJarFile}`, tempJarFile as TemplateStringsArray);
 
     const result: CommandResult = await runCommand(
-        `java -jar ./${tempJarFile as string} -jurisdiction US ./${artifactPath}`,
+        `java -jar ./${tempJarFile} -jurisdiction US ./${artifactPath}`,
         `Running HL7 FHIR validator with JRE`,
         log
     );
 
-    fs.rmSync(tempJarFile as string);
+    //fs.rmSync(tempJarFile as string);
 
     return result;
 }
