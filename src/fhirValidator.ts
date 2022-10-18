@@ -17,42 +17,45 @@ const tempFilePrefix = "tempfhirbundle";
 // share a log between the functions. This can be passed in externally through the validate() function
 let log: Log;
 
-async function downloadFHIRValidator(): Promise<void> {
-
-    if(fs.existsSync(validatorJarFile)) return Promise.resolve();
+async function downloadFHIRValidator(): Promise<string | undefined> {
+    //if(fs.existsSync(validatorJarFile)) return Promise.resolve();
 
     try {
         const buffer = await got(validatorUrl, { followRedirect: true }).buffer();
-        fs.writeFileSync(validatorJarFile, buffer);
-        const stats = fs.statSync(validatorJarFile);
+        const tempJarFile = `validator_cli_${crypto.randomBytes(4).readUInt32LE(0)}.jar`;
+        fs.writeFileSync(tempJarFile, buffer);
+        const stats = fs.statSync(tempJarFile);
         log.debug(`Stats:\n${JSON.stringify(stats, null, 2)}`);
+        return tempJarFile;
     } catch (err) {
         log.debug(`File download error ${(err as Error).toString()}`);
     }
+
+    return;
 }
 
 // Runs the FHIR validator using the installed JRE
 async function runValidatorJRE(artifactPath: string): Promise<CommandResult | null> {
     //if (!fs.existsSync(validatorJarFile)) await downloadFHIRValidator();
-    await downloadFHIRValidator();
+    const tempJarFile = await downloadFHIRValidator();
 
     if (!fs.existsSync(validatorJarFile)) {
         log.error(`Failed to download FHIR Validator Jar file ${validatorJarFile} from ${validatorUrl}`);
         return null;
     }
 
-    const tempJarFile = `validator_cli_${crypto.randomBytes(4).readUInt32LE(0)}.jar`;
+    //const tempJarFile = `validator_cli_${crypto.randomBytes(4).readUInt32LE(0)}.jar`;
     //const tempJarFile = `validator_cli.jar`;
 
-    fs.copyFileSync(`./${validatorJarFile}`, tempJarFile);
+    //fs.copyFileSync(`./${validatorJarFile}`, tempJarFile as TemplateStringsArray);
 
     const result: CommandResult = await runCommand(
-        `java -jar ./${tempJarFile} -jurisdiction US ./${artifactPath}`,
+        `java -jar ./${tempJarFile as string} -jurisdiction US ./${artifactPath}`,
         `Running HL7 FHIR validator with JRE`,
         log
     );
 
-    fs.rmSync(tempJarFile);
+    fs.rmSync(tempJarFile as string);
 
     return result;
 }
