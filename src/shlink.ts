@@ -6,7 +6,7 @@ import * as shlPayload from "./shlPayload";
 export async function validate(shlinkText: string, options: IOptions): Promise<Log> {
     const log = new Log("SMART Health Link");
 
-    const regEx = /^(\s*)?(.+?#)?(.+?)\/?([0-9a-zA-Z-_+/]+)(\s*)?$/;
+    const regEx = /^(\s*)?(.+?#)?(.+?)\/?([0-9a-zA-Z-_+/]+)\n?(\s*)?$/;
 
     const shlinkHeader = "shlink:";
 
@@ -29,8 +29,8 @@ export async function validate(shlinkText: string, options: IOptions): Promise<L
         log.warn(`SHLink contains leading or trailing whitespace`, ErrorCode.INVALID_SHLINK);
     }
 
-    if (!header) {
-        log.error(`Invalid header (${header}.  Expect shlink:/`, ErrorCode.INVALID_SHLINK);
+    if (!header || header !== shlinkHeader) {
+        log.error(`Invalid header (${header}).  Expect shlink:/`, ErrorCode.INVALID_SHLINK);
     }
 
     if (!body) {
