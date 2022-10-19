@@ -1,0 +1,1 @@
+{"contentType":"application/smart-health-card","location":"https://api.vaxx.link/api/shl/IqA8eXHdRCcncPErbN-Zhd3vup5WIQuFXcsfLhHn1rA/file/0"}

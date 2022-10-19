@@ -30,10 +30,12 @@
         "npmpackage",
         "outdir",
         "pako",
+        "passcode",
         "pngjs",
         "qrcode",
         "qrnumeric",
         "repos",
+        "shlink",
         "testdata",
         "testif",
         "uuidv"

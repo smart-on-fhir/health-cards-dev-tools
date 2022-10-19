@@ -42,7 +42,7 @@ async function runValidatorJRE(artifactPath: string): Promise<CommandResult | nu
 
     fs.copyFileSync(`./${validatorJarFile}`, tempJarFile);
 
-    const result: CommandResult = await runCommand(`java -jar ./${tempJarFile} ./${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
+    const result: CommandResult = await runCommand(`java -jar ./${tempJarFile} -jurisdiction US ./${artifactPath}`, `Running HL7 FHIR validator with JRE`, log);
 
     fs.rmSync(tempJarFile);
 
@@ -132,8 +132,8 @@ export async function validate(fileOrJSON: string, logger = new Log('FHIR Valida
 
     // if there are no errors or warnings but the validation is not 'All OK'
     // something is wrong.
-    if (!errors && !warnings) {
-        log.error(`${fileName} : failed to find Errors or 'All OK'`);
+    if (!errors.length && !warnings.length) {
+        log.fatal(`FHIR validator error : \n${result.stderr}`, ErrorCode.FHIR_VALIDATOR_ERROR);
     }
 
     return log;

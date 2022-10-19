@@ -6,6 +6,7 @@ import { ErrorCode } from './error';
 import Log from './logger';
 import { FileImage, FileInfo } from './file';
 import * as qr from './qr';
+import * as shlink from "./shlink";
 import fs from 'fs';
 import { create } from 'qrcode';
 import { ByteChunk, Chunk } from 'jsqr/dist/decoder/decodeData';
@@ -20,23 +21,28 @@ const svgImageWidth = 600;
 
 
 export async function validate(images: FileInfo[], options: IOptions): Promise<Log> {
+    const log = new Log(images.length > 1 ? "QR images (" + images.length.toString() + ")" : "QR image");
 
-    const log = new Log(
-        images.length > 1 ?
-            'QR images (' + images.length.toString() + ')' :
-            'QR image');
-
-    const shcStrings: SHC[] = [];
+    let shcStrings: SHC[] = [];
 
     for (let i = 0; i < images.length; i++) {
         const shc = await decode(images[i], log);
         if (shc === undefined) return log;
         shcStrings.push(shc);
         log.info(images[i].name + " decoded");
-        log.debug(images[i].name + ' = ' + shc);
+        log.debug(images[i].name + " = " + shc);
     }
 
-    options.cascade && log.child.push((await qr.validate(shcStrings, options)));
+    if (options.cascade) {
+        const shlinkStrings = shcStrings.filter((str) => !isShc(str));
+        shcStrings = shcStrings.filter((str) => isShc(str));
+
+        shcStrings.length && log.child.push(await qr.validate(shcStrings, options));
+
+        for (const shlinkString of shlinkStrings) {
+            log.child.push(await shlink.validate(shlinkString, options));
+        }
+    }
 
     return log;
 }
@@ -125,27 +131,66 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
             const chunkText = (c as Chunk).text || (c as ByteChunk).bytes?.join(',') || "<can't parse>";
             log.debug(`segment ${i+1}: type: ${c.type}, content: ${chunkText}`);
         });
-    if (!code.chunks || code.chunks.length !== 2) {
-        log.error(`Wrong number of segments in QR code: found ${code.chunks.length}, expected 2` + 
-        `\nSegments types: ${code.chunks.map((chunk,i) => `${i+1}: ${chunk.type}`).join("; ")}`, ErrorCode.INVALID_QR);
-    } else {
-        if (code.chunks[0].type !== 'byte') {
-            // unlikely, since 'shc:/' can only be legally encoded as with byte mode;
-            // was not able to create test case for this
-            log.error(`Wrong encoding mode for first QR segment: found ${code.chunks[0].type}, expected "byte"`, ErrorCode.INVALID_QR);
-        }
-        if (code.chunks[1].type !== 'numeric') {
-            log.error(`Wrong encoding mode for second QR segment: found ${code.chunks[0].type}, expected "numeric"`, ErrorCode.INVALID_QR);
-        }
 
-        // let's make sure the QR code's version is tight
-        try {
-            const qrCode = create(code.data, { errorCorrectionLevel: 'low' });
-            if (qrCode.version < code.version) {
-                log.warn(`QR code has version ${code.version}, but could have been created with version ${qrCode.version} (with low error-correcting level). Make sure the larger version was chosen on purpose (e.g., not hardcoded).`, ErrorCode.INVALID_QR_VERSION);
+    // decide whether is a shc or shlink or unknown
+
+    if (!code.chunks) {
+        log.fatal(`No segments in QR code. Expected 1-2`, ErrorCode.INVALID_QR);
+        return undefined;
+    } 
+
+    // if this is an 'shc' check for 2 correct segments
+    // this check will fail on a really poorly formed shc
+    if (isShc(code.data)) {
+        if (code.chunks.length !== 2) {
+            log.error(
+                `Wrong number of segments in QR code: found ${code.chunks.length}, expected 2` +
+                    `\nSegments types: ${code.chunks.map((chunk, i) => `${i + 1}: ${chunk.type}`).join("; ")}`,
+                ErrorCode.INVALID_QR
+            );
+        } else {
+            if (code.chunks[0].type !== "byte") {
+                // unlikely, since 'shc:/' can only be legally encoded as with byte mode;
+                // was not able to create test case for this
+                log.error(
+                    `Wrong encoding mode for first QR segment: found ${code.chunks[0].type}, expected "byte"`,
+                    ErrorCode.INVALID_QR
+                );
             }
-        } catch (err) {
-            log.warn(`Can't re-create QR to check optimal version choice: ${(err as Error).message})`);
+            if (code.chunks[1].type !== "numeric") {
+                log.error(
+                    `Wrong encoding mode for second QR segment: found ${code.chunks[0].type}, expected "numeric"`,
+                    ErrorCode.INVALID_QR
+                );
+            }
+
+            // let's make sure the QR code's version is tight
+            try {
+                const qrCode = create(code.data, { errorCorrectionLevel: "low" });
+                if (qrCode.version < code.version) {
+                    log.warn(
+                        `QR code has version ${code.version}, but could have been created with version ${qrCode.version} (with low error-correcting level). Make sure the larger version was chosen on purpose (e.g., not hardcoded).`,
+                        ErrorCode.INVALID_QR_VERSION
+                    );
+                }
+            } catch (err) {
+                log.warn(`Can't re-create QR to check optimal version choice: ${(err as Error).message})`);
+            }
+        }
+    } else /* not a 'shc' -- assuming 'shlink' */ {
+        if (code.chunks.length !== 1) {
+            log.warn(
+                `Additional segments found in QR code: found ${code.chunks.length}, expected 1` +
+                    `\nSegments types: ${code.chunks.map((chunk, i) => `${i + 1}: ${chunk.type}`).join("; ")}`,
+                ErrorCode.INVALID_QR
+            );
+        } else {
+            // When sharing a SHLink via QR code, the following recommendations apply:
+            // Create the QR with Error Correction Level Q
+            // Include the SMART Logo on a white background over the center of the QR, scaled to occupy 15% of the image area
+
+            // There does not appear to be a 'Error Correction Level' we can query from the decoder
+            // so we do nothing and continue assuming this is an shlink
         }
     }
 
@@ -236,6 +281,11 @@ function importBmp24(filePath: string): sharp.Sharp {
     )
         .flop() /* correct horizontal flip from .reverse() */
         .ensureAlpha();
+}
+
+
+function isShc(text: string) : boolean {
+    return /^[^\w]*shc[^\w]/i.test(text);
 }
 
 
