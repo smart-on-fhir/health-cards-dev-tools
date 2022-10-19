@@ -179,8 +179,8 @@ function decodeQrBuffer(fileInfo: FileInfo, log: Log): string | undefined {
         }
     } else /* not a 'shc' -- assuming 'shlink' */ {
         if (code.chunks.length !== 1) {
-            log.error(
-                `Wrong number of segments in QR code: found ${code.chunks.length}, expected 1` +
+            log.warn(
+                `Additional segments found in QR code: found ${code.chunks.length}, expected 1` +
                     `\nSegments types: ${code.chunks.map((chunk, i) => `${i + 1}: ${chunk.type}`).join("; ")}`,
                 ErrorCode.INVALID_QR
             );
