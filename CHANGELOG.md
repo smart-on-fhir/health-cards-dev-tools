@@ -1,6 +1,6 @@
 # CHANGE LOG
 
-## v1.2.3-0
+## v1.2.2-1
 - Added support to decode and validate SMART Health Links and its artifacts
 
 ## v1.2.2-0
