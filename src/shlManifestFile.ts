@@ -38,8 +38,6 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<L
         );
     }
 
-    /* Remove - just for testing */ //delete file.embedded;
-
     if (!file.embedded) {
         log.info(`Retrieving file payload from location ${file.location as string}`);
 
@@ -83,7 +81,7 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<L
 
         log.debug(`Decrypted\n${JSON.stringify(shc, null, 2)}`);
 
-        if (options.cascade) {
+        if (options.cascade && file.contentType == 'application/smart-health-card') {
             log.child.push(await healthCard.validate(shc, options));
         }
     }

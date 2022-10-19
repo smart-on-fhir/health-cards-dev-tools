@@ -118,7 +118,7 @@ export async function validate(shlinkPayloadJson: string, options: IOptions): Pr
                     log.warn(`inactive shlink should not return 'remainingAttempts'`);
                 }
 
-                log.fatal(`url download error : 404 SHLink is no longer active`, ErrorCode.SHLINK_VERIFICATION_ERROR);
+                log.fatal(`url download error : 404 SHLink is invalid or no longer active`, ErrorCode.SHLINK_VERIFICATION_ERROR);
                 break;
 
             case 500:
