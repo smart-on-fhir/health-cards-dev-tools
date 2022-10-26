@@ -3,6 +3,10 @@ import * as fhirHealthCard from './fhirHealthCard';
 import * as jws from './jws-compact';
 import * as jwsPayload from './jws-payload';
 import * as fhirBundle from './fhirBundle';
+import * as shlink from './shlink';
+import * as shlPayload from './shlPayload';
+import * as shlManifest from './shlManifest';
+import * as shlManifestFile from "./shlManifestFile";
 import { ValidationProfiles, Validators } from './fhirBundle';
 import * as qr from './qr';
 import Log, { LogLevels } from './logger';
@@ -39,6 +43,30 @@ async function validateKeySet(text: string, options: Partial<IOptions> = {}): Pr
 async function validateQrnumeric(shc: string[], options: Partial<IOptions> = {}): Promise<ValidationErrors> {
     const fullOptions = setOptions(options);
     const log = await qr.validate(shc, fullOptions);
+    return formatOutput(log, fullOptions.logLevel);
+}
+
+async function validateShlink(shl: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
+    const fullOptions = setOptions(options);
+    const log = await shlink.validate(shl, fullOptions);
+    return formatOutput(log, fullOptions.logLevel);
+}
+
+async function validateShlPayload(payload: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
+    const fullOptions = setOptions(options);
+    const log = await shlPayload.validate(payload, fullOptions);
+    return formatOutput(log, fullOptions.logLevel);
+}
+
+async function validateShlManifest(manifest: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
+    const fullOptions = setOptions(options);
+    const log = await shlManifest.validate(manifest, fullOptions);
+    return formatOutput(log, fullOptions.logLevel);
+}
+
+async function validateShlManifestFile(file: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
+    const fullOptions = setOptions(options);
+    const log = await shlManifestFile.validate(file, fullOptions);
     return formatOutput(log, fullOptions.logLevel);
 }
 
@@ -106,6 +134,10 @@ export const validate = {
     "fhirbundle": validateFhirBundle,
     "keyset": validateKeySet,
     "checkTrustedDirectory": checkTrustedDirectory,
+    "shlink": validateShlink,
+    "shlpayload": validateShlPayload,
+    "shlmanifest" : validateShlManifest,
+    "shlmanifestfile" : validateShlManifestFile,
 }
 
 export { ValidationProfiles, Validators, IOptions };
