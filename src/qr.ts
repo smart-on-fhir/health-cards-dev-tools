@@ -34,7 +34,7 @@ function shcChunksToJws(shc: string[], log: Log): JWS | undefined {
     const jwsChunks = new Array<string>(chunkCount);
 
     if(shc.length > 1) {
-        log.error(`Decoding of multi-part QR codes is depricated. See: https://spec.smarthealth.cards/#chunking-larger-shcs-deprecated`, ErrorCode.QR_CHUNKING_DEPRICATED);
+        log.error(`Decoding of multi-part QR codes is deprecated. See: https://spec.smarthealth.cards/#chunking-larger-shcs-deprecated`, ErrorCode.QR_CHUNKING_DEPRECATED);
     }
 
     for (let shcChunk of shc) {
