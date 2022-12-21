@@ -150,7 +150,7 @@ test("Cards: valid 01 JWS", testCard(['example-01-d-jws.txt'], "jws"));
 test("Cards: valid 02 JWS", testCard(['example-02-d-jws.txt'], "jws", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
 test("Cards: valid 03 JWS", testCard(['example-03-d-jws.txt'], "jws"));
 
-test("Cards: valid 00 health card x", testCard(['example-00-e-file.smart-health-card'], "healthcard"));
+test("Cards: valid 00 health card", testCard(['example-00-e-file.smart-health-card'], "healthcard"));
 test("Cards: valid 01 health card", testCard(['example-01-e-file.smart-health-card'], "healthcard"));
 test("Cards: valid 02 health card", testCard(['example-02-e-file.smart-health-card'], "healthcard", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
 test("Cards: valid 03 health card", testCard(['example-03-e-file.smart-health-card'], "healthcard"));
@@ -420,7 +420,7 @@ describe('FHIR validator tests', () => {
     const testif = (condition: boolean) => condition ? it : it.skip;
     const canRunFhirValidator = jreOrDockerAvailable();
     // shc-validator -p ./testdata/test-example-00-a-fhirBundle-profile-usa.json -t fhirbundle -l debug -V fhirvalidator
-    testif(canRunFhirValidator)("Cards: fhir x validator test", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
+    testif(canRunFhirValidator)("Cards: fhir validator test", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
         [8, 1], { validator: Validators.fhirvalidator, logLevel: LogLevels.DEBUG }), 1000 * 60 * 5 /*5 minutes*/);
 
 });
