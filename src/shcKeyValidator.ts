@@ -54,7 +54,7 @@ interface EcPublicJWK extends JWK.Key {
 }
 
 // validate a JWK certificate chain (x5c value)
-function validateX5c(x5c: string[], log: Log, validationTime: string = ""): CertFields | undefined {
+function validateX5c(x5c: string[], log: Log, validationTime = ""): CertFields | undefined {
     // we use OpenSSL to validate the certificate chain, first check if present
     if (!isOpensslAvailable()) {
         log.warn('OpenSSL not available to validate the X.509 certificate chain; skipping validation', ErrorCode.OPENSSL_NOT_AVAILABLE);
@@ -175,7 +175,7 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, validat
 
     for (let i = 0; i < keySet.keys.length; i++) {
 
-        let key: EcPublicJWK = (keySet.keys as EcPublicJWK[])[i];
+        const key: EcPublicJWK = (keySet.keys as EcPublicJWK[])[i];
 
         const keyName = 'key[' + (key.kid || i.toString()) + ']';
 
@@ -191,7 +191,7 @@ export async function verifyAndImportHealthCardIssuerKey(keySet: KeySet, validat
         }
 
         // check cert chain if present, if so, validate it
-        const ecPubKey = key as EcPublicJWK;
+        const ecPubKey = key;
         if (ecPubKey.x5c) {
             const certFields = validateX5c(ecPubKey.x5c, log, validationTime);
             if (certFields) {

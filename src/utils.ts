@@ -171,7 +171,7 @@ export async function get(url: string): Promise<string> {
     return await got.get(url).text();
 }
 
-export function createSHLink(url: string, key: string, flag?: string, label?: string, exp?: number, v?: number) : string {
+export function createSHLink(url: string, key: string, flag?: string, label?: string, exp?: number, v?: number): string {
     const payload = {
         url,
         flag,
@@ -184,6 +184,6 @@ export function createSHLink(url: string, key: string, flag?: string, label?: st
     return link;
 }
 
-export async function qrCode(path: string, data: string, errorCorrectionLevel = "low") : Promise<void> {
-    return toFile(path, data, { errorCorrectionLevel : errorCorrectionLevel as QRCodeErrorCorrectionLevel }) as Promise<void>;
+export async function qrCode(path: string, data: string, errorCorrectionLevel: QRCodeErrorCorrectionLevel = "low"): Promise<void> {
+    return toFile(path, data, { errorCorrectionLevel: errorCorrectionLevel }) as Promise<void>;
 }

@@ -25,7 +25,7 @@ function testCard(
         // NOTE: The X.509 cert corresponding to SHC spec's 2nd example key has expired (following the spec guidance on validity period)
         //       Many test files have been generated using that key, and we set a global validation time corresponding to before the
         //       cert expiration on June 1st, 2022, to avoid many cert expiration errors.
-        const combinedOptions: Partial<IOptions> = {validationTime: "1653955200" /* 2022-05-31 */, ...options }
+        const combinedOptions: Partial<IOptions> = { validationTime: "1653955200" /* 2022-05-31 */, ...options }
         await _testCard(fileName, fileType, expected, combinedOptions);
     }
 }
@@ -68,7 +68,7 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
             }
 
             if (err.length !== exp) {
-                console.debug(log.toString(LogLevels.DEBUG));
+                console.debug(log.toString(options.logLevel ?? LogLevels.DEBUG));
             }
 
             expect(err.length).toBe(exp);
@@ -126,8 +126,9 @@ if (!OPENSSL_AVAILABLE) {
 }
 // for now, we get many not-short-url warnings for every use of example-02'
 const SHORT_URL_WARNINGS = 110;
-const SCHEMA_ERROR_ARRAY = (new Array(SHORT_URL_WARNINGS)).fill(ec.SCHEMA_ERROR as never);
+const SCHEMA_ERROR_ARRAY = (new Array(SHORT_URL_WARNINGS)).fill(ec.FHIR_SCHEMA_ERROR as never);
 const JWS_TOO_LONG_WARNING = 1;
+
 
 test("Cards: valid 00 FHIR bundle", testCard(['example-00-a-fhirBundle.json'], "fhirbundle"));
 test("Cards: valid 01 FHIR bundle", testCard(['example-01-a-fhirBundle.json'], "fhirbundle"));
@@ -149,7 +150,7 @@ test("Cards: valid 01 JWS", testCard(['example-01-d-jws.txt'], "jws"));
 test("Cards: valid 02 JWS", testCard(['example-02-d-jws.txt'], "jws", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
 test("Cards: valid 03 JWS", testCard(['example-03-d-jws.txt'], "jws"));
 
-test("Cards: valid 00 health card", testCard(['example-00-e-file.smart-health-card'], "healthcard"));
+test("Cards: valid 00 health card x", testCard(['example-00-e-file.smart-health-card'], "healthcard"));
 test("Cards: valid 01 health card", testCard(['example-01-e-file.smart-health-card'], "healthcard"));
 test("Cards: valid 02 health card", testCard(['example-02-e-file.smart-health-card'], "healthcard", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
 test("Cards: valid 03 health card", testCard(['example-03-e-file.smart-health-card'], "healthcard"));
@@ -159,11 +160,11 @@ test("Cards: valid 01 QR numeric", testCard(['example-01-f-qr-code-numeric-value
 test("Cards: valid 02 QR numeric",
     testCard(['example-02-f-qr-code-numeric-value-0.txt',
         'example-02-f-qr-code-numeric-value-1.txt',
-        'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
+        'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [[ec.QR_CHUNKING_DEPRICATED], [ec.JWS_TOO_LONG]], { exclude: ['fhir-schema-error'] }));
 test("Cards: valid 02 QR numeric (out of order)",
     testCard(['example-02-f-qr-code-numeric-value-1.txt',
         'example-02-f-qr-code-numeric-value-0.txt',
-        'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
+        'example-02-f-qr-code-numeric-value-2.txt'], "qrnumeric", [[ec.QR_CHUNKING_DEPRICATED], [ec.JWS_TOO_LONG]], { exclude: ['fhir-schema-error'] }));
 test("Cards: valid 03 QR numeric", testCard(['example-03-f-qr-code-numeric-value-0.txt'], "qrnumeric"));
 test("Cards: valid 1195-byte QR numeric", testCard(['test-example-1195-byte-qrnumeric.txt'], "qrnumeric"));
 
@@ -174,16 +175,16 @@ test("Cards: valid 00 QR code: requires scaling 23", testCard(['test-example-00-
 test("Cards: valid 00 QR code: requires scaling 85", testCard(['test-example-00-g-qr-code-0-scaled-85.jpg'], "qr"), 10 * 1000 /* 10-seconds*/);
 
 test("Cards: valid 02 QR code SVG",
-    testCard(['example-02-g-qr-code-0.svg', 'example-02-g-qr-code-1.svg', 'example-02-g-qr-code-2.svg'], "qr", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
+    testCard(['example-02-g-qr-code-0.svg', 'example-02-g-qr-code-1.svg', 'example-02-g-qr-code-2.svg'], "qr", [[ec.QR_CHUNKING_DEPRICATED], [ec.JWS_TOO_LONG]], { exclude: ['fhir-schema-error'] }));
 
 test("Cards: valid 02 QR code PNG",
-    testCard(['example-02-g-qr-code-0.png', 'example-02-g-qr-code-1.png', 'example-02-g-qr-code-2.png'], "qr", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
+    testCard(['example-02-g-qr-code-0.png', 'example-02-g-qr-code-1.png', 'example-02-g-qr-code-2.png'], "qr", [[ec.QR_CHUNKING_DEPRICATED], [ec.JWS_TOO_LONG]], { exclude: ['fhir-schema-error'] }));
 
 test("Cards: valid 02 QR code JPG",
-    testCard(['example-02-g-qr-code-0.jpg', 'example-02-g-qr-code-1.jpg', 'example-02-g-qr-code-2.jpg'], "qr", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
+    testCard(['example-02-g-qr-code-0.jpg', 'example-02-g-qr-code-1.jpg', 'example-02-g-qr-code-2.jpg'], "qr", [[ec.QR_CHUNKING_DEPRICATED], [ec.JWS_TOO_LONG]], { exclude: ['fhir-schema-error'] }));
 
 test("Cards: valid 02 QR code BMP",
-    testCard(['example-02-g-qr-code-0.bmp', 'example-02-g-qr-code-1.bmp', 'example-02-g-qr-code-2.bmp'], "qr", [SHORT_URL_WARNINGS, JWS_TOO_LONG_WARNING]));
+    testCard(['example-02-g-qr-code-0.bmp', 'example-02-g-qr-code-1.bmp', 'example-02-g-qr-code-2.bmp'], "qr", [[ec.QR_CHUNKING_DEPRICATED], [ec.JWS_TOO_LONG]], { exclude: ['fhir-schema-error'] }));
 
 test("Cards: valid 03 QR code", testCard(['example-03-g-qr-code-0.svg'], "qr"));
 
@@ -201,8 +202,8 @@ test("Cards: SHL QR", testCard(["shlink-qr.png"], "qr"));
 test("Cards: SHL Link", testCard(["shlink-link.txt"], "shlink"));
 test("Cards: SHL Link w/ Viewer", testCard(["shlink-link-with-viewer.txt"], "shlink"));
 test("Cards: SHL Payload", testCard(["shlink-payload.txt"], "shlpayload"));
-test("Cards: SHL Manifest", testCard(["shlink-manifest.txt"], "shlmanifest", [], {decryptionKey: "Es8Gv3aHMGeyuLW8PGdE-mlv-qOx_EuVc1qhN2AoSvs"}));
-test("Cards: SHL File", testCard(["shlink-manifest-file.txt"], "shlfile", [], {decryptionKey: "Es8Gv3aHMGeyuLW8PGdE-mlv-qOx_EuVc1qhN2AoSvs"}));
+test("Cards: SHL Manifest", testCard(["shlink-manifest.txt"], "shlmanifest", [], { decryptionKey: "Es8Gv3aHMGeyuLW8PGdE-mlv-qOx_EuVc1qhN2AoSvs" }));
+test("Cards: SHL File", testCard(["shlink-manifest-file.txt"], "shlfile", [], { decryptionKey: "Es8Gv3aHMGeyuLW8PGdE-mlv-qOx_EuVc1qhN2AoSvs" }));
 
 // Warning cases
 
@@ -215,7 +216,7 @@ test("Cards: jws too long", testCard('example-02-d-jws.txt', 'jws', [SCHEMA_ERRO
 test("Cards: not yet valid", testCard('test-example-00-b-jws-payload-expanded-nbf_not_yet_valid.json', 'jwspayload', [0, [ec.NOT_YET_VALID]]));
 test("Cards: expired", testCard('test-example-00-b-jws-payload-expanded-expired.json', 'jwspayload', [0, [ec.EXPIRATION_ERROR]]));
 test("Cards: exp in milliseconds", testCard('test-example-00-b-jws-payload-expanded-exp_milliseconds.json', 'jwspayload', [0, [ec.EXPIRATION_ERROR]]));
-test("Cards: unnecessary QR chunks", testCard(['test-example-00-g-qr-code-0-qr_chunk_too_small.png', 'test-example-00-g-qr-code-1-qr_chunk_too_small.png'], 'qr', [0, [ec.INVALID_QR]]));
+test("Cards: unnecessary QR chunks", testCard(['test-example-00-g-qr-code-0-qr_chunk_too_small.png', 'test-example-00-g-qr-code-1-qr_chunk_too_small.png'], 'qr', [[ec.QR_CHUNKING_DEPRICATED], [ec.INVALID_QR]]));
 test("Cards: many unnecessary QR chunks", testCard([
     'test-example-00-f-qr-code-numeric-value-0-qr_chunk_too_small.txt',
     'test-example-00-f-qr-code-numeric-value-1-qr_chunk_too_small.txt',
@@ -233,7 +234,7 @@ test("Cards: many unnecessary QR chunks", testCard([
     'test-example-00-f-qr-code-numeric-value-13-qr_chunk_too_small.txt',
     'test-example-00-f-qr-code-numeric-value-14-qr_chunk_too_small.txt',
     'test-example-00-f-qr-code-numeric-value-15-qr_chunk_too_small.txt',
-    'test-example-00-f-qr-code-numeric-value-16-qr_chunk_too_small.txt'], 'qrnumeric', [0, [ec.INVALID_QR, ec.UNBALANCED_QR_CHUNKS]]));
+    'test-example-00-f-qr-code-numeric-value-16-qr_chunk_too_small.txt'], 'qrnumeric', [[ec.QR_CHUNKING_DEPRICATED], [ec.INVALID_QR, ec.UNBALANCED_QR_CHUNKS]]));
 test("Cards: missing immunization VC type", testCard('test-example-00-b-jws-payload-expanded-missing-imm-vc-type.json', 'jwspayload', [0, [ec.SCHEMA_ERROR]]));
 test("Cards: missing covid VC type", testCard('test-example-00-b-jws-payload-expanded-missing-covid-vc-type.json', 'jwspayload', [0, [ec.SCHEMA_ERROR]]));
 test("Cards: missing lab VC type", testCard('test-example-covid-lab-jwspayload-missing-lab-vc-type.json', 'jwspayload', [0, [ec.SCHEMA_ERROR]]));
@@ -323,19 +324,20 @@ test("Cards: invalid single chunk QR header",
 );
 
 test("Cards: missing QR chunk",
-    testCard(['example-02-f-qr-code-numeric-value-0.txt', 'example-02-f-qr-code-numeric-value-2.txt'], 'qrnumeric', [[ec.MISSING_QR_CHUNK]])
+    testCard(['example-02-f-qr-code-numeric-value-0.txt', 'example-02-f-qr-code-numeric-value-2.txt'], 'qrnumeric', [[ec.QR_CHUNKING_DEPRICATED, ec.MISSING_QR_CHUNK]])
 );
 
 test("Cards: duplicated QR chunk index",
-    testCard(['example-02-f-qr-code-numeric-value-0.txt', 'example-02-f-qr-code-numeric-value-2.txt', 'example-02-f-qr-code-numeric-value-0.txt'], 'qrnumeric', [[ec.INVALID_NUMERIC_QR_HEADER]])
+    testCard(['example-02-f-qr-code-numeric-value-0.txt', 'example-02-f-qr-code-numeric-value-2.txt', 'example-02-f-qr-code-numeric-value-0.txt'], 'qrnumeric', [[ec.QR_CHUNKING_DEPRICATED, ec.INVALID_NUMERIC_QR_HEADER]])
 );
 
 test("Cards: QR chunk index out of range",
-    testCard(['test-example-00-f-qr-code-numeric-value-0-index-out-of-range.txt', 'example-02-f-qr-code-numeric-value-1.txt'], 'qrnumeric', [[ec.INVALID_NUMERIC_QR_HEADER]])
+    testCard(['test-example-00-f-qr-code-numeric-value-0-index-out-of-range.txt', 'example-02-f-qr-code-numeric-value-1.txt'], 'qrnumeric', [[ec.QR_CHUNKING_DEPRICATED, ec.INVALID_NUMERIC_QR_HEADER]])
 );
 
 test("Cards: QR chunk too big",
-    testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric', [SCHEMA_ERROR_ARRAY.concat([ec.INVALID_NUMERIC_QR, ec.INVALID_NUMERIC_QR]), JWS_TOO_LONG_WARNING])
+    testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric', 
+    [[ec.QR_CHUNKING_DEPRICATED, ec.INVALID_NUMERIC_QR, ec.INVALID_NUMERIC_QR], JWS_TOO_LONG_WARNING], { exclude: ['fhir-schema-error'] })
 );
 
 test("Cards: invalid numeric QR with odd count",

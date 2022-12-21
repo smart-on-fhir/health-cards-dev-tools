@@ -61,7 +61,7 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<L
         k: options.decryptionKey,
         key_ops: ["decrypt"],
         kty: "oct",
-    }).catch((_err: Error) => {
+    }).catch(() => {
         log.error(`failed to import key ${options.decryptionKey}`, ErrorCode.SHLINK_VERIFICATION_ERROR);
     });
 

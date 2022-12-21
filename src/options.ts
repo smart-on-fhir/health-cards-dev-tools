@@ -14,7 +14,8 @@ interface IOptions {
     validationTime: string,
     passCode: string,
     decryptionKey: string,
-    index: number
+    index: number,
+    exclude: string[]
 }
 
 const defaultOptions: IOptions = {
@@ -30,7 +31,8 @@ const defaultOptions: IOptions = {
     validationTime: '',
     passCode: '',
     decryptionKey: '',
-    index: 0
+    index: 0,
+    exclude: []
 }
 
 const setOptions = function (options: Partial<IOptions> = {}): IOptions {
@@ -43,7 +45,7 @@ const setOptions = function (options: Partial<IOptions> = {}): IOptions {
     if (options) {
         /* Apparently TS does not consider 'isInteger()' as type-guard so we need the ' ?? -n' to coerce not-really-undefined to an invalid integer*/
         if ('logLevel' in options && (!Number.isInteger(options.logLevel) || !((options.logLevel ?? -2) in LogLevels))) throw new Error(`Invalid logLevel ${options.logLevel ?? ''}`);
-        if ('profile' in options && (!Number.isInteger(options.profile)  || !((options.profile ?? -1)in ValidationProfiles))) throw new Error(`Invalid profile ${options.profile ?? ''}`);
+        if ('profile' in options && (!Number.isInteger(options.profile) || !((options.profile ?? -1) in ValidationProfiles))) throw new Error(`Invalid profile ${options.profile ?? ''}`);
         if ('issuerDirectory' in options && typeof options.issuerDirectory !== 'string') throw new Error(`Invalid issuerDirectory ${options.issuerDirectory ?? ''}`);
         if ('clearKeyStore' in options && typeof options.clearKeyStore !== 'boolean') throw new Error(`Invalid clearKeyStore ${options.clearKeyStore ?? ''}`);
         if ('cascade' in options && typeof options.cascade !== 'boolean') throw new Error(`Invalid cascade ${options.cascade ?? ''}`);
@@ -51,6 +53,7 @@ const setOptions = function (options: Partial<IOptions> = {}): IOptions {
         if ('logOutputPath' in options && typeof options.logOutputPath !== 'string') throw new Error(`Invalid logOutputPath ${options.logOutputPath ?? ''}`);
         if ('jwkset' in options && typeof options.jwkset !== 'string') throw new Error(`Invalid jwkset ${options.jwkset ?? ''}`);
         if ('validator' in options && (!Number.isInteger(options.validator) || !((options.validator ?? -1) in Validators))) throw new Error(`Invalid validator ${options.validator ?? ''}`);
+        if ('exclude' in options && (!(options.exclude instanceof Array) || !options.exclude?.every(e => typeof e === 'string'))) throw new Error(`Invalid exclude: not a string array`);
     }
 
     return { // this syntax merges two object into a single object. For common properties, the second entry wins.
