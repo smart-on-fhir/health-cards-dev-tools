@@ -10,7 +10,7 @@
         "fetch-profiles": "ts-node --files src/fetch-profiles.ts",
         "validate-example": "ts-node --files src/shc-validator.ts --path testdata/valid_key.json --type jwkset --loglevel info",
         "pretest": "npm run fetch-examples && npm run fetch-profiles",
-        "test": "jest --rootDir tests --silent",
+        "test": "jest --rootDir tests",
         "generate-test-data": "ts-node --files src/generate-test-data",
         "update-validator": "git pull && npm install && npm run build",
         "lint": "eslint --config .eslintrc.json --ext .ts ./src ./tests",
