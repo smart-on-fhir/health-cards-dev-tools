@@ -23,11 +23,6 @@ export async function validate(qr: string[], options: IOptions): Promise<Log> {
     return log;
 }
 
-/*
-    We have an array of shc's here
-    We don't yet know if they are chunks or separate shc's
-    Right now, separate qrs does not work
-*/
 function shcChunksToJws(shc: string[], log: Log): JWS | undefined {
 
     const chunkCount = shc.length;

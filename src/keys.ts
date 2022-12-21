@@ -12,14 +12,14 @@ const keyStore = {
     add: add,
     clear: clear,
     check: check,
-    //get: get,
+    get: get,
     store: JWK.createKeyStore()
 }
 
 
-// function get(kid: string): JWK.RawKey {
-//     return keyStore.store.get(kid);
-// }
+function get(kid: string): JWK.RawKey {
+    return keyStore.store.get(kid);
+}
 
 
 function check(kid: string, issuer: string): boolean {
