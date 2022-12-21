@@ -4,7 +4,7 @@
 import Log from "./logger";
 import { verifyAndImportHealthCardIssuerKey } from "./shcKeyValidator";
 import { FileInfo } from "./file";
-import { ErrorCode } from "./error";
+import { ErrorCode, getExcludeErrorCodes } from "./error";
 import * as healthCard from "./healthCard";
 import * as fhirHealthCard from "./fhirHealthCard";
 import * as jws from "./jws-compact";
@@ -47,6 +47,10 @@ export async function validateCard(fileData: FileInfo[], artifact: ValidationTyp
         await setTrustedIssuerDirectory(options.issuerDirectory);
     } else {
         clearTrustedIssuerDirectory();
+    }
+
+    if (options.exclude) {
+        Log.Exclusions = getExcludeErrorCodes(options.exclude);
     }
 
     switch ((artifact as string).toLocaleLowerCase()) {

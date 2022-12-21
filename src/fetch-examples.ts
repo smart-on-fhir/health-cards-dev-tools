@@ -78,7 +78,7 @@ const issuerPrivateKeyUrl = 'https://raw.githubusercontent.com/smart-on-fhir/hea
 const issuerPublicKeyFileName = 'issuer.jwks.public.json';
 
 
-async function fetchKeys(outdir: string, force = false): Promise<void> {
+async function fetchKeys(outdir: string): Promise<void> {
 
     const filePath = path.join(outdir, issuerPublicKeyFileName);
 
@@ -144,6 +144,6 @@ const force = !!program.opts().force;
 // Typescript error: Top-level 'await' expressions are only allowed when the 'module' option is set to 'esnext'
 void (async () => {
     await fetchExamples(outPath, force);
-    await fetchKeys(outPath, force);
+    await fetchKeys(outPath);
     await generateImagesFromSvg(outPath);
 })();

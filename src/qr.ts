@@ -23,11 +23,14 @@ export async function validate(qr: string[], options: IOptions): Promise<Log> {
     return log;
 }
 
-
 function shcChunksToJws(shc: string[], log: Log): JWS | undefined {
 
     const chunkCount = shc.length;
     const jwsChunks = new Array<string>(chunkCount);
+
+    if(shc.length > 1) {
+        log.error(`Decoding of multi-part QR codes is deprecated. See: https://spec.smarthealth.cards/#chunking-larger-shcs-deprecated`, ErrorCode.QR_CHUNKING_DEPRECATED);
+    }
 
     for (let shcChunk of shc) {
 
@@ -95,6 +98,7 @@ function shcToJws(shc: string, log: Log, chunkCount = 1): { result: JWS, chunkIn
     // check numeric QR header
     const isChunkedHeader = new RegExp(`^${qrHeader}${positiveIntRegExp}/${chunkCount}/.*$`).test(shc);
     if (chunked) {
+
         if (!isChunkedHeader) {
             // should have been a valid chunked header, check if we are missing one
             const hasBadChunkCount = new RegExp(`^${qrHeader}${positiveIntRegExp}/[1-9][0-9]*/.*$`).test(shc);

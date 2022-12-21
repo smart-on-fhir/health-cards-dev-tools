@@ -207,12 +207,12 @@ See README.md for more information.`);
 
             // reference must be the following form: reference:#
             if (propType === 'Reference' && o['reference'] && !/^resource:\d+/.test(o['reference'] as string)) {
-                log.error(`${outputPath} = "${o['reference'] as string}" (Reference) should be short resource-scheme URIs (e.g., {"${path[path.length - 1]}": {"reference": "resource:0"}})`, ErrorCode.SCHEMA_ERROR);
+                log.error(`${outputPath} = "${o['reference'] as string}" (Reference) should be short resource-scheme URIs (e.g., {"${path[path.length - 1]}": {"reference": "resource:0"}})`, ErrorCode.FHIR_SCHEMA_ERROR);
             }
 
             // the reference must map to one of the Entry.fullUrls collected above
             if (propType === 'Reference' && o['reference'] && !entryFullUrls.includes(o['reference'] as string)) {
-                log.error(`${outputPath} = "${o['reference'] as string}" (Reference) is not defined by an entry.fullUrl [${(entryFullUrls.length > 3 ? entryFullUrls.slice(0, 3).concat(['...']) : entryFullUrls).join(',')}]`, ErrorCode.SCHEMA_ERROR);
+                log.error(`${outputPath} = "${o['reference'] as string}" (Reference) is not defined by an entry.fullUrl [${(entryFullUrls.length > 3 ? entryFullUrls.slice(0, 3).concat(['...']) : entryFullUrls).join(',')}]`, ErrorCode.FHIR_SCHEMA_ERROR);
             }
 
             if (  // warn on empty string, empty object, empty array

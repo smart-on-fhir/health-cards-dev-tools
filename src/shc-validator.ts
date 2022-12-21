@@ -32,7 +32,7 @@ const artifactTypes = ['fhirbundle', 'jwspayload', 'jws', 'healthcard', 'fhirhea
 const profileChoices = ['any', 'usa-covid19-immunization'];
 const program = new Command();
 program.version(npmpackage.version, '-v, --version', 'display specification and tool version');
-program.requiredOption('-p, --path <path>', 'path of the file(s) to validate. Can be repeated for the qr and qrnumeric types, to provide multiple file chunks',
+program.requiredOption('-p, --path <path>', 'path of the file(s) to validate.',
     (p: string, paths: string[]) => paths.concat([p]), []);
 program.addOption(new Option('-t, --type <type>', 'type of file to validate').choices(artifactTypes));
 program.addOption(new Option('-l, --loglevel <loglevel>', 'set the minimum log level').choices(loglevelChoices).default('warning'));

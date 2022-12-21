@@ -1,4 +1,7 @@
 # CHANGE LOG
+## v1.3.0-0
+- Updated dev tools version to match new spec version
+- Deprecated multi-part chunking support
 
 ## v1.2.2-1
 - Added support to decode and validate SMART Health Links and its artifacts
