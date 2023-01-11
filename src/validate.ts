@@ -101,7 +101,7 @@ export async function validateCard(fileData: FileInfo[], artifact: ValidationTyp
             break;
 
         case "shlfile":
-            result = await shlfile.validate(fileData[0].buffer.toString(), options);
+            result = (await shlfile.validate(fileData[0].buffer.toString(), options)).log;
             break;
 
         default:

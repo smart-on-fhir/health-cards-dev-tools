@@ -1,6 +1,7 @@
 import * as healthCard from './healthCard';
 import * as fhirHealthCard from './fhirHealthCard';
 import * as jws from './jws-compact';
+import * as jwe from './jwe-compact';
 import * as jwsPayload from './jws-payload';
 import * as fhirBundle from './fhirBundle';
 import * as shlink from './shlink';
@@ -64,10 +65,10 @@ async function validateShlManifest(manifest: string, options: Partial<IOptions> 
     return formatOutput(log, fullOptions.logLevel);
 }
 
-async function validateShlManifestFile(file: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
+async function validateShlManifestFile(file: string, options: Partial<IOptions> = {}): Promise<ResultWithValidationErrors> {
     const fullOptions = setOptions(options);
-    const log = await shlManifestFile.validate(file, fullOptions);
-    return formatOutput(log, fullOptions.logLevel);
+    const resultWithErrors = await shlManifestFile.validate(file, fullOptions);
+    return {result: resultWithErrors.result, errors: formatOutput(resultWithErrors.log, fullOptions.logLevel)};
 }
 
 async function validateHealthcard(json: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
@@ -88,6 +89,12 @@ async function validateJws(text: string, options: Partial<IOptions> = {}): Promi
     fullOptions.clearKeyStore && keys.clear();
     const log = await jws.validate(text, fullOptions);
     return formatOutput(log, fullOptions.logLevel);
+}
+
+async function validateJwe(text: string, options: Partial<IOptions> = {}): Promise<ResultWithValidationErrors> {
+    const fullOptions = setOptions(options);
+    const resultWithErrors = await jwe.validate(text, fullOptions);
+    return {result: resultWithErrors.result, errors: formatOutput(resultWithErrors.log, fullOptions.logLevel)};
 }
 
 async function validateJwspayload(payload: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
@@ -119,16 +126,33 @@ async function checkTrustedDirectory(url: string, options: Partial<IOptions> = {
     return Promise.resolve(formatOutput(log, fullOptions.logLevel));
 }
 
+async function downloadManifest(params: ShlinkManifestRequest, options: Partial<IOptions> = {}) : Promise<{ errors: ValidationErrors, manifest: string}> {
+    const fullOptions = setOptions(options);
+    const log =new Log('Download-Manifest');
+    const manifest = await shlPayload.downloadManifest(params, log);
+    return {errors: formatOutput(log, fullOptions.logLevel), manifest};
+}
+
+async function downloadManifestFile(params: ShlinkManifestRequest, options: Partial<IOptions> = {}) : Promise<{ errors: ValidationErrors, manifest: string}> {
+    const fullOptions = setOptions(options);
+    const log =new Log('Download-Manifest');
+    const manifest = await shlPayload.downloadManifest(params, log);
+    return {errors: formatOutput(log, fullOptions.logLevel), manifest};
+}
+
 export { ErrorCode } from './error';
 
 export { LogLevels } from './logger';
 
 export type ValidationErrors = { message: string, code: ErrorCode, level: LogLevels }[];
 
+export type ResultWithValidationErrors = {result: string, errors: ValidationErrors};
+
 export const validate = {
     "qrnumeric": validateQrnumeric,
     "healthcard": validateHealthcard,
     "fhirhealthcard": validateFhirHealthcard,
+    "jwe": validateJwe,
     "jws": validateJws,
     "jwspayload": validateJwspayload,
     "fhirbundle": validateFhirBundle,
@@ -138,6 +162,7 @@ export const validate = {
     "shlpayload": validateShlPayload,
     "shlmanifest" : validateShlManifest,
     "shlmanifestfile" : validateShlManifestFile,
+    "downloadManifest" : downloadManifest
 }
 
 export { ValidationProfiles, Validators, IOptions };

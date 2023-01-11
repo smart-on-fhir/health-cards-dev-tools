@@ -4,6 +4,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 type JWS = string;
 
+type JWE = string;
+
 type SHC = string;
 
 type ValidationType =
@@ -33,6 +35,12 @@ interface FhirHealthCardItem {
 interface FhirHealthCard {
     resourceType: string;
     parameter: FhirHealthCardItem[];
+}
+
+interface JWEHeader {
+    "alg": string;
+    "enc": string;
+    "contentType": string;
 }
 
 interface JWSPayload {
@@ -112,7 +120,7 @@ interface ShlinkPayload {
     label?: string;
 }
 
-interface ShlinkManifestFile {
+interface ShlinkManifest {
     files: ShlinkFile[];
 }
 
@@ -125,6 +133,7 @@ interface ShlinkFile {
 }
 
 interface ShlinkManifestRequest {
+    url: string,
     recipient: string;
     passcode?: string;
     embeddedLengthMax?: number;

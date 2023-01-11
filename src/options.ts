@@ -15,7 +15,8 @@ interface IOptions {
     passCode: string,
     decryptionKey: string,
     index: number,
-    exclude: string[]
+    exclude: string[],
+    shlFile?: ShlinkFile 
 }
 
 const defaultOptions: IOptions = {
@@ -32,7 +33,8 @@ const defaultOptions: IOptions = {
     passCode: '',
     decryptionKey: '',
     index: 0,
-    exclude: []
+    exclude: [],
+    shlFile: undefined
 }
 
 const setOptions = function (options: Partial<IOptions> = {}): IOptions {

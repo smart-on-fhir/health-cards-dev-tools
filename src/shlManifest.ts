@@ -7,7 +7,7 @@ import * as shlManifestFile from "./shlManifestFile";
 export async function validate(shlinkManifestJson: string, options: IOptions): Promise<Log> {
     const log = new Log("SHL-Manifest");
 
-    const manifest = parseJson<ShlinkManifestFile>(shlinkManifestJson);
+    const manifest = parseJson<ShlinkManifest>(shlinkManifestJson);
 
     if (!manifest) {
         return log.fatal(`Cannot decode payload as JSON`, ErrorCode.INVALID_SHLINK);
@@ -34,7 +34,7 @@ export async function validate(shlinkManifestJson: string, options: IOptions): P
     if (options.cascade) {
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            log.child.push(await shlManifestFile.validate(JSON.stringify(file), { ...options, index: i }));
+            log.child.push((await shlManifestFile.validate(JSON.stringify(file), { ...options, index: i })).log);
         }
     }
     return log;
