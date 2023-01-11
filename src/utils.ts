@@ -8,7 +8,7 @@ import pako from "pako";
 import jose from "node-jose";
 import { runCommandSync } from "./command";
 import { QRCodeErrorCorrectionLevel, toFile } from 'qrcode';
-import response from "../testdata/shlTestResponses";
+import response from "./urlMappings";
 
 export function parseJson<T>(json: unknown): T | undefined {
     try {
