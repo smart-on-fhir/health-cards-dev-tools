@@ -18,7 +18,7 @@ const keyStore = {
 
 
 function get(kid: string): JWK.RawKey {
-    return keyStore.store.get(kid)
+    return keyStore.store.get(kid);
 }
 
 
