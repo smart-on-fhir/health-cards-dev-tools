@@ -12,7 +12,8 @@ js/tests
 /schema
 package.json
 src
-testdata
+testdata/**/*
+!testdata/**/shlTestResponses.js
 tsconfig.json
 !js/src/api.d.ts
 !js/package.json
