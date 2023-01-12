@@ -21,6 +21,7 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<{
         "location",
         "contentType",
     ]);
+
     if (unexpectedProps.length) {
         log.warn(
             `Unexpected properties on manifest file : ${unexpectedProps.join(",")}`,
@@ -35,6 +36,26 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<{
             `Manifest file must contain 'embedded' and/or 'location' property`,
             ErrorCode.SHLINK_VERIFICATION_ERROR
         );
+    }
+
+    const allowedContentTypes = [
+        "application/smart-health-card",
+        "application/smart-api-access",
+        "application/fhir+json"
+    ];
+
+    if (!file.contentType) {
+        log.error(
+            `Manifest file must contain 'contentType'`,
+            ErrorCode.SHLINK_VERIFICATION_ERROR
+        );
+    } else {
+        if (allowedContentTypes.includes(file.contentType) === false) {
+            log.error(
+                `'contentType' must be either ${allowedContentTypes.join(',')}`,
+                ErrorCode.SHLINK_VERIFICATION_ERROR
+            );
+        }
     }
 
     if (!file.embedded) {

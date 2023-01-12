@@ -124,7 +124,7 @@ export async function downloadManifest(
                     }
                     log.fatal(
                         `url download error : 401 invalid passcode : remainingAttempts: ${remainingAttempts}`,
-                        ErrorCode.SHLINK_VERIFICATION_ERROR
+                        ErrorCode.SHLINK_INVALID_PASSCODE
                     );
                 }
                 break;
