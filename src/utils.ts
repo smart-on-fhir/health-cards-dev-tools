@@ -190,8 +190,7 @@ export async function qrCode(path: string, data: string, errorCorrectionLevel: Q
 }
 
 export function isUrl(url: string, httpsRequired = true) : boolean {
-    // eslint-disable-next-line no-useless-escape
-    const regExp = new RegExp(`http${httpsRequired ? 's' : 's?'}?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`);
+    const regExp = new RegExp(`http${httpsRequired ? 's' : 's?'}?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)`);
     return regExp.test(url);
 }
 
