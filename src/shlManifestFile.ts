@@ -1,17 +1,17 @@
 import { ErrorCode } from "./error";
 import Log from "./logger";
 import { IOptions } from "./options";
-import { get, parseJson, unexpectedProperties } from "./utils";
+import { get, parseJson, unexpectedProperties, isUrl, isJwe } from "./utils";
 import * as jwe from "./jwe-compact";
 import { HTTPError } from "got";
 
-export async function validate(shlinkFile: string, options: IOptions): Promise<{ result: string, log: Log }> {
+export async function validate(shlinkFile: string, options: IOptions): Promise<Log> {
     const log = new Log(`SHL-File ${options.index}`);
 
     const file = parseJson<ShlinkFile>(shlinkFile);
 
     if (!file) {
-        return { log: log.fatal(`Cannot decode manifest file as JSON`, ErrorCode.INVALID_SHLINK), result: '' };
+        return log.fatal(`Cannot decode manifest file as JSON`, ErrorCode.INVALID_SHLINK);
     }
 
     log.debug(`File\n${JSON.stringify(file, null, 2)}`);
@@ -25,15 +25,6 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<{
     if (unexpectedProps.length) {
         log.warn(
             `Unexpected properties on manifest file : ${unexpectedProps.join(",")}`,
-            ErrorCode.SHLINK_VERIFICATION_ERROR
-        );
-    }
-
-    let encrypted;
-
-    if (!file.embedded && !file.location) {
-        log.error(
-            `Manifest file must contain 'embedded' and/or 'location' property`,
             ErrorCode.SHLINK_VERIFICATION_ERROR
         );
     }
@@ -52,41 +43,65 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<{
     } else {
         if (allowedContentTypes.includes(file.contentType) === false) {
             log.error(
-                `'contentType' must be either ${allowedContentTypes.join(',')}`,
+                `'contentType' must be either ${allowedContentTypes.join(' | ')}`,
                 ErrorCode.SHLINK_VERIFICATION_ERROR
             );
         }
     }
 
-    if (!file.embedded) {
-        log.info(`Retrieving file payload from location ${file.location as string}`);
-        encrypted = await downloadManifestFile(file.location as string, log)
-        log.debug(`Encrypted\n${encrypted}`);
-    } else {
-        encrypted = file.embedded;
+    let encrypted;
+
+    if (!file.embedded && !file.location) {
+        return log.fatal(
+            `Manifest file must contain 'embedded' and/or 'location' property`,
+            ErrorCode.SHLINK_VERIFICATION_ERROR
+        );
     }
 
-    if (!encrypted || typeof encrypted !== "string") {
-        return { log: log.error(`Manifest file download invalid`, ErrorCode.SHLINK_VERIFICATION_ERROR), result: '' };
+    if(file.location && isUrl(file.location) === false) {
+        return log.error(`file.location is not a valid HTTPS url`, ErrorCode.SHLINK_VERIFICATION_ERROR);
+    }
+
+    if(file.embedded && isJwe(file.embedded) === false) {
+        log.error(`file.embedded is not JWE`, ErrorCode.SHLINK_VERIFICATION_ERROR);
     }
 
     options = { ...options, shlFile: file }
 
     if (options.cascade) {
-        // jwe.validate requires the shlFile to read the contentType
+
+        if (file.location) {
+
+            log.info(`Retrieving file payload from location ${file.location}`);
+            encrypted = await downloadManifestFile(file.location, log);
+            log.debug(`Encrypted\n${encrypted}`);
+            if (file.embedded && encrypted !== file.embedded) {
+                log.error(`File downloaded from 'location' does not equal the 'embedded' file contents`, ErrorCode.SHLINK_VERIFICATION_ERROR);
+            }
+
+        } else {
+            log.info(`Retrieving 'embedded' file payload`);
+            encrypted = file.embedded;
+        }    
+
+        if (!encrypted || typeof encrypted !== "string") {
+            return log.error(`Manifest file download invalid`, ErrorCode.SHLINK_VERIFICATION_ERROR);
+        }
+
+        // jwe.validate requires the shlFile to read the contentType property
         log.child.push((await jwe.validate(encrypted, { ...options, shlFile: file })).log);
     }
 
-    return { log, result: encrypted };
+    return log;
 }
 
 export async function downloadManifestFile(url: string, log: Log): Promise<string> {
-    const embedded = await get(url).catch((err: HTTPError) => {
+    const encrypted = await get(url).catch((err: HTTPError) => {
         log.fatal(
-            `url download error : ${err.response.statusCode} ${err.toString()}`,
+            `Manifest file download error : ${err.response.statusCode} ${err.toString()}`,
             ErrorCode.SHLINK_VERIFICATION_ERROR
         );
         return "";
     });
-    return embedded;
+    return encrypted;
 }

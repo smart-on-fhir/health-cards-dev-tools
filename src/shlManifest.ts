@@ -34,7 +34,7 @@ export async function validate(shlinkManifestJson: string, options: IOptions): P
     if (options.cascade) {
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            log.child.push((await shlManifestFile.validate(JSON.stringify(file), { ...options, index: i })).log);
+            log.child.push(await shlManifestFile.validate(JSON.stringify(file), { ...options, index: i }));
         }
     }
     return log;

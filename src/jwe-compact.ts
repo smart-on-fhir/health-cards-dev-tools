@@ -3,6 +3,7 @@ import Log from "./logger";
 import { IOptions } from "./options";
 import * as jose from "node-jose";
 import * as healthCard from "./healthCard";
+import { isJwe } from "./utils";
 
 
 export async function validate(jwe: string, options: IOptions): Promise<{ result: string, log: Log }> {
@@ -23,7 +24,7 @@ export async function validate(jwe: string, options: IOptions): Promise<{ result
         };
     }
 
-    if (!/[\w-]+\.[\w-]*\.[\w-]+\.[\w-]+\.[\w-]+/g.test(jwe)) {
+    if (!isJwe(jwe)) {
         return {
             log: log.fatal('Failed to parse JWE-compact serialization as \'base64url.base64url.base64url.base64url.base64url\' string.', ErrorCode.JSON_PARSE_ERROR),
             result: ''
@@ -38,7 +39,7 @@ export async function validate(jwe: string, options: IOptions): Promise<{ result
         k: options.decryptionKey,
         key_ops: ["decrypt"],
         kty: "oct",
-    }).catch((_err: Error) => {
+    }).catch(() => {
         log.error(`Failed to import key ${options.decryptionKey}`, ErrorCode.SHLINK_VERIFICATION_ERROR);
         return undefined;
     });

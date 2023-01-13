@@ -65,10 +65,10 @@ async function validateShlManifest(manifest: string, options: Partial<IOptions> 
     return formatOutput(log, fullOptions.logLevel);
 }
 
-async function validateShlManifestFile(file: string, options: Partial<IOptions> = {}): Promise<ResultWithValidationErrors> {
+async function validateShlManifestFile(file: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
     const fullOptions = setOptions(options);
-    const resultWithErrors = await shlManifestFile.validate(file, fullOptions);
-    return {result: resultWithErrors.result, errors: formatOutput(resultWithErrors.log, fullOptions.logLevel)};
+    const log = await shlManifestFile.validate(file, fullOptions);
+    return formatOutput(log, fullOptions.logLevel);
 }
 
 async function validateHealthcard(json: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
@@ -94,7 +94,7 @@ async function validateJws(text: string, options: Partial<IOptions> = {}): Promi
 async function validateJwe(text: string, options: Partial<IOptions> = {}): Promise<ResultWithValidationErrors> {
     const fullOptions = setOptions(options);
     const resultWithErrors = await jwe.validate(text, fullOptions);
-    return {result: resultWithErrors.result, errors: formatOutput(resultWithErrors.log, fullOptions.logLevel)};
+    return { result: resultWithErrors.result, errors: formatOutput(resultWithErrors.log, fullOptions.logLevel) };
 }
 
 async function validateJwspayload(payload: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
@@ -126,18 +126,18 @@ async function checkTrustedDirectory(url: string, options: Partial<IOptions> = {
     return Promise.resolve(formatOutput(log, fullOptions.logLevel));
 }
 
-async function downloadManifest(params: ShlinkManifestRequest, options: Partial<IOptions> = {}) : Promise<{ errors: ValidationErrors, manifest: string}> {
+async function downloadManifest(params: ShlinkManifestRequest, options: Partial<IOptions> = {}): Promise<{ errors: ValidationErrors, manifest: string }> {
     const fullOptions = setOptions(options);
-    const log =new Log('Download-Manifest');
+    const log = new Log('Download-Manifest');
     const manifest = await shlPayload.downloadManifest(params, log);
-    return {errors: formatOutput(log, fullOptions.logLevel), manifest};
+    return { errors: formatOutput(log, fullOptions.logLevel), manifest };
 }
 
-async function downloadManifestFile(params: ShlinkManifestRequest, options: Partial<IOptions> = {}) : Promise<{ errors: ValidationErrors, manifest: string}> {
+async function downloadManifestFile(location: string, options: Partial<IOptions> = {}): Promise<{ errors: ValidationErrors, encryptedFile: string }> {
     const fullOptions = setOptions(options);
-    const log =new Log('Download-Manifest');
-    const manifest = await shlPayload.downloadManifest(params, log);
-    return {errors: formatOutput(log, fullOptions.logLevel), manifest};
+    const log = new Log('Download-Manifest-File');
+    const encryptedFile = await shlManifestFile.downloadManifestFile(location, log);
+    return { errors: formatOutput(log, fullOptions.logLevel), encryptedFile };
 }
 
 export { ErrorCode } from './error';
@@ -146,7 +146,7 @@ export { LogLevels } from './logger';
 
 export type ValidationErrors = { message: string, code: ErrorCode, level: LogLevels }[];
 
-export type ResultWithValidationErrors = {result: string, errors: ValidationErrors};
+export type ResultWithValidationErrors = { result: string, errors: ValidationErrors };
 
 export const validate = {
     "qrnumeric": validateQrnumeric,
@@ -160,9 +160,10 @@ export const validate = {
     "checkTrustedDirectory": checkTrustedDirectory,
     "shlink": validateShlink,
     "shlpayload": validateShlPayload,
-    "shlmanifest" : validateShlManifest,
-    "shlmanifestfile" : validateShlManifestFile,
-    "downloadManifest" : downloadManifest
+    "shlmanifest": validateShlManifest,
+    "shlmanifestfile": validateShlManifestFile,
+    "downloadManifest": downloadManifest,
+    "downloadManifestFile": downloadManifestFile
 }
 
 export { ValidationProfiles, Validators, IOptions };

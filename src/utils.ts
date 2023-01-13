@@ -188,3 +188,13 @@ export function createSHLink(url: string, key: string, flag?: string, label?: st
 export async function qrCode(path: string, data: string, errorCorrectionLevel: QRCodeErrorCorrectionLevel = "low"): Promise<void> {
     return toFile(path, data, { errorCorrectionLevel: errorCorrectionLevel }) as Promise<void>;
 }
+
+export function isUrl(url: string, httpsRequired = true) : boolean {
+    // eslint-disable-next-line no-useless-escape
+    const regExp = new RegExp(`http${httpsRequired ? 's' : 's?'}?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)`);
+    return regExp.test(url);
+}
+
+export function isJwe(jwe: string) : boolean {
+    return /^[\w-]{2,}\.[\w-]*\.[\w-]{2,}\.[\w-]{2,}\.[\w-]{2,}$/.test(jwe);
+}
