@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { LogLevels } from './logger';
 import { ValidationProfiles, Validators } from './fhirBundle';
 

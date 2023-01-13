@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import Log from './logger';
 import got from 'got';
 import { ErrorCode } from './error';

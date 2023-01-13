@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { ErrorCode } from "./error";
 import { jwksDownloadTimeOut } from "./jws-compact";
 import got from 'got';

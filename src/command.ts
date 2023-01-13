@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import execa from 'execa';
 import color from 'colors';
 import Log from './logger';

@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 const response = {
     "https://test-link/ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefg": {
         "files": [

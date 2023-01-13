@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import * as healthCard from './healthCard';
 import * as fhirHealthCard from './fhirHealthCard';
 import * as jws from './jws-compact';
@@ -133,10 +136,10 @@ async function downloadManifest(params: ShlinkManifestRequest, options: Partial<
     return { errors: formatOutput(log, fullOptions.logLevel), manifest };
 }
 
-async function downloadManifestFile(location: string, options: Partial<IOptions> = {}): Promise<{ errors: ValidationErrors, encryptedFile: string }> {
+async function downloadManifestFile(params: ShlinkFile, options: Partial<IOptions> = {}): Promise<{ errors: ValidationErrors, encryptedFile: string }> {
     const fullOptions = setOptions(options);
     const log = new Log('Download-Manifest-File');
-    const encryptedFile = await shlManifestFile.downloadManifestFile(location, log);
+    const encryptedFile = await shlManifestFile.downloadManifestFile(params, log);
     return { errors: formatOutput(log, fullOptions.logLevel), encryptedFile };
 }
 

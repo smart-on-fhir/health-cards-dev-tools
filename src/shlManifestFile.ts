@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { ErrorCode } from "./error";
 import Log from "./logger";
 import { IOptions } from "./options";
@@ -58,11 +61,11 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<L
         );
     }
 
-    if(file.location && isUrl(file.location) === false) {
+    if (file.location && isUrl(file.location) === false) {
         return log.error(`file.location is not a valid HTTPS url`, ErrorCode.SHLINK_VERIFICATION_ERROR);
     }
 
-    if(file.embedded && isJwe(file.embedded) === false) {
+    if (file.embedded && isJwe(file.embedded) === false) {
         log.error(`file.embedded is not JWE`, ErrorCode.SHLINK_VERIFICATION_ERROR);
     }
 
@@ -73,7 +76,7 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<L
         if (file.location) {
 
             log.info(`Retrieving file payload from location ${file.location}`);
-            encrypted = await downloadManifestFile(file.location, log);
+            encrypted = await downloadManifestFile(file, log);
             log.debug(`Encrypted\n${encrypted}`);
             if (file.embedded && encrypted !== file.embedded) {
                 log.error(`File downloaded from 'location' does not equal the 'embedded' file contents`, ErrorCode.SHLINK_VERIFICATION_ERROR);
@@ -82,7 +85,7 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<L
         } else {
             log.info(`Retrieving 'embedded' file payload`);
             encrypted = file.embedded;
-        }    
+        }
 
         if (!encrypted || typeof encrypted !== "string") {
             return log.error(`Manifest file download invalid`, ErrorCode.SHLINK_VERIFICATION_ERROR);
@@ -95,13 +98,22 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<L
     return log;
 }
 
-export async function downloadManifestFile(url: string, log: Log): Promise<string> {
-    const encrypted = await get(url).catch((err: HTTPError) => {
+export async function downloadManifestFile(params: ShlinkFile, log: Log): Promise<string> {
+
+    if (!params.location || !isUrl(params.location)) {
         log.fatal(
-            `Manifest file download error : ${err.response.statusCode} ${err.toString()}`,
+            `Manifest file download error: 'location' property is not valid URL or is missing`,
+            ErrorCode.SHLINK_VERIFICATION_ERROR
+        );
+        return "";
+    }
+
+    return await get(params.location).catch((err: HTTPError) => {
+        log.fatal(
+            `Manifest file download error : ${err.response?.statusCode} ${err.toString()}`,
             ErrorCode.SHLINK_VERIFICATION_ERROR
         );
         return "";
     });
-    return encrypted;
+
 }
