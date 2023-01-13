@@ -1,4 +1,7 @@
 # CHANGE LOG
+## v1.3.0-1
+- Expanded API interface to expose SHL validation calls
+
 ## v1.3.0-0
 - Updated dev tools version to match new spec version
 - Deprecated multi-part chunking support
