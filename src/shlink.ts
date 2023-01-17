@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { ErrorCode } from "./error";
 import Log from "./logger";
 import { IOptions } from "./options";

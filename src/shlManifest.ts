@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { ErrorCode } from "./error";
 import Log from "./logger";
 import { IOptions } from "./options";
@@ -7,7 +10,7 @@ import * as shlManifestFile from "./shlManifestFile";
 export async function validate(shlinkManifestJson: string, options: IOptions): Promise<Log> {
     const log = new Log("SHL-Manifest");
 
-    const manifest = parseJson<ShlinkManifestFile>(shlinkManifestJson);
+    const manifest = parseJson<ShlinkManifest>(shlinkManifestJson);
 
     if (!manifest) {
         return log.fatal(`Cannot decode payload as JSON`, ErrorCode.INVALID_SHLINK);

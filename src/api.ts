@@ -1,8 +1,16 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import * as healthCard from './healthCard';
 import * as fhirHealthCard from './fhirHealthCard';
 import * as jws from './jws-compact';
+import * as jwe from './jwe-compact';
 import * as jwsPayload from './jws-payload';
 import * as fhirBundle from './fhirBundle';
+import * as shlink from './shlink';
+import * as shlPayload from './shlPayload';
+import * as shlManifest from './shlManifest';
+import * as shlManifestFile from "./shlManifestFile";
 import { ValidationProfiles, Validators } from './fhirBundle';
 import * as qr from './qr';
 import Log, { LogLevels } from './logger';
@@ -42,6 +50,30 @@ async function validateQrnumeric(shc: string[], options: Partial<IOptions> = {})
     return formatOutput(log, fullOptions.logLevel);
 }
 
+async function validateShlink(shl: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
+    const fullOptions = setOptions(options);
+    const log = await shlink.validate(shl, fullOptions);
+    return formatOutput(log, fullOptions.logLevel);
+}
+
+async function validateShlPayload(payload: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
+    const fullOptions = setOptions(options);
+    const log = await shlPayload.validate(payload, fullOptions);
+    return formatOutput(log, fullOptions.logLevel);
+}
+
+async function validateShlManifest(manifest: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
+    const fullOptions = setOptions(options);
+    const log = await shlManifest.validate(manifest, fullOptions);
+    return formatOutput(log, fullOptions.logLevel);
+}
+
+async function validateShlManifestFile(file: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
+    const fullOptions = setOptions(options);
+    const log = await shlManifestFile.validate(file, fullOptions);
+    return formatOutput(log, fullOptions.logLevel);
+}
+
 async function validateHealthcard(json: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
     const fullOptions = setOptions(options);
     const log = await healthCard.validate(json, fullOptions);
@@ -60,6 +92,12 @@ async function validateJws(text: string, options: Partial<IOptions> = {}): Promi
     fullOptions.clearKeyStore && keys.clear();
     const log = await jws.validate(text, fullOptions);
     return formatOutput(log, fullOptions.logLevel);
+}
+
+async function validateJwe(text: string, options: Partial<IOptions> = {}): Promise<ResultWithValidationErrors> {
+    const fullOptions = setOptions(options);
+    const resultWithErrors = await jwe.validate(text, fullOptions);
+    return { result: resultWithErrors.result, errors: formatOutput(resultWithErrors.log, fullOptions.logLevel) };
 }
 
 async function validateJwspayload(payload: string, options: Partial<IOptions> = {}): Promise<ValidationErrors> {
@@ -91,21 +129,44 @@ async function checkTrustedDirectory(url: string, options: Partial<IOptions> = {
     return Promise.resolve(formatOutput(log, fullOptions.logLevel));
 }
 
+async function downloadManifest(params: ShlinkManifestRequest, options: Partial<IOptions> = {}): Promise<{ errors: ValidationErrors, manifest: string }> {
+    const fullOptions = setOptions(options);
+    const log = new Log('Download-Manifest');
+    const manifest = await shlPayload.downloadManifest(params, log);
+    return { errors: formatOutput(log, fullOptions.logLevel), manifest };
+}
+
+async function downloadManifestFile(params: ShlinkFile, options: Partial<IOptions> = {}): Promise<{ errors: ValidationErrors, encryptedFile: string }> {
+    const fullOptions = setOptions(options);
+    const log = new Log('Download-Manifest-File');
+    const encryptedFile = await shlManifestFile.downloadManifestFile(params, log);
+    return { errors: formatOutput(log, fullOptions.logLevel), encryptedFile };
+}
+
 export { ErrorCode } from './error';
 
 export { LogLevels } from './logger';
 
 export type ValidationErrors = { message: string, code: ErrorCode, level: LogLevels }[];
 
+export type ResultWithValidationErrors = { result: string, errors: ValidationErrors };
+
 export const validate = {
     "qrnumeric": validateQrnumeric,
     "healthcard": validateHealthcard,
     "fhirhealthcard": validateFhirHealthcard,
+    "jwe": validateJwe,
     "jws": validateJws,
     "jwspayload": validateJwspayload,
     "fhirbundle": validateFhirBundle,
     "keyset": validateKeySet,
     "checkTrustedDirectory": checkTrustedDirectory,
+    "shlink": validateShlink,
+    "shlpayload": validateShlPayload,
+    "shlmanifest": validateShlManifest,
+    "shlmanifestfile": validateShlManifestFile,
+    "downloadManifest": downloadManifest,
+    "downloadManifestFile": downloadManifestFile
 }
 
 export { ValidationProfiles, Validators, IOptions };

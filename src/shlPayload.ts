@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { HTTPError } from "got";
 import { ErrorCode } from "./error";
 import Log, { LogLevels } from "./logger";
@@ -89,12 +92,28 @@ export async function validate(shlinkPayloadJson: string, options: IOptions): Pr
     log.info(`Retrieving manifest file from ${payload.url}`);
     log.debug(`Payload\n${JSON.stringify(payload, null, 2)}`);
 
-    // download the manifest file as text
-    const manifest: string = await post(payload.url, {
-        passcode: options.passCode,
-        recipient: "Example SHL Client",
-        embeddedLengthMax: 200,
-    }).catch((err: HTTPError) => {
+    let manifest: string;
+
+    if (options.cascade) {
+        // download the manifest file as text
+        manifest = await downloadManifest({url: payload.url, passcode: options.passCode, recipient: "Example SHL Client", embeddedLengthMax: 200}, log);
+
+        // if we got a fatal error, quit here
+        if (log.get(LogLevels.FATAL).length) {
+            return log; 
+        }
+
+        log.child.push(await shlManifest.validate(manifest, { ...options, decryptionKey: payload.key }));
+    }
+
+    return log;
+}
+
+export async function downloadManifest(
+    params: ShlinkManifestRequest,
+    log: Log
+): Promise<string> {
+    const manifest = await post(params.url, params as unknown as Record<string, unknown>).catch((err: HTTPError) => {
         const remainingAttempts =
             parseJson<{ remainingAttempts: number }>(err.response?.body as string)?.remainingAttempts || "unknown";
 
@@ -108,7 +127,7 @@ export async function validate(shlinkPayloadJson: string, options: IOptions): Pr
                     }
                     log.fatal(
                         `url download error : 401 invalid passcode : remainingAttempts: ${remainingAttempts}`,
-                        ErrorCode.SHLINK_VERIFICATION_ERROR
+                        ErrorCode.SHLINK_INVALID_PASSCODE
                     );
                 }
                 break;
@@ -118,7 +137,10 @@ export async function validate(shlinkPayloadJson: string, options: IOptions): Pr
                     log.warn(`inactive shlink should not return 'remainingAttempts'`);
                 }
 
-                log.fatal(`url download error : 404 SHLink is invalid or no longer active`, ErrorCode.SHLINK_VERIFICATION_ERROR);
+                log.fatal(
+                    `url download error : 404 SHLink is invalid or no longer active`,
+                    ErrorCode.SHLINK_VERIFICATION_ERROR
+                );
                 break;
 
             case 500:
@@ -130,17 +152,8 @@ export async function validate(shlinkPayloadJson: string, options: IOptions): Pr
                 break;
         }
 
-        return ""; //{ files: [] };
+        return "";
     });
 
-    // if we got a fatal error, quit here
-    if (log.get(LogLevels.FATAL).length) {
-        return log;
-    }
-
-    if (options.cascade) {
-        log.child.push(await shlManifest.validate(manifest, { ...options, decryptionKey: payload.key }));
-    }
-
-    return log;
+    return manifest;
 }

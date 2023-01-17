@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 import { LogLevels } from './logger';
 import { ValidationProfiles, Validators } from './fhirBundle';
 
@@ -15,7 +18,8 @@ interface IOptions {
     passCode: string,
     decryptionKey: string,
     index: number,
-    exclude: string[]
+    exclude: string[],
+    shlFile?: ShlinkFile 
 }
 
 const defaultOptions: IOptions = {
@@ -32,7 +36,8 @@ const defaultOptions: IOptions = {
     passCode: '',
     decryptionKey: '',
     index: 0,
-    exclude: []
+    exclude: [],
+    shlFile: undefined
 }
 
 const setOptions = function (options: Partial<IOptions> = {}): IOptions {

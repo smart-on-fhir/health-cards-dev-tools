@@ -8,7 +8,7 @@ import pako from "pako";
 import jose from "node-jose";
 import { runCommandSync } from "./command";
 import { QRCodeErrorCorrectionLevel, toFile } from 'qrcode';
-import * as j from "../testdata/shlTestResponses.json";
+import response from "./urlMappings";
 
 export function parseJson<T>(json: unknown): T | undefined {
     try {
@@ -144,9 +144,10 @@ export function unexpectedProperties(object: Record<string, unknown>, expected: 
 // get request from url
 //
 export async function post(url: string, data: Record<string, unknown>): Promise<string> {
-    const testData = j as unknown as Record<string, Record<string, string> | string>;
 
-    const testResponse = testData[url];
+    const testData = response as unknown as Record<string, Record<string, string> | string | (() => string)>;
+
+    const testResponse = (typeof testData[url] === 'function') ? (testData[url] as () => string)() : testData[url];
 
     if ((testResponse as Record<string, string>)?.["error"]) {
         return Promise.reject((testResponse as Record<string, string>)["error"]);
@@ -158,7 +159,7 @@ export async function post(url: string, data: Record<string, unknown>): Promise<
 }
 
 export async function get(url: string): Promise<string> {
-    const testData = j as unknown as Record<string, Record<string, string> | string>;
+    const testData = response as unknown as Record<string, Record<string, string> | string>;
 
     const testResponse = testData[url];
 
@@ -186,4 +187,13 @@ export function createSHLink(url: string, key: string, flag?: string, label?: st
 
 export async function qrCode(path: string, data: string, errorCorrectionLevel: QRCodeErrorCorrectionLevel = "low"): Promise<void> {
     return toFile(path, data, { errorCorrectionLevel: errorCorrectionLevel }) as Promise<void>;
+}
+
+export function isUrl(url: string, httpsRequired = true) : boolean {
+    const regExp = new RegExp(`http${httpsRequired ? 's' : 's?'}?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)`);
+    return regExp.test(url);
+}
+
+export function isJwe(jwe: string) : boolean {
+    return /^[\w-]{2,}\.[\w-]*\.[\w-]{2,}\.[\w-]{2,}\.[\w-]{2,}$/.test(jwe);
 }
