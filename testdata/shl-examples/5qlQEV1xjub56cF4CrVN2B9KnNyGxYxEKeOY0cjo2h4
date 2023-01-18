@@ -1,0 +1,16 @@
+{
+    "files": [
+        {
+            "contentType": "application/smart-health-card",
+            "location": "https://api.vaxx.link/api/shl/by5HVbFSsGhpAJyAQ2SxqIn81mzVlut6pHMHUMU42r8/file/0"
+        },
+        {
+            "contentType": "application/smart-health-card",
+            "location": "https://api.vaxx.link/api/shl/by5HVbFSsGhpAJyAQ2SxqIn81mzVlut6pHMHUMU42r8/file/1"
+        },
+        {
+            "contentType": "application/smart-health-card",
+            "location": "https://api.vaxx.link/api/shl/by5HVbFSsGhpAJyAQ2SxqIn81mzVlut6pHMHUMU42r8/file/2"
+        }
+    ]
+}
