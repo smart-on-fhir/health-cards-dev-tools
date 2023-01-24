@@ -123,6 +123,7 @@ http.createServer(app).listen(config.SERVICE_PORT, () => {
     console.log([
         `HTTP Server listening at ${url}`
     ].join('\n'));
+    process.exitCode = 0;
 });
 
 
@@ -177,8 +178,14 @@ function isObject(object: any): boolean {
 
 process.on('SIGTERM', shutdown);
 process.on('SIGINT', shutdown);
+process.on('SIGKILL', shutdown);
+process.on('SIGHUP', shutdown);
 
 function shutdown() {
-    process.exitCode = 0;
     console.log(`HTTP Server shutting down...`);
+    return 0;
 }
+
+process.on('SIGTERM', function(code){
+    return console.log(`Exiting with code ${code}`);
+});
