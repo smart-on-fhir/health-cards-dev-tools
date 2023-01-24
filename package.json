@@ -15,7 +15,8 @@
         "update-validator": "git pull && npm install && npm run build",
         "lint": "eslint --config .eslintrc.json --ext .ts ./src ./tests",
         "prune-fhir-schema": "ts-node --files src/prune-fhir-schema.ts",
-        "shl-server": "cd ./shl-server && node ./src/server.js"
+        "shl-server": "cd ./shl-server && node ./src/server.js",
+        "postinstall": "cd ./shl-server && npm install && tsc"
     },
     "bin": {
         "shc-validator": "js/src/shc-validator.js"
