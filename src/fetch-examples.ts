@@ -135,6 +135,10 @@ async function generateImagesFromSvg(dir: string): Promise<void> {
     }
 }
 
+function copyShlTestDataToServerFolder() {
+    fs.cpSync('./testdata/shl-examples/', './shl-server/shl', { recursive: true });
+}
+
 const program = new Command();
 program.option('-f, --force', 'forces example retrieval, even if already present');
 program.parse(process.argv);
@@ -146,4 +150,5 @@ void (async () => {
     await fetchExamples(outPath, force);
     await fetchKeys(outPath);
     await generateImagesFromSvg(outPath);
+    copyShlTestDataToServerFolder();
 })();

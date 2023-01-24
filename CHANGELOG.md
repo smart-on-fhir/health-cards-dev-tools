@@ -1,4 +1,8 @@
 # CHANGE LOG
+
+## v1.3.0-2
+- Add test SHL server
+  
 ## v1.3.0-1
 - Expanded API interface to expose SHL validation calls
 

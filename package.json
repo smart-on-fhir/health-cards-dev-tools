@@ -1,6 +1,6 @@
 {
     "name": "health-cards-dev-tools",
-    "version": "1.3.0-1",
+    "version": "1.3.0-2",
     "description": "",
     "main": "js/src/shc-validator.js",
     "scripts": {
@@ -10,11 +10,12 @@
         "fetch-profiles": "ts-node --files src/fetch-profiles.ts",
         "validate-example": "ts-node --files src/shc-validator.ts --path testdata/valid_key.json --type jwkset --loglevel info",
         "pretest": "npm run fetch-examples && npm run fetch-profiles",
-        "test": "jest --rootDir tests --silent",
+        "test": "concurrently -k -c \"green,white\" --names \"shl-server,test\" \"npm:shl-server\" \"jest --rootDir tests --silent Cards\"",
         "generate-test-data": "ts-node --files src/generate-test-data",
         "update-validator": "git pull && npm install && npm run build",
         "lint": "eslint --config .eslintrc.json --ext .ts ./src ./tests",
-        "prune-fhir-schema": "ts-node --files src/prune-fhir-schema.ts"
+        "prune-fhir-schema": "ts-node --files src/prune-fhir-schema.ts",
+        "shl-server": "cd ./shl-server && node ./src/server.js"
     },
     "bin": {
         "shc-validator": "js/src/shc-validator.js"
@@ -49,6 +50,7 @@
         "@types/uuid": "^8.3.0",
         "@typescript-eslint/eslint-plugin": "^4.33.0",
         "@typescript-eslint/parser": "^4.33.0",
+        "concurrently": "^7.6.0",
         "eslint": "^7.24.0",
         "jest": "^27.3.0",
         "jszip": "^3.6.0",

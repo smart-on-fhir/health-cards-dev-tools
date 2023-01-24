@@ -2,7 +2,7 @@
 
 # SMART Health Cards Dev Tools
 
-This project provides tools to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) and [SMART Health Card Links](https://docs.smarthealthit.org/smart-health-links/) validate the artifacts they produce. The package's version number, currently `1.3.0-1`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
+This project provides tools to help implementers of the [SMART Health Card Framework](https://smarthealth.cards/) and [SMART Health Card Links](https://docs.smarthealthit.org/smart-health-links/) validate the artifacts they produce. The package's version number, currently `1.3.0-2`, matches the [specification version](https://smarthealth.cards/changelog/) the tool validates.
 
 **NOTE: The goal of the project is to help implementers verify that their implementations conform to the specification. It optimistically tries to validate as much of the input artifacts as it can, continuing validation after encountering errors in order to give a complete validation report. It is therefore _not_ meant to robustly validate actual SMART Health Cards; applications validating such cards must be thoroughly tested using an adversarial threat model.**
 
@@ -21,9 +21,9 @@ Install the latest version using:
 npm install github:smart-on-fhir/health-cards-dev-tools
 ```
 
-Install a specific version by specifying it as a parameter; for example, to obtain v1.3.0-1:
+Install a specific version by specifying it as a parameter; for example, to obtain v1.3.0-2:
 ```
-npm install github:smart-on-fhir/health-cards-dev-tools#v1.3.0-1
+npm install github:smart-on-fhir/health-cards-dev-tools#v1.3.0-2
 ```
 
   **Note : Performing an npm global install from GitHub _npm install -g github:smart-on-fhir/health-cards-dev-tools_ does not currently work correctly with the latest version of [npm](https://github.com/npm/cli/issues/3692#issue-981406464) (version 7.x).  

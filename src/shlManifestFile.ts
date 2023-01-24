@@ -62,7 +62,7 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<L
     }
 
     if (file.location && isUrl(file.location) === false) {
-        return log.error(`file.location is not a valid HTTPS url`, ErrorCode.SHLINK_VERIFICATION_ERROR);
+        return log.error(`file.location is not a valid HTTPS url`, ErrorCode.SHLINK_NOT_HTTPS_URL);
     }
 
     if (file.embedded && isJwe(file.embedded) === false) {

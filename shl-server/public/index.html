@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>SHL Server Client</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+</head>
+
+<body>
+
+    <!--
+        This page will generate a smart health link from a set of parameters.
+        You can modify the parameters to generate a new link
+        Without a server to actually host the files, the link won't be much use. 
+    -->
+
+    <div>
+        <br>
+        <label>SMART Health Link parameters</label>
+        <textarea id="parameters" rows="35"></textarea>
+        <label>SMART Health Link</label>
+        <textarea id="link" rows="4"></textarea>
+        <input type="button" id="submit" value="Generate SMART Health Link"></input>
+    </div>
+    <script type="module">
+        import { restCall } from "./main.js";
+        import { samples } from "./sample.js";
+
+        document.getElementById('parameters').value = JSON.stringify(samples[0], null, 4);
+
+        document.getElementById('submit').addEventListener('click', async () => {
+
+            let parsed;
+
+            const textArea = document.getElementById('parameters');
+            const paramText = textArea.value;
+            try {
+                parsed = JSON.parse(paramText);
+            } catch {
+                document.getElementById('link').value = "Could not parse parameters as JSON";
+                return;
+            }
+
+            const result = await restCall('http://localhost:8090/create-link', parsed, { responseType: "text" });
+
+            if (result.error || !result.link) {
+                console.error(result?.error || 'shl not returned');
+                return;
+            }
+
+            document.getElementById('link').value = result;
+
+        });
+
+
+    </script>
+
+</body>
+
+</html>
