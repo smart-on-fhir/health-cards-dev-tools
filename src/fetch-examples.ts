@@ -136,7 +136,10 @@ async function generateImagesFromSvg(dir: string): Promise<void> {
 }
 
 function copyShlTestDataToServerFolder() {
-    fs.cpSync('./testdata/shl-examples/', './shl-server/shl', { recursive: true });
+    const files = fs.readdirSync('./testdata/shl-examples/');
+    files.forEach(fileName => {
+        fs.copyFileSync(`./testdata/shl-examples/${fileName}`, `./shl-server/shl/${fileName}`);
+    })
 }
 
 const program = new Command();
