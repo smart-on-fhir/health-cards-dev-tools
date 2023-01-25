@@ -421,15 +421,15 @@ test("Cards: immunization status not 'completed'", testCard('test-example-00-a-f
 // Tests using the HL7 FHIR Validator
 // Since these tests require a Java runtime (JRE) or Docker to be installed, they are conditionally executed.
 // These tests can also take a longer as they have to spin up a Docker image 
-// describe('FHIR validator tests', () => {
+describe('FHIR validator tests', () => {
 
-//     const testif = (condition: boolean) => condition ? it : it.skip;
-//     const canRunFhirValidator = jreOrDockerAvailable();
-//     // shc-validator -p ./testdata/test-example-00-a-fhirBundle-profile-usa.json -t fhirbundle -l debug -V fhirvalidator
-//     testif(canRunFhirValidator)("Cards: fhir validator test", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
-//         [8, 1], { validator: Validators.fhirvalidator, logLevel: LogLevels.DEBUG }), 1000 * 60 * 5 /*5 minutes*/);
+    const testif = (condition: boolean) => condition ? it : it.skip;
+    const canRunFhirValidator = jreOrDockerAvailable();
+    // shc-validator -p ./testdata/test-example-00-a-fhirBundle-profile-usa.json -t fhirbundle -l debug -V fhirvalidator
+    testif(canRunFhirValidator)("Cards: fhir validator test", testCard(['test-example-00-a-fhirBundle-profile-usa.json'], 'fhirbundle',
+        [8, 1], { validator: Validators.fhirvalidator, logLevel: LogLevels.DEBUG }), 1000 * 60 * 5 /*5 minutes*/);
 
-// });
+});
 
 afterAll(async () => {
     // send request to shutdown shl server
