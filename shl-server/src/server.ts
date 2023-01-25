@@ -175,17 +175,6 @@ function isObject(object: any): boolean {
     return Object.prototype.toString.call(object) === '[object Object]';
 }
 
-
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
-process.on('SIGKILL', shutdown);
-process.on('SIGHUP', shutdown);
-
-function shutdown() {
-    console.log(`HTTP Server shutting down...`);
-    return 0;
-}
-
 process.on('SIGTERM', function(code){
-    return console.log(`Exiting with code ${code}`);
+    process.exitCode = 0;
 });
