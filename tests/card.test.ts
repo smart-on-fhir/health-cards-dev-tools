@@ -430,8 +430,3 @@ describe('FHIR validator tests', () => {
         [8, 1], { validator: Validators.fhirvalidator, logLevel: LogLevels.DEBUG }), 1000 * 60 * 5 /*5 minutes*/);
 
 });
-
-afterAll(async () => {
-    // send request to shutdown shl server
-    // await get('http://localhost:8090/exit')
-});
