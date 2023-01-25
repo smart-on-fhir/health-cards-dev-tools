@@ -12,7 +12,7 @@ import { config } from './config.js';
 import http from 'http';
 import { encode, randomBase64Url } from './encode.js'
 import * as store from './store.js';
-
+import fs from 'fs';
 
 
 const app = express();
@@ -117,8 +117,8 @@ app.post('/*', async (req, res) => {
     res.send(manifest);
 });
 
-
-http.createServer(app).listen(config.SERVICE_PORT, () => {
+const server = http.createServer(app);
+server.listen(config.SERVICE_PORT, () => {
     const url = config.SERVER_BASE;
     console.log([
         `HTTP Server listening at ${url}`
@@ -147,7 +147,7 @@ function verifyRequest(request: SHLLinkRequest): boolean {
         )
     ) return false;
 
-    if(!payload) return true;
+    if (!payload) return true;
 
     const { path, key, exp, flag, label, v } = payload;
 
@@ -175,6 +175,76 @@ function isObject(object: any): boolean {
     return Object.prototype.toString.call(object) === '[object Object]';
 }
 
-process.on('SIGTERM', function(code){
-    process.exitCode = 0;
-});
+// process.on('exit', function (code) {
+//     fs.writeFileSync('EXIT.txt', '');
+//     console.log("exit");
+//     //process.exit();
+//     server.close(() => {
+//         console.log('Closed server.');
+//         process.exit(0);
+//     });
+// });
+
+
+// process.on('SIGTERM', function (code) {
+//     fs.writeFileSync('SIGTERM.txt', '');
+//     console.log("SIGTERM");
+//     //process.exit();
+//     server.close(() => {
+//         console.log('Closed server.');
+//         process.exit(0);
+//     });
+// });
+
+// process.on('SIGINT', function () {
+//     fs.writeFileSync('SIGINT.txt', '');
+//     console.log("SIGINT");
+//     // process.exit();
+//     server.close(() => {
+//         console.log('Closed server.');
+//         process.exit(0);
+//     });
+// })
+
+// app.get('/exit', async (req, res) => {
+//     console.log('Received Request \'/exit');
+//     // setTimeout(() => {
+//     //     process.exit(0);
+//     // });
+//     res.send();
+//     server.close(() => {
+//         console.log('Closed server.');
+//         process.exit(0);
+//     });
+// });
+
+
+// const readline = require('readline');
+
+// const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+
+// // Flag to be able to force the shutdown
+// let isShuttingDown = false;
+
+// // https://nodejs.org/api/readline.html
+// rl.on('SIGINT', async () => {
+
+//         fs.writeFileSync('SIGINT-ALT.txt', '');
+
+//     console.log("SIGINT ================================= ")
+//     //   if (isShuttingDown) {
+//     //     logger.info("Forcing shutdown, bye.");
+//     //     process.exit();
+//     //   } else {
+//     //     if (!<yourIsCleanupNecessaryCheck>()) {
+//     //       logger.info("No cleanup necessary, bye.");
+//     //       process.exit();
+//     //     } else {
+//     //       logger.info("Closing all opened pages in three seconds (press Ctrl+C again to quit immediately and keep the pages opened) ...");
+//     //       isShuttingDown = true;
+//     //       await sleep(3000);
+//     //       await <yourCleanupLogic>();
+//     //       logger.info("All pages closed, bye.");
+//     //       process.exit();
+//     //     }
+// });
