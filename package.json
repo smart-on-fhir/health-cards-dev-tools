@@ -10,7 +10,7 @@
         "fetch-profiles": "ts-node --files src/fetch-profiles.ts",
         "validate-example": "ts-node --files src/shc-validator.ts --path testdata/valid_key.json --type jwkset --loglevel info",
         "pretest": "npm run fetch-examples && npm run fetch-profiles",
-        "test": "concurrently --kill-others --success=\"first\" \"jest --silent --rootDir tests\" \"(cd ./shl-server && node ./src/server.js)\"",
+        "test": "concurrently --kill-others --success=\"first\" \"jest --verbose --rootDir tests\" \"(cd ./shl-server && node ./src/server.js)\"",
         "test0": "concurrently -c \"green,white\" --kill-others --names \"shl-server,test\" --success=\"first\" \"jest --verbose --rootDir tests\" \"(cd ./shl-server && node ./src/server.js) || exit 0\"",
         "test1": "concurrently --kill-others --success=\"first\" \"jest --silent --rootDir tests\" \"(cd ./shl-server && node ./src/server.js) || exit 0\"",
         "generate-test-data": "ts-node --files src/generate-test-data",
