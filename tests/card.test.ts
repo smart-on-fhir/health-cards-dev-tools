@@ -6,7 +6,7 @@ import { validateCard } from '../src/validate';
 import { getFileData } from '../src/file';
 import { ErrorCode as ec } from '../src/error';
 import Log, { LogLevels } from '../src/logger';
-import { get, isOpensslAvailable } from '../src/utils';
+import { isOpensslAvailable } from '../src/utils';
 import { jreOrDockerAvailable } from '../src/fhirValidator';
 import { IOptions, setOptions } from '../src/options';
 import { ValidationProfiles, Validators } from '../src/fhirBundle';

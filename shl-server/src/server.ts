@@ -12,7 +12,7 @@ import { config } from './config.js';
 import http from 'http';
 import { encode, randomBase64Url } from './encode.js'
 import * as store from './store.js';
-import fs from 'fs';
+
 
 
 const app = express();
@@ -24,29 +24,30 @@ app.use(express.static('./public'))
 //
 // Request new SMART Health Link
 //
-app.post(config.CREATE_LINK, async (req, res) => {
+app.post(config.CREATE_LINK, (req, res) => {
     console.log('Received Request to create new SHL', config.CREATE_LINK, req.body);
 
-    const request: SHLLinkRequest = req.body;
+    const request = req.body as SHLLinkRequest;
 
     if (!verifyRequest(request)) {
         res.status(400).send("Bad Request");
         return;
     }
 
-    const entry = await encode(request);
+    void encode(request)
+        .then((entry) => {
+            store.update(entry);
+            res.type('text');
+            res.send(entry.link);
+        });
 
-    store.update(entry);
-
-    res.type('text');
-    res.send(entry.link);
-});
+    });
 
 
 //
 // Request for manifest file
 //
-app.get('/shl/*', async (req, res) => {
+app.get('/shl/*', (req, res) => {
     console.log('Received Request for Manifest File', '/shl/*', req.body);
 
     const url = req.url.split('/')[2];
@@ -65,10 +66,10 @@ app.get('/shl/*', async (req, res) => {
 //
 // Request for manifest
 //
-app.post('/*', async (req, res) => {
+app.post('/*', (req, res) => {
     console.log('Received Request for Manifest', '/*', req.body);
 
-    const params: ShlinkManifestRequest = req.body;
+    const params= req.body as ShlinkManifestRequest;
     const url = req.url.split('/')[1];
     const entry = store.lookup(url) // shlStore[url];
 
@@ -143,7 +144,7 @@ function verifyRequest(request: SHLLinkRequest): boolean {
         !files.every(element =>
             element.verifiableCredential &&
             element.verifiableCredential instanceof Array &&
-            element.verifiableCredential.every((vc: any) => typeof vc === 'string')
+            element.verifiableCredential.every((vc: unknown) => typeof vc === 'string')
         )
     ) return false;
 
@@ -171,80 +172,6 @@ function verifyRequest(request: SHLLinkRequest): boolean {
 
 }
 
-function isObject(object: any): boolean {
+function isObject(object: unknown): boolean {
     return Object.prototype.toString.call(object) === '[object Object]';
 }
-
-// process.on('exit', function (code) {
-//     fs.writeFileSync('EXIT.txt', '');
-//     console.log("exit");
-//     //process.exit();
-//     server.close(() => {
-//         console.log('Closed server.');
-//         process.exit(0);
-//     });
-// });
-
-
-// process.on('SIGTERM', function (code) {
-//     fs.writeFileSync('SIGTERM.txt', '');
-//     console.log("SIGTERM");
-//     //process.exit();
-//     server.close(() => {
-//         console.log('Closed server.');
-//         process.exit(0);
-//     });
-// });
-
-// process.on('SIGINT', function () {
-//     fs.writeFileSync('SIGINT.txt', '');
-//     console.log("SIGINT");
-//     // process.exit();
-//     server.close(() => {
-//         console.log('Closed server.');
-//         process.exit(0);
-//     });
-// })
-
-// app.get('/exit', async (req, res) => {
-//     console.log('Received Request \'/exit');
-//     // setTimeout(() => {
-//     //     process.exit(0);
-//     // });
-//     res.send();
-//     server.close(() => {
-//         console.log('Closed server.');
-//         process.exit(0);
-//     });
-// });
-
-
-// const readline = require('readline');
-
-// const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-
-// // Flag to be able to force the shutdown
-// let isShuttingDown = false;
-
-// // https://nodejs.org/api/readline.html
-// rl.on('SIGINT', async () => {
-
-//         fs.writeFileSync('SIGINT-ALT.txt', '');
-
-//     console.log("SIGINT ================================= ")
-//     //   if (isShuttingDown) {
-//     //     logger.info("Forcing shutdown, bye.");
-//     //     process.exit();
-//     //   } else {
-//     //     if (!<yourIsCleanupNecessaryCheck>()) {
-//     //       logger.info("No cleanup necessary, bye.");
-//     //       process.exit();
-//     //     } else {
-//     //       logger.info("Closing all opened pages in three seconds (press Ctrl+C again to quit immediately and keep the pages opened) ...");
-//     //       isShuttingDown = true;
-//     //       await sleep(3000);
-//     //       await <yourCleanupLogic>();
-//     //       logger.info("All pages closed, bye.");
-//     //       process.exit();
-//     //     }
-// });
