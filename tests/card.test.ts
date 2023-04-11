@@ -206,7 +206,7 @@ test("Cards: issuer in trusted directory ref by URL", testCard(['example-00-d-jw
 test("Cards: SHL QR", testCard(["shlink-qr.png"], "qr", [[ec.SHLINK_NOT_HTTPS_URL, ec.SHLINK_NOT_HTTPS_URL]], { passCode: "1234" }));
 test("Cards: SHL Link", testCard(["shlink-link.txt"], "shlink", [[ec.SHLINK_NOT_HTTPS_URL, ec.SHLINK_NOT_HTTPS_URL]], { passCode: "1234" }));
 test("Cards: SHL Link Direct", testCard(["shlink-link-direct.txt"], "shlink", [[ec.SHLINK_NOT_HTTPS_URL]], { passCode: "1234" }));
-test("Cards: SHL Payload Direct", testCard(["shlink-Payload-direct.txt"], "shlpayload", [[ec.SHLINK_NOT_HTTPS_URL]], { passCode: "1234" }));
+test("Cards: SHL Payload Direct", testCard(["shlink-payload-direct.txt"], "shlpayload", [[ec.SHLINK_NOT_HTTPS_URL]], { passCode: "1234" }));
 test("Cards: SHL Link w/ Viewer", testCard(["shlink-link-with-viewer.txt"], "shlink", [[ec.SHLINK_NOT_HTTPS_URL, ec.SHLINK_NOT_HTTPS_URL]], { passCode: "1234" }));
 test("Cards: SHL Payload", testCard(["shlink-payload.txt"], "shlpayload", [[ec.SHLINK_NOT_HTTPS_URL, ec.SHLINK_NOT_HTTPS_URL]], { passCode: "1234" }));
 test("Cards: SHL Manifest", testCard(["shlink-manifest.txt"], "shlmanifest", [[ec.SHLINK_NOT_HTTPS_URL, ec.SHLINK_NOT_HTTPS_URL]], { decryptionKey: "v7SjEf2oC4nbbkrhJJ1VAsnp4QaAmrzwIVQtxGM7AIc" }));
