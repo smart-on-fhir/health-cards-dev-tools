@@ -54,6 +54,7 @@ async function _testCard(fileName: string | string[], fileType: ValidationType, 
     // if only errors are specified warning will not get a default 0, so we'll set it here.
     if (expected.length === 1) expected[1] = 0;
     expected.length = 5;
+    if (expected[0] === undefined) expected[0] = 0;
 
     for (let i = 0; i < errors.length; i++) {
         const exp = expected[i];
@@ -198,12 +199,17 @@ test("Cards: issuer in trusted directory ref by name", testCard(['example-00-d-j
 test("Cards: issuer in trusted directory ref by URL", testCard(['example-00-d-jws.txt'], 'jws', [0], { issuerDirectory: 'https://raw.githubusercontent.com/smart-on-fhir/health-cards-dev-tools/main/testdata/test-issuers.json' }));
 
 // SMART Health Link valid cases
-test("Cards: SHL QR", testCard(["shlink-qr.png"], "qr"));
-test("Cards: SHL Link", testCard(["shlink-link.txt"], "shlink"));
-test("Cards: SHL Link w/ Viewer", testCard(["shlink-link-with-viewer.txt"], "shlink"));
-test("Cards: SHL Payload", testCard(["shlink-payload.txt"], "shlpayload"));
-test("Cards: SHL Manifest", testCard(["shlink-manifest.txt"], "shlmanifest", [], { decryptionKey: "Es8Gv3aHMGeyuLW8PGdE-mlv-qOx_EuVc1qhN2AoSvs" }));
-test("Cards: SHL File", testCard(["shlink-manifest-file.txt"], "shlfile", [], { decryptionKey: "Es8Gv3aHMGeyuLW8PGdE-mlv-qOx_EuVc1qhN2AoSvs" }));
+// These tests require the 'shl-server' be running. It will start automatically when running the 'test' script
+// but you will need to start it manually if you are running individual tests
+// Note: The local shl test server is not configured with an ssl cert, so it is listening on http (not https). We're ignoring the not-https-url errors in the tests below.
+// Note: The shl test server data is read from the ./shl-server/shl folder when it starts
+test("Cards: SHL QR", testCard(["shlink-qr.png"], "qr", [[ec.SHLINK_NOT_HTTPS_URL, ec.SHLINK_NOT_HTTPS_URL]], { passCode: "1234" }));
+test("Cards: SHL Link", testCard(["shlink-link.txt"], "shlink", [[ec.SHLINK_NOT_HTTPS_URL, ec.SHLINK_NOT_HTTPS_URL]], { passCode: "1234" }));
+test("Cards: SHL Link w/ Viewer", testCard(["shlink-link-with-viewer.txt"], "shlink", [[ec.SHLINK_NOT_HTTPS_URL, ec.SHLINK_NOT_HTTPS_URL]], { passCode: "1234" }));
+test("Cards: SHL Payload", testCard(["shlink-payload.txt"], "shlpayload", [[ec.SHLINK_NOT_HTTPS_URL, ec.SHLINK_NOT_HTTPS_URL]], { passCode: "1234" }));
+test("Cards: SHL Manifest", testCard(["shlink-manifest.txt"], "shlmanifest", [[ec.SHLINK_NOT_HTTPS_URL, ec.SHLINK_NOT_HTTPS_URL]], { decryptionKey: "v7SjEf2oC4nbbkrhJJ1VAsnp4QaAmrzwIVQtxGM7AIc" }));
+test("Cards: SHL File", testCard(["shlink-manifest-file.txt"], "shlfile", [[ec.SHLINK_NOT_HTTPS_URL]], { decryptionKey: "v7SjEf2oC4nbbkrhJJ1VAsnp4QaAmrzwIVQtxGM7AIc" }));
+test("Cards: SHL Link: bad passcode", testCard(["shlink-link.txt"], "shlink", [[ec.SHLINK_INVALID_PASSCODE]], { passCode: "12345" }));
 
 // Warning cases
 
@@ -336,8 +342,8 @@ test("Cards: QR chunk index out of range",
 );
 
 test("Cards: QR chunk too big",
-    testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric', 
-    [[ec.QR_CHUNKING_DEPRECATED, ec.INVALID_NUMERIC_QR, ec.INVALID_NUMERIC_QR], JWS_TOO_LONG_WARNING], { exclude: ['fhir-schema-error'] })
+    testCard(['test-example-02-f-qr-code-numeric-value-0-qr_chunk_too_big.txt', 'test-example-02-f-qr-code-numeric-value-1-qr_chunk_too_big.txt'], 'qrnumeric',
+        [[ec.QR_CHUNKING_DEPRECATED, ec.INVALID_NUMERIC_QR, ec.INVALID_NUMERIC_QR], JWS_TOO_LONG_WARNING], { exclude: ['fhir-schema-error'] })
 );
 
 test("Cards: invalid numeric QR with odd count",
