@@ -57,7 +57,7 @@ export async function encode(
 
     const payload: ShlinkPayload = {
         "url": `${baseUrl}/${randomUrlSegment}`,
-        "flag": `${expiration ? '' : 'L'}${passcode ? "P" : ""}` as "L" | "P" | "LP",
+        "flag": `${expiration ? '' : 'L'}${passcode ? "P" : ""}` as PayloadFlags,
         "key": exportKey,
         "label": label,
         "exp": expiration

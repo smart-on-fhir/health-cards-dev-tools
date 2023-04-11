@@ -22,6 +22,8 @@ type ValidationType =
     | "shlmanifest"
     | "shlfile";
 
+type PayloadFlags = "L" | "P" | "LP" | "U" | "LU";
+
 interface HealthCard {
     verifiableCredential: JWS[];
 }
@@ -38,9 +40,9 @@ interface FhirHealthCard {
 }
 
 interface JWEHeader {
-    "alg": string;
-    "enc": string;
-    "contentType": string;
+    alg: string;
+    enc: string;
+    contentType: string;
 }
 
 interface JWSPayload {
@@ -116,7 +118,7 @@ interface ShlinkPayload {
     url: string;
     key: string;
     exp?: number;
-    flag?: "L" | "P" | "LP";
+    flag?: PayloadFlags;
     label?: string;
 }
 
@@ -133,8 +135,13 @@ interface ShlinkFile {
 }
 
 interface ShlinkManifestRequest {
-    url: string,
+    url: string;
     recipient: string;
     passcode?: string;
     embeddedLengthMax?: number;
+}
+
+interface ShlinkFileDirect {
+    url: string;
+    recipient: string;
 }

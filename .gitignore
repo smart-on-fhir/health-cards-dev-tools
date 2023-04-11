@@ -137,3 +137,6 @@ schema/fhir-schema-full.json
 
 # downloaded HL7 validator for JRE deployment
 validator_cli.jar
+
+# personal setting 
+.vscode/settings.json

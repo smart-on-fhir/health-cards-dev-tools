@@ -7,6 +7,7 @@ import { IOptions } from "./options";
 import { get, parseJson, unexpectedProperties, isUrl, isJwe } from "./utils";
 import * as jwe from "./jwe-compact";
 import { HTTPError } from "got";
+import { URLSearchParams } from "url";
 
 export async function validate(shlinkFile: string, options: IOptions): Promise<Log> {
     const log = new Log(`SHL-File ${options.index}`);
@@ -35,18 +36,15 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<L
     const allowedContentTypes = [
         "application/smart-health-card",
         "application/smart-api-access",
-        "application/fhir+json"
+        "application/fhir+json",
     ];
 
     if (!file.contentType) {
-        log.error(
-            `Manifest file must contain 'contentType'`,
-            ErrorCode.SHLINK_VERIFICATION_ERROR
-        );
+        log.error(`Manifest file must contain 'contentType'`, ErrorCode.SHLINK_VERIFICATION_ERROR);
     } else {
         if (allowedContentTypes.includes(file.contentType) === false) {
             log.error(
-                `'contentType' must be either ${allowedContentTypes.join(' | ')}`,
+                `'contentType' must be either ${allowedContentTypes.join(" | ")}`,
                 ErrorCode.SHLINK_VERIFICATION_ERROR
             );
         }
@@ -69,19 +67,21 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<L
         log.error(`file.embedded is not JWE`, ErrorCode.SHLINK_VERIFICATION_ERROR);
     }
 
-    options = { ...options, shlFile: file }
+    options = { ...options, shlFile: file };
 
     if (options.cascade) {
-
         if (file.location) {
-
             log.info(`Retrieving file payload from location ${file.location}`);
+
             encrypted = await downloadManifestFile(file, log);
+
             log.debug(`Encrypted\n${encrypted}`);
             if (file.embedded && encrypted !== file.embedded) {
-                log.error(`File downloaded from 'location' does not equal the 'embedded' file contents`, ErrorCode.SHLINK_VERIFICATION_ERROR);
+                log.error(
+                    `File downloaded from 'location' does not equal the 'embedded' file contents`,
+                    ErrorCode.SHLINK_VERIFICATION_ERROR
+                );
             }
-
         } else {
             log.info(`Retrieving 'embedded' file payload`);
             encrypted = file.embedded;
@@ -99,7 +99,6 @@ export async function validate(shlinkFile: string, options: IOptions): Promise<L
 }
 
 export async function downloadManifestFile(params: ShlinkFile, log: Log): Promise<string> {
-
     if (!params.location || !isUrl(params.location)) {
         log.fatal(
             `Manifest file download error: 'location' property is not valid URL or is missing`,
@@ -115,5 +114,27 @@ export async function downloadManifestFile(params: ShlinkFile, log: Log): Promis
         );
         return "";
     });
+}
 
+export async function downloadDirectFile(params: ShlinkFileDirect, log: Log): Promise<string> {
+    if (params.url && isUrl(params.url, false) === false) {
+        log.error(`url is not a valid HTTPS url`, ErrorCode.SHLINK_NOT_HTTPS_URL);
+    }
+
+    const encrypted = await get(params.url, new URLSearchParams({ recipient: params.recipient })).catch(
+        (err: HTTPError) => {
+            log.fatal(
+                `Manifest file download error : ${err.response?.statusCode} ${err.toString()}`,
+                ErrorCode.SHLINK_VERIFICATION_ERROR
+            );
+            return "";
+        }
+    );
+
+    if (!encrypted || typeof encrypted !== "string") {
+        log.error(`Manifest file download invalid`, ErrorCode.SHLINK_VERIFICATION_ERROR);
+        return "";
+    }
+
+    return encrypted;
 }

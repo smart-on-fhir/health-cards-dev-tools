@@ -9,6 +9,7 @@ import jose from "node-jose";
 import { runCommandSync } from "./command";
 import { QRCodeErrorCorrectionLevel, toFile } from 'qrcode';
 import response from "./urlMappings";
+import { URLSearchParams } from "url";
 
 export function parseJson<T>(json: unknown): T | undefined {
     try {
@@ -158,7 +159,7 @@ export async function post(url: string, data: Record<string, unknown>): Promise<
     return got.post(url, { json: data }).text();
 }
 
-export async function get(url: string): Promise<string> {
+export async function get(url: string, queryParams?: URLSearchParams): Promise<string> {
     const testData = response as unknown as Record<string, Record<string, string> | string>;
 
     const testResponse = testData[url];
@@ -169,7 +170,9 @@ export async function get(url: string): Promise<string> {
         return typeof testResponse === "string" ? testResponse : JSON.stringify(testResponse);
     }
 
-    return await got.get(url).text();
+    return await got.get(url, {
+        searchParams: queryParams
+    }).text();
 }
 
 export function createSHLink(url: string, key: string, flag?: string, label?: string, exp?: number, v?: number): string {
