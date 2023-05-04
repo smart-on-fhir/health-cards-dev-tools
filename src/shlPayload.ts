@@ -7,6 +7,8 @@ import Log, { LogLevels } from "./logger";
 import { IOptions } from "./options";
 import { parseJson, post, unexpectedProperties } from "./utils";
 import * as shlManifest from "./shlManifest";
+import { downloadDirectFile } from "./shlManifestFile";
+import * as jwe from "./jwe-compact";
 
 export async function validate(shlinkPayloadJson: string, options: IOptions): Promise<Log> {
     const log = new Log("SHL-Payload");
@@ -32,9 +34,9 @@ export async function validate(shlinkPayloadJson: string, options: IOptions): Pr
     }
 
     if (payload.flag) {
-        if (typeof payload.flag !== "string" || !["L", "LP", "P"].includes(payload.flag)) {
+        if (typeof payload.flag !== "string" || !["L", "LP", "P", "U", "LU"].includes(payload.flag)) {
             log.error(
-                `Optional 'flag' property invalid: flag must be 'L' or 'P' or 'LP'`,
+                `Optional 'flag' property invalid: flag must be 'L', 'P', 'LP', 'U', or 'LU'`,
                 ErrorCode.SHLINK_VERIFICATION_ERROR
             );
         }
@@ -69,6 +71,7 @@ export async function validate(shlinkPayloadJson: string, options: IOptions): Pr
         "label",
         "flag",
         "key",
+        "v",
     ]);
     if (unexpectedProps.length) {
         log.warn(
@@ -89,19 +92,55 @@ export async function validate(shlinkPayloadJson: string, options: IOptions): Pr
         );
     }
 
-    log.info(`Retrieving manifest file from ${payload.url}`);
     log.debug(`Payload\n${JSON.stringify(payload, null, 2)}`);
 
     let manifest: string;
 
     if (options.cascade) {
+        // U Indicates the SHLink's url resolves to a single encrypted file
+        // accessible via GET, bypassing the manifest.
+
+        if (payload.flag === "U" || payload.flag === "LU") {
+            log.info(`Retrieving file directly from ${payload.url} (flag === U)`);
+
+            const encrypted: string = await downloadDirectFile(
+                { url: payload.url, recipient: "Example SHL Client" },
+                log
+            ).catch((_err) => {
+                log.fatal(`error downloading file ${payload.url} ${(_err as Error).message}`);
+                return "";
+            });
+
+            if (!encrypted) {
+                return log;
+            }
+
+            log.child.push(
+                (
+                    await jwe.validate(encrypted, {
+                        ...options,
+                        decryptionKey: payload.key,
+                        index: 0,
+                        shlFile: { contentType: "application/smart-health-card" },
+                    })
+                ).log
+            );
+
+            return log;
+        }
+
         // download the manifest file as text
-        manifest = await downloadManifest({url: payload.url, passcode: options.passCode, recipient: "Example SHL Client", embeddedLengthMax: 200}, log);
+        manifest = await downloadManifest(
+            { url: payload.url, passcode: options.passCode, recipient: "Example SHL Client", embeddedLengthMax: 200 },
+            log
+        );
 
         // if we got a fatal error, quit here
         if (log.get(LogLevels.FATAL).length) {
-            return log; 
+            return log;
         }
+
+        log.info(`Retrieving manifest file from ${payload.url}`);
 
         log.child.push(await shlManifest.validate(manifest, { ...options, decryptionKey: payload.key }));
     }
@@ -109,10 +148,7 @@ export async function validate(shlinkPayloadJson: string, options: IOptions): Pr
     return log;
 }
 
-export async function downloadManifest(
-    params: ShlinkManifestRequest,
-    log: Log
-): Promise<string> {
+export async function downloadManifest(params: ShlinkManifestRequest, log: Log): Promise<string> {
     const manifest = await post(params.url, params as unknown as Record<string, unknown>).catch((err: HTTPError) => {
         const remainingAttempts =
             parseJson<{ remainingAttempts: number }>(err.response?.body as string)?.remainingAttempts || "unknown";
@@ -120,7 +156,7 @@ export async function downloadManifest(
         switch (err.response.statusCode) {
             case 401: // invalid passcode
                 {
-                    if (!Number.isInteger(remainingAttempts) || remainingAttempts < 0) {
+                    if (!Number.isInteger(remainingAttempts) || (remainingAttempts as number) < 0) {
                         log.warn(
                             `'remainingAttempts' not returned or is negative (remainingAttempts = ${remainingAttempts})`
                         );

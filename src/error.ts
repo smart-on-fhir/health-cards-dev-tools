@@ -89,7 +89,8 @@ export const ExcludableErrors: ExcludableError[] = [
     new ExcludableError('jws-too-long', [ErrorCode.JWS_TOO_LONG]),
     new ExcludableError('invalid-file-extension', [ErrorCode.INVALID_FILE_EXTENSION]),
     new ExcludableError('trailing-characters', [ErrorCode.TRAILING_CHARACTERS]),
-    new ExcludableError('issuer-wellknown-endpoint-cors', [ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS])
+    new ExcludableError('issuer-wellknown-endpoint-cors', [ErrorCode.ISSUER_KEY_WELLKNOWN_ENDPOINT_CORS]),
+    new ExcludableError('url-not-https', [ErrorCode.SHLINK_NOT_HTTPS_URL])
 ]
 
 export function getExcludeErrorCodes(errors: string[]): Set<ErrorCode> {

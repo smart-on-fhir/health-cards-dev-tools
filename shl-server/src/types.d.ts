@@ -4,6 +4,8 @@
 type JWE = string;
 type JWS = string;
 
+type PayloadFlags = "L" | "P" | "LP" | "U" | "LU";
+
 interface VerifiableCredential {
     verifiableCredential: JWS[];
 }
@@ -31,7 +33,7 @@ interface ShlinkPayload {
     url: string;
     key: string;
     exp?: number;
-    flag?: "L" | "P" | "LP";
+    flag?: PayloadFlags;
     label?: string;
     v?: number;
 }
@@ -59,7 +61,7 @@ interface SHLLinkRequest {
         path?: string;
         key?: string;
         exp?: number | string;
-        flag?: "L" | "P" | "LP";
+        flag?: PayloadFlags;
         label?: string;
         v?: number;
     };

@@ -18,7 +18,7 @@ import * as store from './store.js';
 const app = express();
 app.use(express.json())
 app.use(express.static('./public'))
-
+app.use(express.urlencoded({ extended: true }))
 
 
 //
@@ -50,7 +50,8 @@ app.post(config.CREATE_LINK, (req, res) => {
 app.get('/shl/*', (req, res) => {
     console.log('Received Request for Manifest File', '/shl/*', req.body);
 
-    const url = req.url.split('/')[2];
+    const urlWithoutQuery = req.url.split('?')[0];
+    const url = urlWithoutQuery.split('/')[2];
     const file = store.file(url);
 
     if (!file) {
@@ -122,7 +123,7 @@ const server = http.createServer(app);
 server.listen(config.SERVICE_PORT, () => {
     const url = config.SERVER_BASE;
     console.log([
-        `HTTP Server listening at ${url}`
+        `SHL HTTP test server listening at ${url}`
     ].join('\n'));
     process.exitCode = 0;
 });
@@ -158,7 +159,7 @@ function verifyRequest(request: SHLLinkRequest): boolean {
 
     if (exp && (typeof exp !== 'string' && typeof exp !== 'number')) return false;
 
-    if (flag && !['L', 'LP', 'P'].includes(flag)) return false;
+    if (flag && !['L', 'LP', 'P', 'U', 'LU'].includes(flag)) return false;
 
     if (label && typeof label !== 'string') return false;
 

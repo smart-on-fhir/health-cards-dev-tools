@@ -14,9 +14,11 @@ export async function encode(request: SHLLinkRequest): Promise<SHLEncoding> {
 
     const jweFiles = await encodeFiles(files.map(f => JSON.stringify(f)), jwkKey);
 
+    const url =  payload?.flag?.includes('U') ? `${config.SERVER_BASE}shl/${randomUrlSegment}` : `${config.SERVER_BASE}${randomUrlSegment}`;
+  
     const respPayload: ShlinkPayload = {
-        "url": `${config.SERVER_BASE}${randomUrlSegment}`,
-        "flag": `${payload?.flag?.includes('L') ? 'L' : ''}${passcode ? 'P' : ''}` as "L" | "P" | "LP",
+        "url": url,
+        "flag": `${payload?.flag?.includes('L') ? 'L' : ''}${payload?.flag?.includes('P') ? 'P' : payload?.flag?.includes('U') ? 'U' : ''}` as PayloadFlags,
         "key": exportKey,
         "label": payload?.label ?? "",
     }
@@ -71,5 +73,3 @@ async function encodeFiles(files: string[], jwkKey: jose.JWK.Key): Promise<JWE[]
 export function randomBase64Url(byteLength = 32): string {
     return Buffer.from(Buffer.alloc(byteLength).map(() => Math.floor(Math.random() * 256))).toString('base64url');
 }
-
-
